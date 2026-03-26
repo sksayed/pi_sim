@@ -10,6 +10,7 @@ import json
 import os
 import sys
 import time
+import uuid
 from abc import ABC, abstractmethod
 from pathlib import Path
 
@@ -41,8 +42,9 @@ class BaseClient(ABC):
         if not self.DEVICE_ID:
             raise NotImplementedError("Subclass must set DEVICE_ID")
 
-        self._topic = f"nodes/{self.DEVICE_ID}/data"
-        self._mqtt  = mqtt.Client(client_id=self.DEVICE_ID, clean_session=True)
+        self._session_id = uuid.uuid4().hex
+        self._topic      = f"nodes/{self.DEVICE_ID}/data"
+        self._mqtt       = mqtt.Client(client_id=self.DEVICE_ID, clean_session=True)
         self._mqtt.on_connect    = self._on_connect
         self._mqtt.on_publish    = self._on_publish
         self._mqtt.on_disconnect = self._on_disconnect
@@ -76,7 +78,8 @@ class BaseClient(ABC):
 
     def run(self) -> None:
         tag = f"[{self.DEVICE_ID.upper()}]"
-        print(f"{tag} Crypto: {self.CRYPTO_TYPE}")
+        print(f"{tag} Crypto     : {self.CRYPTO_TYPE}")
+        print(f"{tag} Session ID : {self._session_id}")
         print(f"{tag} Connecting to {GATEWAY_IP}:{GATEWAY_PORT} …")
 
         try:
@@ -91,6 +94,7 @@ class BaseClient(ABC):
         try:
             while True:
                 msg  = self.build_message(seq)
+                msg["session_id"] = self._session_id
                 body = json.dumps(msg)
                 res  = self._mqtt.publish(self._topic, payload=body, qos=1)
 

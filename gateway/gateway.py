@@ -39,8 +39,10 @@ GATEWAY_IP   = os.getenv("GATEWAY_IP", "127.0.0.1")
 GATEWAY_PORT = int(os.getenv("GATEWAY_PORT", 1883))
 
 # ── State ──────────────────────────────────────────────────────────────────────
-# Maps device_id → last accepted sequence number.
-_last_seq: dict[str, int] = {}
+# Maps device_id → (session_id, last_seq).
+# A new session_id resets seq tracking; within a session seq must be strictly
+# increasing to guard against replay attacks.
+_sessions: dict[str, tuple[str, int]] = {}
 
 
 # ── Decryption handlers ────────────────────────────────────────────────────────
@@ -49,16 +51,34 @@ def _b64d(s: str) -> bytes:
     return base64.b64decode(s)
 
 
-def _check_replay(device_id: str, seq: int) -> bool:
-    """Return True and update state if seq is fresh; False if replayed."""
-    last = _last_seq.get(device_id, 0)
-    if seq <= last:
+def _check_replay(device_id: str, session_id: str, seq: int) -> bool:
+    """Return True and update state if (session_id, seq) is fresh; False if replayed.
+
+    A new session_id resets the sequence counter for that device — allowing the
+    client to restart without triggering false replay rejections.
+    Within the same session, seq must be strictly increasing.
+    """
+    current = _sessions.get(device_id)
+
+    if current is None or current[0] != session_id:
+        # New device or new session — reset tracking.
+        _sessions[device_id] = (session_id, seq)
+        if current is not None:
+            print(
+                f"[GATEWAY] NEW SESSION  device={device_id} "
+                f"session={session_id[:8]}…"
+            )
+        return True
+
+    last_seq = current[1]
+    if seq <= last_seq:
         print(
             f"[GATEWAY] REPLAY REJECTED  device={device_id} "
-            f"seq={seq} last_seen={last}"
+            f"session={session_id[:8]}… seq={seq} last_seen={last_seq}"
         )
         return False
-    _last_seq[device_id] = seq
+
+    _sessions[device_id] = (session_id, seq)
     return True
 
 
@@ -77,10 +97,11 @@ def _print_accepted(device_id: str, crypto_type: str, plaintext_json: str) -> No
 
 def _decrypt_client_a(km, msg: dict) -> None:
     """AES-256-GCM: derive key from device_id and decrypt."""
-    device_id = msg["device_id"]
-    seq       = msg["seq"]
+    device_id  = msg["device_id"]
+    session_id = msg.get("session_id", "default")
+    seq        = msg["seq"]
 
-    if not _check_replay(device_id, seq):
+    if not _check_replay(device_id, session_id, seq):
         return
 
     try:
@@ -97,10 +118,11 @@ def _decrypt_client_a(km, msg: dict) -> None:
 
 def _decrypt_client_b(km, msg: dict) -> None:
     """Kyber-512 KEM + AES-256-GCM: decapsulate to recover AES key, then decrypt."""
-    device_id = msg["device_id"]
-    seq       = msg["seq"]
+    device_id  = msg["device_id"]
+    session_id = msg.get("session_id", "default")
+    seq        = msg["seq"]
 
-    if not _check_replay(device_id, seq):
+    if not _check_replay(device_id, session_id, seq):
         return
 
     try:
@@ -120,10 +142,11 @@ def _decrypt_client_b(km, msg: dict) -> None:
 
 def _decrypt_client_c(km, msg: dict) -> None:
     """Kyber-768 KEM + AES-256-GCM + Dilithium-3: decapsulate, decrypt, verify sig."""
-    device_id = msg["device_id"]
-    seq       = msg["seq"]
+    device_id  = msg["device_id"]
+    session_id = msg.get("session_id", "default")
+    seq        = msg["seq"]
 
-    if not _check_replay(device_id, seq):
+    if not _check_replay(device_id, session_id, seq):
         return
 
     try:

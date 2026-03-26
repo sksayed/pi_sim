@@ -16,6 +16,7 @@ import json
 import os
 import sys
 import time
+import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -38,6 +39,7 @@ PUBLISH_INTERVAL = float(os.getenv("PUBLISH_INTERVAL", 2))
 DEVICE_ID   = "client-a"
 CRYPTO_TYPE = "AES-256-GCM"
 TOPIC       = f"nodes/{DEVICE_ID}/data"
+SESSION_ID  = uuid.uuid4().hex
 
 if not MASTER_SECRET:
     print("[CLIENT] ERROR: MASTER_SECRET not set in .env", file=sys.stderr)
@@ -71,6 +73,7 @@ def encrypt_payload(seq: int) -> dict:
     return {
         "device_id":   DEVICE_ID,
         "crypto_type": CRYPTO_TYPE,
+        "session_id":  SESSION_ID,
         "seq":         seq,
         "nonce":       base64.b64encode(nonce).decode(),
         "ciphertext":  base64.b64encode(ciphertext).decode(),
@@ -98,10 +101,11 @@ def on_disconnect(client, userdata, rc):
 # ── Main ───────────────────────────────────────────────────────────────────────
 
 def main():
-    print(f"[CLIENT] Device   : {DEVICE_ID}")
-    print(f"[CLIENT] Crypto   : {CRYPTO_TYPE}")
-    print(f"[CLIENT] Topic    : {TOPIC}")
-    print(f"[CLIENT] Interval : {PUBLISH_INTERVAL}s")
+    print(f"[CLIENT] Device     : {DEVICE_ID}")
+    print(f"[CLIENT] Crypto     : {CRYPTO_TYPE}")
+    print(f"[CLIENT] Session ID : {SESSION_ID}")
+    print(f"[CLIENT] Topic      : {TOPIC}")
+    print(f"[CLIENT] Interval   : {PUBLISH_INTERVAL}s")
     print(f"[CLIENT] Connecting to {GATEWAY_IP}:{GATEWAY_PORT} …")
 
     mqttc = mqtt.Client(client_id=DEVICE_ID, clean_session=True)
