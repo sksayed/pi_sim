@@ -1,8 +1,5 @@
-import os
-from pathlib import Path
-from dotenv import load_dotenv
+TOPIC_PATTERN = "nodes/+/data"
 
-load_dotenv(dotenv_path=Path(__file__).resolve().parents[1] / ".env")
 
-NETWORK_SSID = os.getenv("NETWORK_SSID", "YourHotspotSSID")
-MQTT_TOPIC   = "pi/sensor/data"
+def device_topic(device_id: str) -> str:
+    return f"nodes/{device_id}/data"

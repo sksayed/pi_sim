@@ -1,0 +1,14 @@
+# Client Pi dependencies
+# Install with: pip install -r client_requirements.txt
+paho-mqtt>=1.6.1,<2.0
+python-dotenv>=1.0.0
+cryptography>=41.0.0
+
+# Post-quantum crypto (optional — simulation mode runs without it).
+# Requires liboqs to be built first on Raspberry Pi OS:
+#   sudo apt install -y cmake ninja-build libssl-dev
+#   git clone --depth 1 https://github.com/open-quantum-safe/liboqs
+#   cd liboqs && cmake -GNinja -DBUILD_SHARED_LIBS=ON . && ninja && sudo ninja install
+#   sudo ldconfig
+# Then install the Python bindings:
+pyoqs>=0.9.0
