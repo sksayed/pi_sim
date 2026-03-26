@@ -10,6 +10,7 @@ When it is absent a simulation fallback produces outputs of the correct sizes
 so the full MQTT + encryption pipeline still runs end-to-end.
 """
 
+import ctypes
 import hashlib
 import hmac
 import os
@@ -23,7 +24,9 @@ from cryptography.hazmat.backends import default_backend
 
 # ── PQC library ────────────────────────────────────────────────────────────────
 try:
-    import oqs  # pyoqs — Python bindings for liboqs
+    import oqs  # liboqs-python bindings
+    import warnings as _w
+    _w.filterwarnings("ignore", message="liboqs version")
     PQC_AVAILABLE = True
 except ImportError:
     PQC_AVAILABLE = False
@@ -33,6 +36,17 @@ except ImportError:
         stacklevel=2,
     )
 
+# ── liboqs C library (for derand / custom-RNG APIs) ───────────────────────────
+_liboqs = None
+if PQC_AVAILABLE:
+    try:
+        _liboqs = ctypes.CDLL("/usr/local/lib/liboqs.so")
+    except OSError:
+        pass
+
+# C callback type: void (*)(uint8_t *buf, size_t n)
+_RandCallback = ctypes.CFUNCTYPE(None, ctypes.POINTER(ctypes.c_uint8), ctypes.c_size_t)
+
 # ── Kyber / Dilithium parameter table ─────────────────────────────────────────
 # Sizes in bytes as defined in the NIST specifications.
 _KEM_PARAMS = {
@@ -40,7 +54,7 @@ _KEM_PARAMS = {
     "Kyber768": {"pk": 1184, "sk": 2400, "ct": 1088, "ss": 32},
 }
 _SIG_PARAMS = {
-    "Dilithium3": {"pk": 1952, "sk": 4000, "sig": 3293},
+    "ML-DSA-65": {"pk": 1952, "sk": 4000, "sig": 3293},
 }
 
 
@@ -74,25 +88,37 @@ class KeyManager:
 
     # ── Kyber KEM ──────────────────────────────────────────────────────────────
 
-    def _kyber_keypair_real(self, alg: str):
+    def _with_deterministic_rng(self, info: str, seed_len: int, fn):
         """
-        Generate a deterministic Kyber keypair using the NIST-KAT PRNG seeded
-        from HKDF. Returns (public_key_bytes, secret_key_bytes).
+        Temporarily replace liboqs's RNG with a deterministic stream derived
+        from HKDF, call `fn()`, then restore the system RNG.
         """
-        seed_48 = self._hkdf(f"{alg.lower()}:nist_seed", 48)
+        seed_bytes = self._hkdf(info, seed_len)
+        buf = bytearray(seed_bytes * 64)  # large repeating buffer
+        pos = [0]
+
+        @_RandCallback
+        def _fill(ptr, n):
+            for i in range(n):
+                ptr[i] = buf[pos[0] % len(buf)]
+                pos[0] += 1
+
+        if _liboqs:
+            _liboqs.OQS_randombytes_custom_algorithm(_fill)
         try:
-            oqs.randombytes_switch_algorithm("NIST-KAT")
-            oqs.randombytes_nist_kat_init_256bit(seed_48)
+            return fn()
+        finally:
+            if _liboqs:
+                _liboqs.OQS_randombytes_switch_algorithm(b"system")
+
+    def _kyber_keypair_real(self, alg: str):
+        """Generate a deterministic Kyber keypair via HKDF-seeded custom RNG."""
+        def _gen():
             kem = oqs.KeyEncapsulation(alg)
             pk = kem.generate_keypair()
             sk = kem.export_secret_key()
             return pk, sk
-        finally:
-            # Always restore system PRNG regardless of success/failure.
-            try:
-                oqs.randombytes_switch_algorithm("system")
-            except Exception:
-                pass
+        return self._with_deterministic_rng(f"{alg.lower()}:keypair", 64, _gen)
 
     def _kyber_keypair_sim(self, alg: str):
         """Simulation: derive pseudo-keypair bytes deterministically."""
@@ -146,19 +172,13 @@ class KeyManager:
     # ── Dilithium signatures ───────────────────────────────────────────────────
 
     def _dilithium_keypair_real(self, alg: str, device_id: str):
-        seed_48 = self._hkdf(f"{alg.lower()}:{device_id}:nist_seed", 48)
-        try:
-            oqs.randombytes_switch_algorithm("NIST-KAT")
-            oqs.randombytes_nist_kat_init_256bit(seed_48)
-            sig = oqs.Signature(alg)
-            pk = sig.generate_keypair()
-            sk = sig.export_secret_key()
+        """Generate a deterministic ML-DSA keypair via HKDF-seeded custom RNG."""
+        def _gen():
+            s = oqs.Signature(alg)
+            pk = s.generate_keypair()
+            sk = s.export_secret_key()
             return pk, sk
-        finally:
-            try:
-                oqs.randombytes_switch_algorithm("system")
-            except Exception:
-                pass
+        return self._with_deterministic_rng(f"{alg.lower()}:{device_id}:keypair", 64, _gen)
 
     def _dilithium_keypair_sim(self, alg: str, device_id: str):
         p = _SIG_PARAMS[alg]
@@ -167,36 +187,34 @@ class KeyManager:
         return pk, sk
 
     def dilithium3_keypair(self, device_id: str):
-        """Return (public_key, secret_key) for Dilithium-3 scoped to `device_id`."""
+        """Return (public_key, secret_key) for ML-DSA-65 (formerly Dilithium-3)."""
         if PQC_AVAILABLE:
-            return self._dilithium_keypair_real("Dilithium3", device_id)
-        return self._dilithium_keypair_sim("Dilithium3", device_id)
+            return self._dilithium_keypair_real("ML-DSA-65", device_id)
+        return self._dilithium_keypair_sim("ML-DSA-65", device_id)
 
     def dilithium3_sign(self, message: bytes, secret_key: bytes) -> bytes:
-        """Sign `message`. Returns a signature."""
+        """Sign `message` with ML-DSA-65. Returns a signature."""
         if PQC_AVAILABLE:
-            signer = oqs.Signature("Dilithium3", secret_key=secret_key)
+            signer = oqs.Signature("ML-DSA-65", secret_key=secret_key)
             return signer.sign(message)
 
         # Simulation: HMAC-SHA256 padded to spec size.
         tag = hmac.new(secret_key[:32], message, hashlib.sha256).digest()
-        p = _SIG_PARAMS["Dilithium3"]
+        p = _SIG_PARAMS["ML-DSA-65"]
         return tag + os.urandom(p["sig"] - len(tag))
 
     def dilithium3_verify(
         self, message: bytes, signature: bytes, public_key: bytes
     ) -> bool:
-        """Verify `signature` over `message`. Returns True if valid."""
+        """Verify `signature` over `message` with ML-DSA-65. Returns True if valid."""
         if PQC_AVAILABLE:
-            verifier = oqs.Signature("Dilithium3")
+            verifier = oqs.Signature("ML-DSA-65")
             return verifier.verify(message, signature, public_key)
 
         # Simulation: recompute HMAC using sim_sk derived the same way.
-        # The public_key bytes carry no secret in sim mode so we re-derive sk.
-        # NOTE: this only works because both sides derive sk deterministically.
         sim_sk = self._hkdf(
-            f"dilithium3:{self._extract_device_id_from_sim_pk(public_key)}:sim_sk",
-            _SIG_PARAMS["Dilithium3"]["sk"],
+            f"ml-dsa-65:{self._extract_device_id_from_sim_pk(public_key)}:sim_sk",
+            _SIG_PARAMS["ML-DSA-65"]["sk"],
         )
         expected_tag = hmac.new(sim_sk[:32], message, hashlib.sha256).digest()
         return hmac.compare_digest(signature[:32], expected_tag)
