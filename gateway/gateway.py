@@ -18,6 +18,7 @@ import base64
 import json
 import os
 import sys
+import uuid
 from pathlib import Path
 
 import paho.mqtt.client as mqtt
@@ -213,7 +214,7 @@ def main() -> None:
     print(f"[GATEWAY] Crypto mode : {mode}")
     print(f"[GATEWAY] Replay protection : enabled (per-device seq tracking)")
 
-    client = mqtt.Client(client_id="gateway", clean_session=True)
+    client = mqtt.Client(client_id=f"gateway-{uuid.uuid4().hex[:8]}", clean_session=True)
     client.on_connect    = on_connect
     client.on_message    = _make_on_message(km)
     client.on_disconnect = on_disconnect
