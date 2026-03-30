@@ -7,10 +7,12 @@ family used for the journal comparative study profiles.
 Wire format (JSON over MQTT) published to nodes/{device_id}/data:
   {
     "device_id": "...",
+    "profile_id": "...",
+    "client_uuid": "...",
     "session_id": "...",
     "seq": 1,
     "crypto_type": "PQC-RESEARCH-PROFILE",
-    "profile": "A|B|C",
+    "profile": "1..7",
     "alg_kem": "...",
     "alg_sig": "...",
     "kem_ciphertext": "<b64>",
@@ -31,6 +33,9 @@ import uuid
 from abc import ABC, abstractmethod
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Any, Dict
+
+import fcntl
 
 import paho.mqtt.client as mqtt
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
@@ -46,7 +51,6 @@ from shared.metrics import benchmark_pqc
 load_dotenv(dotenv_path=Path(__file__).resolve().parents[1] / ".env")
 GATEWAY_IP = os.getenv("GATEWAY_IP", "127.0.0.1")
 GATEWAY_PORT = int(os.getenv("GATEWAY_PORT", 1883))
-PUBLISH_INTERVAL = float(os.getenv("PUBLISH_INTERVAL", 2))
 
 
 class ResearchProfileClient(ABC):
@@ -56,11 +60,35 @@ class ResearchProfileClient(ABC):
     ALG_SIG: str = ""
     SECURITY_BITS: int = 0
     CRYPTO_TYPE: str = "PQC-RESEARCH-PROFILE"
+    PUBLISH_INTERVAL_ENV: str = "PUBLISH_INTERVAL"
+    PUBLISH_INTERVAL_DEFAULT_S: float = 2.0
+    CLIENT_TAG_ENV: str = "CLIENT_TAG"
+    CLIENT_TAG_STATE_ENV: str = "CLIENT_TAG_STATE_PATH"
 
     def __init__(self) -> None:
         if not self.DEVICE_ID:
             raise NotImplementedError("Subclass must set DEVICE_ID")
+
+        # Allow multiple concurrent clients per profile without topic/id clashes.
+        # Treat subclass DEVICE_ID as a stable profile identifier and create a
+        # short per-instance device_id for MQTT + key derivation.
+        self._profile_id = self.DEVICE_ID
+
+        # If you only run a small number of clients (e.g. <=10), a full UUID is
+        # visually noisy. Prefer a small integer tag:
+        #   (auto) → device_id "profile-1-01", "profile-1-02", ...
+        #   export CLIENT_TAG=07 → device_id "profile-1-07"
+        self._client_tag = os.getenv(self.CLIENT_TAG_ENV, "").strip()
+        if not self._client_tag:
+            self._client_tag = self._allocate_client_tag(self._profile_id)
+
+        # Keep a full UUID available for offline correlation if desired.
+        self._client_uuid = uuid.uuid4().hex
+
+        self.DEVICE_ID = f"{self._profile_id}-{self._client_tag}"
+
         self._session_id = uuid.uuid4().hex
+        self._instance_id = uuid.uuid4().hex
         self._topic = f"nodes/{self.DEVICE_ID}/data"
 
         self.PQC_AVAILABLE = PQC_AVAILABLE
@@ -72,10 +100,43 @@ class ResearchProfileClient(ABC):
         # Deterministically derive this client's signing keypair.
         _, self._sig_sk = self._km.sig_keypair(self.ALG_SIG, self.DEVICE_ID)
 
-        self._mqtt = mqtt.Client(client_id=self.DEVICE_ID, clean_session=True)
+        # MQTT client IDs must be unique per broker connection.
+        self._mqtt = mqtt.Client(client_id=f"{self.DEVICE_ID}-{self._instance_id[:8]}", clean_session=True)
         self._mqtt.on_connect = self._on_connect
         self._mqtt.on_publish = self._on_publish
         self._mqtt.on_disconnect = self._on_disconnect
+
+    def _allocate_client_tag(self, profile_id: str) -> str:
+        """
+        Allocate the next numeric client tag for this profile.
+
+        Uses a small JSON state file with an advisory file lock so launching
+        multiple clients in parallel won't collide.
+        """
+        state_path = os.getenv(self.CLIENT_TAG_STATE_ENV, "benchmarks/client_tag_state.json")
+        p = Path(state_path)
+        p.parent.mkdir(parents=True, exist_ok=True)
+
+        with p.open("a+", encoding="utf-8") as f:
+            fcntl.flock(f.fileno(), fcntl.LOCK_EX)
+            try:
+                f.seek(0)
+                raw = f.read().strip()
+                state: Dict[str, Any] = json.loads(raw) if raw else {}
+                counters: Dict[str, int] = state.get("counters", {})
+                n = int(counters.get(profile_id, 0)) + 1
+                counters[profile_id] = n
+                state["counters"] = counters
+
+                f.seek(0)
+                f.truncate()
+                f.write(json.dumps(state, indent=2, sort_keys=True))
+                f.flush()
+                os.fsync(f.fileno())
+            finally:
+                fcntl.flock(f.fileno(), fcntl.LOCK_UN)
+
+        return f"{n:02d}"
 
     def _on_connect(self, client, userdata, flags, rc):
         tag = f"[{self.DEVICE_ID.upper()}]"
@@ -97,6 +158,9 @@ class ResearchProfileClient(ABC):
     def _make_plaintext(self, seq: int) -> bytes:
         obj = {
             "device_id": self.DEVICE_ID,
+            "profile_id": self._profile_id,
+            "client_tag": self._client_tag,
+            "client_uuid": self._client_uuid,
             "seq": seq,
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "data": self.sample_data(seq),
@@ -130,7 +194,11 @@ class ResearchProfileClient(ABC):
 
         return {
             "device_id": self.DEVICE_ID,
+            "profile_id": self._profile_id,
+            "client_tag": self._client_tag,
+            "client_uuid": self._client_uuid,
             "session_id": self._session_id,
+            "instance_id": self._instance_id,
             "seq": seq,
             "crypto_type": self.CRYPTO_TYPE,
             "profile": self.PROFILE_NAME,
@@ -149,6 +217,9 @@ class ResearchProfileClient(ABC):
     def run(self) -> None:
         tag = f"[{self.DEVICE_ID.upper()}]"
         mode = "real PQC" if self.PQC_AVAILABLE else "SIMULATION"
+        print(f"{tag} Profile ID  : {self._profile_id}")
+        print(f"{tag} Client tag  : {self._client_tag}")
+        print(f"{tag} Client UUID : {self._client_uuid}")
         print(f"{tag} Profile     : {self.PROFILE_NAME}")
         print(f"{tag} KEM         : {self.ALG_KEM}")
         print(f"{tag} SIG         : {self.ALG_SIG}")
@@ -177,9 +248,24 @@ class ResearchProfileClient(ABC):
                 else:
                     print(f"{tag} Publish failed (rc={res.rc})", file=sys.stderr)
                 seq += 1
-                time.sleep(PUBLISH_INTERVAL)
+                time.sleep(self.get_publish_interval_s())
         except KeyboardInterrupt:
             print(f"\n{tag} Shutting down.")
             self._mqtt.loop_stop()
             self._mqtt.disconnect()
+
+    def get_publish_interval_s(self) -> float:
+        """
+        Override point for subclasses.
+
+        Default behaviour reads from `PUBLISH_INTERVAL_ENV` and falls back
+        to `PUBLISH_INTERVAL_DEFAULT_S`.
+        """
+        raw = os.getenv(self.PUBLISH_INTERVAL_ENV)
+        if raw is None or raw == "":
+            return float(self.PUBLISH_INTERVAL_DEFAULT_S)
+        try:
+            return float(raw)
+        except ValueError:
+            return float(self.PUBLISH_INTERVAL_DEFAULT_S)
 

@@ -33,18 +33,21 @@ material is ever transmitted over the network.
 | C   | client/client_c.py | Kyber-768 KEM + Dilithium-3 + AES-GCM | nodes/client-c/data    |
 | G   | gateway/gateway.py | Decryption router (all three)          | nodes/+/data           |
 
-### Research Profiles (Journal Benchmarking Suite)
+### Research Matrix (6‑Pair Variable Isolation + Optional Outlier)
 
-These are additional clients that implement the three **Archetypal Profiles** for
-comparative study. They publish a unified wire format that always includes
-KEM ciphertext, AES-256-GCM encrypted data, and a signature — plus they log
-high-resolution performance metrics to CSV.
+These are additional clients used for the journal benchmarking suite. They all
+publish a unified wire format that includes KEM ciphertext, AES‑256‑GCM encrypted
+data, and a signature — and they log high‑resolution performance metrics to CSV.
 
-| Profile | Script | Pairing |
-|---|---|---|
-| A (Constrained Efficiency) | `client/profile_a_constrained_efficiency.py` | `ML-KEM-512` + `Falcon-512` |
-| B (Standardized Compliance) | `client/profile_b_standardized_compliance.py` | `ML-KEM-768` + `ML-DSA-65` |
-| C (High-Assurance Fallback) | `client/profile_c_high_assurance_fallback.py` | `FrodoKEM-640-AES` + `SLH-DSA` variant |
+| Script | Class | Pairing | Security bits |
+|---|---|---|---|
+| `client/profile_1_baseline.py` | `Profile1_BaselineFloor` | `ML-KEM-512` + `ML-DSA-44` | 128 |
+| `client/profile_2_sig_min.py` | `Profile2_SignatureMinimization` | `ML-KEM-512` + `Falcon-512` | 128 |
+| `client/profile_3_kem_div.py` | `Profile3_KemDiversity` | `BIKE-L1` + `ML-DSA-44` | 128 |
+| `client/profile_4_standard.py` | `Profile4_StandardizedCompliance` | `ML-KEM-768` + `ML-DSA-65` | 192 |
+| `client/profile_5_kem_cons.py` | `Profile5_KemConservative` | `FrodoKEM-640-AES` + `ML-DSA-65` | 192 |
+| `client/profile_6_sig_rob.py` | `Profile6_SignatureRobustness` | `ML-KEM-768` + `SLH_DSA_PURE_SHA2_128S` | 192 |
+| `client/profile_7_optional_extreme.py` | `Profile7_ExtremeFallback` | `FrodoKEM-640-AES` + `SLH_DSA_PURE_SHA2_128S` | 128 |
 
 ---
 
@@ -58,9 +61,13 @@ pi_sim/
 │   ├── client_b.py          # Kyber-512 + AES-256-GCM
 │   └── client_c.py          # Kyber-768 + AES-256-GCM + Dilithium-3
 │   ├── research_base_client.py               # profile base (KEM+SIG+AES + benchmarking)
-│   ├── profile_a_constrained_efficiency.py   # Profile A
-│   ├── profile_b_standardized_compliance.py  # Profile B
-│   └── profile_c_high_assurance_fallback.py  # Profile C
+│   ├── profile_1_baseline.py                 # matrix #1
+│   ├── profile_2_sig_min.py                  # matrix #2
+│   ├── profile_3_kem_div.py                  # matrix #3
+│   ├── profile_4_standard.py                 # matrix #4
+│   ├── profile_5_kem_cons.py                 # matrix #5
+│   ├── profile_6_sig_rob.py                  # matrix #6
+│   └── profile_7_optional_extreme.py         # optional outlier
 ├── gateway/
 │   └── gateway.py           # unified subscriber + decryption router
 ├── shared/
@@ -180,9 +187,13 @@ export BENCH_CSV_PATH="benchmarks/my_run.csv"
 Run one profile per Pi (or run sequentially on the same Pi):
 
 ```bash
-python client/profile_a_constrained_efficiency.py
-python client/profile_b_standardized_compliance.py
-python client/profile_c_high_assurance_fallback.py
+python client/profile_1_baseline.py
+python client/profile_2_sig_min.py
+python client/profile_3_kem_div.py
+python client/profile_4_standard.py
+python client/profile_5_kem_cons.py
+python client/profile_6_sig_rob.py
+python client/profile_7_optional_extreme.py
 ```
 
 To include metrics on the wire (usually keep this off to avoid skewing payload size):

@@ -22,7 +22,6 @@ load_dotenv(dotenv_path=Path(__file__).resolve().parents[1] / ".env")
 
 GATEWAY_IP       = os.getenv("GATEWAY_IP", "127.0.0.1")
 GATEWAY_PORT     = int(os.getenv("GATEWAY_PORT", 1883))
-PUBLISH_INTERVAL = float(os.getenv("PUBLISH_INTERVAL", 2))
 
 
 class BaseClient(ABC):
@@ -37,14 +36,17 @@ class BaseClient(ABC):
 
     DEVICE_ID: str = ""
     CRYPTO_TYPE: str = ""
+    PUBLISH_INTERVAL_ENV: str = "PUBLISH_INTERVAL"
+    PUBLISH_INTERVAL_DEFAULT_S: float = 2.0
 
     def __init__(self) -> None:
         if not self.DEVICE_ID:
             raise NotImplementedError("Subclass must set DEVICE_ID")
 
         self._session_id = uuid.uuid4().hex
+        self._instance_id = uuid.uuid4().hex
         self._topic      = f"nodes/{self.DEVICE_ID}/data"
-        self._mqtt       = mqtt.Client(client_id=self.DEVICE_ID, clean_session=True)
+        self._mqtt       = mqtt.Client(client_id=f"{self.DEVICE_ID}-{self._instance_id[:8]}", clean_session=True)
         self._mqtt.on_connect    = self._on_connect
         self._mqtt.on_publish    = self._on_publish
         self._mqtt.on_disconnect = self._on_disconnect
@@ -95,6 +97,7 @@ class BaseClient(ABC):
             while True:
                 msg  = self.build_message(seq)
                 msg["session_id"] = self._session_id
+                msg["instance_id"] = self._instance_id
                 body = json.dumps(msg)
                 res  = self._mqtt.publish(self._topic, payload=body, qos=1)
 
@@ -104,9 +107,24 @@ class BaseClient(ABC):
                     print(f"{tag} Publish failed (rc={res.rc})", file=sys.stderr)
 
                 seq += 1
-                time.sleep(PUBLISH_INTERVAL)
+                time.sleep(self.get_publish_interval_s())
 
         except KeyboardInterrupt:
             print(f"\n{tag} Shutting down.")
             self._mqtt.loop_stop()
             self._mqtt.disconnect()
+
+    def get_publish_interval_s(self) -> float:
+        """
+        Override point for subclasses.
+
+        Default behaviour reads from `PUBLISH_INTERVAL_ENV` and falls back
+        to `PUBLISH_INTERVAL_DEFAULT_S`.
+        """
+        raw = os.getenv(self.PUBLISH_INTERVAL_ENV)
+        if raw is None or raw == "":
+            return float(self.PUBLISH_INTERVAL_DEFAULT_S)
+        try:
+            return float(raw)
+        except ValueError:
+            return float(self.PUBLISH_INTERVAL_DEFAULT_S)

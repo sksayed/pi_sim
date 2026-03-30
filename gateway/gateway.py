@@ -31,6 +31,7 @@ from cryptography.exceptions import InvalidTag
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from shared.key_manager import load_key_manager, PQC_AVAILABLE
+from shared.metrics import log_gateway_pqc
 from shared.topics import TOPIC_PATTERN
 
 # ── Load env ───────────────────────────────────────────────────────────────────
@@ -40,10 +41,10 @@ GATEWAY_IP   = os.getenv("GATEWAY_IP", "127.0.0.1")
 GATEWAY_PORT = int(os.getenv("GATEWAY_PORT", 1883))
 
 # ── State ──────────────────────────────────────────────────────────────────────
-# Maps device_id → (session_id, last_seq).
-# A new session_id resets seq tracking; within a session seq must be strictly
-# increasing to guard against replay attacks.
-_sessions: dict[str, tuple[str, int]] = {}
+# Maps (device_id, session_id) → last_seq.
+# This allows multiple concurrent client instances for the same device/profile
+# to run simultaneously without resetting each other's replay window.
+_sessions: dict[tuple[str, str], int] = {}
 
 
 # ── Decryption handlers ────────────────────────────────────────────────────────
@@ -59,19 +60,12 @@ def _check_replay(device_id: str, session_id: str, seq: int) -> bool:
     client to restart without triggering false replay rejections.
     Within the same session, seq must be strictly increasing.
     """
-    current = _sessions.get(device_id)
-
-    if current is None or current[0] != session_id:
-        # New device or new session — reset tracking.
-        _sessions[device_id] = (session_id, seq)
-        if current is not None:
-            print(
-                f"[GATEWAY] NEW SESSION  device={device_id} "
-                f"session={session_id[:8]}…"
-            )
+    key = (device_id, session_id)
+    last_seq = _sessions.get(key)
+    if last_seq is None:
+        _sessions[key] = seq
         return True
 
-    last_seq = current[1]
     if seq <= last_seq:
         print(
             f"[GATEWAY] REPLAY REJECTED  device={device_id} "
@@ -79,7 +73,7 @@ def _check_replay(device_id: str, session_id: str, seq: int) -> bool:
         )
         return False
 
-    _sessions[device_id] = (session_id, seq)
+    _sessions[key] = seq
     return True
 
 
@@ -196,28 +190,84 @@ def _decrypt_research_profile(km, msg: dict) -> None:
 
     alg_kem = msg.get("alg_kem", "")
     alg_sig = msg.get("alg_sig", "")
+    payload_bytes = int(msg.pop("_payload_bytes", 0))
 
     try:
+        process = psutil.Process()
+        start_rss = process.memory_info().rss
+        start_cpu_user, start_cpu_sys = _cpu_times_ns(process)
+        t_start = time.perf_counter_ns()
+
         # Gateway's KEM keypair is deterministically derived from MASTER_SECRET.
         _, kem_sk = km.kem_keypair(alg_kem)
         kem_ct = _b64d(msg["kem_ciphertext"])
+        t0 = time.perf_counter_ns()
         shared_secret = km.kem_decapsulate(alg_kem, kem_sk, kem_ct)
+        t1 = time.perf_counter_ns()
 
         nonce = _b64d(msg["nonce"])
         ciphertext = _b64d(msg["ciphertext"])
+        t2 = time.perf_counter_ns()
         plaintext = AESGCM(shared_secret[:32]).decrypt(nonce, ciphertext, None)
+        t3 = time.perf_counter_ns()
 
         signature = _b64d(msg["signature"])
         sig_pk, _ = km.sig_keypair(alg_sig, device_id)
-        if not km.sig_verify(alg_sig, plaintext, signature, sig_pk):
+        t4 = time.perf_counter_ns()
+        sig_ok = km.sig_verify(alg_sig, plaintext, signature, sig_pk)
+        t5 = time.perf_counter_ns()
+        if not sig_ok:
             print(
                 f"[GATEWAY] SIG REJECTED  device={device_id} "
                 f"alg_sig={alg_sig} — signature verification failed"
+            )
+            t_end = time.perf_counter_ns()
+            end_cpu_user, end_cpu_sys = _cpu_times_ns(process)
+            end_rss = process.memory_info().rss
+            log_gateway_pqc(
+                device_id=device_id,
+                session_id=session_id,
+                seq=seq,
+                profile=str(msg.get("profile", "?")),
+                alg_kem=alg_kem,
+                alg_sig=alg_sig,
+                payload_bytes=payload_bytes,
+                pqc_available=PQC_AVAILABLE,
+                accepted=False,
+                t_total_ns=t_end - t_start,
+                t_decap_ns=t1 - t0,
+                t_aes_dec_ns=t3 - t2,
+                t_verify_ns=t5 - t4,
+                cpu_user_ns=end_cpu_user - start_cpu_user,
+                cpu_sys_ns=end_cpu_sys - start_cpu_sys,
+                rss_delta_kb=int((end_rss - start_rss) / 1024),
             )
             return
 
         profile = msg.get("profile", "?")
         _print_accepted(device_id, f"{msg['crypto_type']}[{profile}] {alg_kem} + {alg_sig}", plaintext.decode("utf-8"))
+
+        t_end = time.perf_counter_ns()
+        end_cpu_user, end_cpu_sys = _cpu_times_ns(process)
+        end_rss = process.memory_info().rss
+        log_gateway_pqc(
+            device_id=device_id,
+            session_id=session_id,
+            seq=seq,
+            profile=str(profile),
+            alg_kem=alg_kem,
+            alg_sig=alg_sig,
+            payload_bytes=payload_bytes,
+            pqc_available=PQC_AVAILABLE,
+            accepted=True,
+            t_total_ns=t_end - t_start,
+            t_decap_ns=t1 - t0,
+            t_aes_dec_ns=t3 - t2,
+            t_verify_ns=t5 - t4,
+            cpu_user_ns=end_cpu_user - start_cpu_user,
+            cpu_sys_ns=end_cpu_sys - start_cpu_sys,
+            rss_delta_kb=int((end_rss - start_rss) / 1024),
+        )
 
     except InvalidTag:
         print(f"[GATEWAY] AUTH FAILED   device={device_id} — AES-GCM tag invalid")
@@ -258,6 +308,9 @@ def _make_on_message(km):
             )
             return
 
+        # Attach raw payload size for gateway benchmarking (crypto-only timing is
+        # recorded inside handlers).
+        msg["_payload_bytes"] = len(mqtt_msg.payload)
         handler(km, msg)
 
     return on_message

@@ -17,6 +17,7 @@ import os
 import sys
 import warnings
 from pathlib import Path
+from typing import Callable, Dict, Optional, Tuple
 
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 from cryptography.hazmat.primitives import hashes
@@ -57,13 +58,15 @@ _KEM_PARAMS = {
     # FIPS 203 names (approximate; used only in sim mode)
     "ML-KEM-512": {"ct": 768},
     "ML-KEM-768": {"ct": 1088},
+    # Code-based KEM (approximate; used only in sim mode)
+    "BIKE-L1": {"ct": 1573},
     # FrodoKEM ciphertext is large; approximate size for sim-only wire realism.
     "FrodoKEM-640-AES": {"ct": 9720},
 }
 _SIG_PARAMS = {
     # FIPS 204 / ML-DSA (Dilithium family)
     "ML-DSA-44": {"sig": 2420},
-    "ML-DSA-65": {"sig": 3293},
+    "ML-DSA-65": {"sig": 3309},
     # Falcon
     "Falcon-512": {"sig": 666},
     # SLH-DSA (SPHINCS+ family) — sizes vary by variant; sim only.
@@ -81,6 +84,7 @@ class KeyManager:
         if not master_secret:
             raise ValueError("MASTER_SECRET must not be empty.")
         self._master = master_secret.encode("utf-8")
+        self._alg_cache: Dict[Tuple[str, str], str] = {}
 
     # ── Internal helpers ───────────────────────────────────────────────────────
 
@@ -93,6 +97,74 @@ class KeyManager:
             info=info.encode("utf-8"),
             backend=default_backend(),
         ).derive(self._master)
+
+    def _resolve_kem_alg(self, alg: str) -> str:
+        """
+        Return a liboqs KEM identifier that can be instantiated.
+
+        Profiles use standardized strings like "ML-KEM-512". liboqs naming can
+        vary by build/version (e.g. "Kyber512"). We resolve aliases here so the
+        same profile strings work on both client and gateway.
+        """
+        if not PQC_AVAILABLE:
+            return alg
+
+        key = ("kem", alg)
+        cached = self._alg_cache.get(key)
+        if cached:
+            return cached
+
+        candidates = [
+            alg,
+            {"ML-KEM-512": "Kyber512", "ML-KEM-768": "Kyber768"}.get(alg, ""),
+        ]
+        candidates = [c for c in candidates if c]
+
+        last_exc: Optional[Exception] = None
+        for cand in candidates:
+            try:
+                oqs.KeyEncapsulation(cand)
+                self._alg_cache[key] = cand
+                return cand
+            except Exception as exc:
+                last_exc = exc
+
+        raise ValueError(f"Unsupported KEM algorithm '{alg}'") from last_exc
+
+    def _resolve_sig_alg(self, alg: str) -> str:
+        """
+        Return a liboqs signature identifier that can be instantiated.
+
+        Profiles use standardized strings like "ML-DSA-44". liboqs may expose
+        alternative names. Resolve centrally for consistency.
+        """
+        if not PQC_AVAILABLE:
+            return alg
+
+        key = ("sig", alg)
+        cached = self._alg_cache.get(key)
+        if cached:
+            return cached
+
+        aliases = {
+            # ML-DSA (FIPS 204) <-> Dilithium family names (common in liboqs builds)
+            "ML-DSA-44": ["Dilithium2", "Dilithium2-AES"],
+            "ML-DSA-65": ["Dilithium3", "Dilithium3-AES"],
+            # SLH-DSA <-> SPHINCS+ naming variants
+            "SLH_DSA_PURE_SHA2_128S": ["SPHINCS+-SHA2-128s-simple", "SLH-DSA-128s"],
+        }
+        candidates = [alg] + aliases.get(alg, [])
+
+        last_exc: Optional[Exception] = None
+        for cand in candidates:
+            try:
+                oqs.Signature(cand)
+                self._alg_cache[key] = cand
+                return cand
+            except Exception as exc:
+                last_exc = exc
+
+        raise ValueError(f"Unsupported signature algorithm '{alg}'") from last_exc
 
     # ── AES ────────────────────────────────────────────────────────────────────
 
@@ -130,7 +202,7 @@ class KeyManager:
     def kem_keypair(self, alg: str):
         """Return (public_key, secret_key) for the given KEM algorithm."""
         def _gen():
-            kem = oqs.KeyEncapsulation(alg)
+            kem = oqs.KeyEncapsulation(self._resolve_kem_alg(alg))
             pk = kem.generate_keypair()
             sk = kem.export_secret_key()
             return pk, sk
@@ -149,7 +221,7 @@ class KeyManager:
         Returns (kem_ciphertext, shared_secret_32_bytes).
         """
         if PQC_AVAILABLE:
-            kem = oqs.KeyEncapsulation(alg)
+            kem = oqs.KeyEncapsulation(self._resolve_kem_alg(alg))
             ct, ss = kem.encap_secret(public_key)
             return ct, ss[:32]
 
@@ -161,7 +233,7 @@ class KeyManager:
     def kem_decapsulate(self, alg: str, secret_key: bytes, kem_ciphertext: bytes):
         """Decapsulate `kem_ciphertext` with `secret_key` → shared_secret_32_bytes."""
         if PQC_AVAILABLE:
-            kem = oqs.KeyEncapsulation(alg, secret_key=secret_key)
+            kem = oqs.KeyEncapsulation(self._resolve_kem_alg(alg), secret_key=secret_key)
             ss = kem.decap_secret(kem_ciphertext)
             return ss[:32]
 
@@ -194,15 +266,16 @@ class KeyManager:
     def sig_keypair(self, alg: str, device_id: str):
         """Return (public_key, secret_key) for the given signature algorithm."""
         def _gen():
-            s = oqs.Signature(alg)
+            s = oqs.Signature(self._resolve_sig_alg(alg))
             pk = s.generate_keypair()
             sk = s.export_secret_key()
             return pk, sk
         if PQC_AVAILABLE:
             return self._with_deterministic_rng(f"sig:{alg}:{device_id}:keypair", 64, _gen)
 
+        # Simulation: make pk/sk compatible so sig_verify can validate sig_sign.
         pk = self._hkdf(f"sig:{alg}:{device_id}:sim_pk", 64)
-        sk = self._hkdf(f"sig:{alg}:{device_id}:sim_sk", 64)
+        sk = pk
         return pk, sk
 
     def dilithium3_keypair(self, device_id: str):
@@ -212,7 +285,7 @@ class KeyManager:
     def sig_sign(self, alg: str, message: bytes, secret_key: bytes) -> bytes:
         """Sign `message` with `alg`. Returns a signature."""
         if PQC_AVAILABLE:
-            signer = oqs.Signature(alg, secret_key=secret_key)
+            signer = oqs.Signature(self._resolve_sig_alg(alg), secret_key=secret_key)
             return signer.sign(message)
 
         # Simulation: HMAC-SHA256 padded/truncated to approximate algorithm size.
@@ -228,7 +301,7 @@ class KeyManager:
     def sig_verify(self, alg: str, message: bytes, signature: bytes, public_key: bytes) -> bool:
         """Verify `signature` over `message` with `alg`."""
         if PQC_AVAILABLE:
-            verifier = oqs.Signature(alg)
+            verifier = oqs.Signature(self._resolve_sig_alg(alg))
             return verifier.verify(message, signature, public_key)
 
         # Simulation: accept if leading tag matches a deterministic HMAC.
