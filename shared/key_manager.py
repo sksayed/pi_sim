@@ -1,13 +1,13 @@
 """
 key_manager.py — Deterministic key derivation for every device.
 
-All keys (AES, Kyber, Dilithium) are derived from a single MASTER_SECRET via
+All keys (AES, KEM, signatures) are derived from a single MASTER_SECRET via
 HKDF-SHA256. Because derivation is deterministic, every Pi independently
 arrives at identical keys without transferring key material over the network.
 
-When pyoqs / liboqs is available, real post-quantum cryptography is used.
-When it is absent a simulation fallback produces outputs of the correct sizes
-so the full MQTT + encryption pipeline still runs end-to-end.
+When liboqs Python bindings are available, real post-quantum cryptography is
+used. When they are absent a simulation fallback produces structurally-valid
+byte outputs so the full MQTT + encryption pipeline still runs end-to-end.
 """
 
 import ctypes
@@ -47,14 +47,28 @@ if PQC_AVAILABLE:
 # C callback type: void (*)(uint8_t *buf, size_t n)
 _RandCallback = ctypes.CFUNCTYPE(None, ctypes.POINTER(ctypes.c_uint8), ctypes.c_size_t)
 
-# ── Kyber / Dilithium parameter table ─────────────────────────────────────────
-# Sizes in bytes as defined in the NIST specifications.
+# ── Simulation parameter table (best-effort sizes) ────────────────────────────
+# These are only used when PQC bindings are unavailable. When PQC is available,
+# actual ciphertext/signature sizes come from liboqs at runtime.
 _KEM_PARAMS = {
-    "Kyber512": {"pk": 800,  "sk": 1632, "ct": 768,  "ss": 32},
-    "Kyber768": {"pk": 1184, "sk": 2400, "ct": 1088, "ss": 32},
+    # Classic Kyber names (liboqs may also expose ML-KEM names)
+    "Kyber512": {"ct": 768},
+    "Kyber768": {"ct": 1088},
+    # FIPS 203 names (approximate; used only in sim mode)
+    "ML-KEM-512": {"ct": 768},
+    "ML-KEM-768": {"ct": 1088},
+    # FrodoKEM ciphertext is large; approximate size for sim-only wire realism.
+    "FrodoKEM-640-AES": {"ct": 9720},
 }
 _SIG_PARAMS = {
-    "ML-DSA-65": {"pk": 1952, "sk": 4000, "sig": 3293},
+    # FIPS 204 / ML-DSA (Dilithium family)
+    "ML-DSA-44": {"sig": 2420},
+    "ML-DSA-65": {"sig": 3293},
+    # Falcon
+    "Falcon-512": {"sig": 666},
+    # SLH-DSA (SPHINCS+ family) — sizes vary by variant; sim only.
+    "SLH_DSA_PURE_SHA2_128S": {"sig": 7856},
+    "SLH-DSA-128s": {"sig": 7856},
 }
 
 
@@ -86,7 +100,7 @@ class KeyManager:
         """Return a 32-byte AES-256 key scoped to `device_id`."""
         return self._hkdf(f"aes:{device_id}", 32)
 
-    # ── Kyber KEM ──────────────────────────────────────────────────────────────
+    # ── Deterministic RNG hook (liboqs custom RNG) ─────────────────────────────
 
     def _with_deterministic_rng(self, info: str, seed_len: int, fn):
         """
@@ -111,113 +125,118 @@ class KeyManager:
             if _liboqs:
                 _liboqs.OQS_randombytes_switch_algorithm(b"system")
 
-    def _kyber_keypair_real(self, alg: str):
-        """Generate a deterministic Kyber keypair via HKDF-seeded custom RNG."""
+    # ── Generic KEM (real + sim) ───────────────────────────────────────────────
+
+    def kem_keypair(self, alg: str):
+        """Return (public_key, secret_key) for the given KEM algorithm."""
         def _gen():
             kem = oqs.KeyEncapsulation(alg)
             pk = kem.generate_keypair()
             sk = kem.export_secret_key()
             return pk, sk
-        return self._with_deterministic_rng(f"{alg.lower()}:keypair", 64, _gen)
+        if PQC_AVAILABLE:
+            return self._with_deterministic_rng(f"kem:{alg}:keypair", 64, _gen)
 
-    def _kyber_keypair_sim(self, alg: str):
-        """Simulation: derive pseudo-keypair bytes deterministically."""
-        p = _KEM_PARAMS[alg]
-        pk = self._hkdf(f"{alg.lower()}:sim_pk", p["pk"])
-        sk = self._hkdf(f"{alg.lower()}:sim_sk", p["sk"])
+        # Simulation: derive deterministic pseudo-keys (sizes not required for KEM
+        # ops in sim mode because we also simulate encap/decap).
+        pk = self._hkdf(f"kem:{alg}:sim_pk", 64)
+        sk = self._hkdf(f"kem:{alg}:sim_sk", 64)
         return pk, sk
+
+    def kem_encapsulate(self, alg: str, public_key: bytes):
+        """
+        Encapsulate against `public_key`.
+        Returns (kem_ciphertext, shared_secret_32_bytes).
+        """
+        if PQC_AVAILABLE:
+            kem = oqs.KeyEncapsulation(alg)
+            ct, ss = kem.encap_secret(public_key)
+            return ct, ss[:32]
+
+        ct_len = _KEM_PARAMS.get(alg, {}).get("ct", 512)
+        ct = os.urandom(ct_len)
+        ss = self._hkdf(f"kem:{alg}:sim_shared_secret", 32)
+        return ct, ss
+
+    def kem_decapsulate(self, alg: str, secret_key: bytes, kem_ciphertext: bytes):
+        """Decapsulate `kem_ciphertext` with `secret_key` → shared_secret_32_bytes."""
+        if PQC_AVAILABLE:
+            kem = oqs.KeyEncapsulation(alg, secret_key=secret_key)
+            ss = kem.decap_secret(kem_ciphertext)
+            return ss[:32]
+
+        return self._hkdf(f"kem:{alg}:sim_shared_secret", 32)
 
     def kyber512_keypair(self):
         """Return (public_key, secret_key) for Kyber-512."""
-        if PQC_AVAILABLE:
-            return self._kyber_keypair_real("Kyber512")
-        return self._kyber_keypair_sim("Kyber512")
+        return self.kem_keypair("Kyber512")
 
     def kyber768_keypair(self):
         """Return (public_key, secret_key) for Kyber-768."""
-        if PQC_AVAILABLE:
-            return self._kyber_keypair_real("Kyber768")
-        return self._kyber_keypair_sim("Kyber768")
+        return self.kem_keypair("Kyber768")
 
     def kyber_encapsulate(self, alg: str, public_key: bytes):
         """
         Encapsulate against `public_key`.
         Returns (kem_ciphertext, shared_secret_32_bytes).
         """
-        p = _KEM_PARAMS[alg]
-        if PQC_AVAILABLE:
-            kem = oqs.KeyEncapsulation(alg)
-            ct, ss = kem.encap_secret(public_key)
-            return ct, ss[:32]
-
-        # Simulation: shared secret derived deterministically; ct is a
-        # structurally correct placeholder the gateway ignores in sim mode.
-        ss = self._hkdf(f"{alg.lower()}:sim_shared_secret", 32)
-        ct = os.urandom(p["ct"])
-        return ct, ss
+        return self.kem_encapsulate(alg, public_key)
 
     def kyber_decapsulate(self, alg: str, secret_key: bytes, kem_ciphertext: bytes):
         """
         Decapsulate `kem_ciphertext` with `secret_key`.
         Returns shared_secret_32_bytes.
         """
-        if PQC_AVAILABLE:
-            kem = oqs.KeyEncapsulation(alg, secret_key=secret_key)
-            ss = kem.decap_secret(kem_ciphertext)
-            return ss[:32]
+        return self.kem_decapsulate(alg, secret_key, kem_ciphertext)
 
-        # Simulation: recover the same deterministic shared secret.
-        return self._hkdf(f"{alg.lower()}:sim_shared_secret", 32)
+    # ── Generic signatures (real + sim) ────────────────────────────────────────
 
-    # ── Dilithium signatures ───────────────────────────────────────────────────
-
-    def _dilithium_keypair_real(self, alg: str, device_id: str):
-        """Generate a deterministic ML-DSA keypair via HKDF-seeded custom RNG."""
+    def sig_keypair(self, alg: str, device_id: str):
+        """Return (public_key, secret_key) for the given signature algorithm."""
         def _gen():
             s = oqs.Signature(alg)
             pk = s.generate_keypair()
             sk = s.export_secret_key()
             return pk, sk
-        return self._with_deterministic_rng(f"{alg.lower()}:{device_id}:keypair", 64, _gen)
+        if PQC_AVAILABLE:
+            return self._with_deterministic_rng(f"sig:{alg}:{device_id}:keypair", 64, _gen)
 
-    def _dilithium_keypair_sim(self, alg: str, device_id: str):
-        p = _SIG_PARAMS[alg]
-        pk = self._hkdf(f"{alg.lower()}:{device_id}:sim_pk", p["pk"])
-        sk = self._hkdf(f"{alg.lower()}:{device_id}:sim_sk", p["sk"])
+        pk = self._hkdf(f"sig:{alg}:{device_id}:sim_pk", 64)
+        sk = self._hkdf(f"sig:{alg}:{device_id}:sim_sk", 64)
         return pk, sk
 
     def dilithium3_keypair(self, device_id: str):
         """Return (public_key, secret_key) for ML-DSA-65 (formerly Dilithium-3)."""
-        if PQC_AVAILABLE:
-            return self._dilithium_keypair_real("ML-DSA-65", device_id)
-        return self._dilithium_keypair_sim("ML-DSA-65", device_id)
+        return self.sig_keypair("ML-DSA-65", device_id)
 
-    def dilithium3_sign(self, message: bytes, secret_key: bytes) -> bytes:
-        """Sign `message` with ML-DSA-65. Returns a signature."""
+    def sig_sign(self, alg: str, message: bytes, secret_key: bytes) -> bytes:
+        """Sign `message` with `alg`. Returns a signature."""
         if PQC_AVAILABLE:
-            signer = oqs.Signature("ML-DSA-65", secret_key=secret_key)
+            signer = oqs.Signature(alg, secret_key=secret_key)
             return signer.sign(message)
 
-        # Simulation: HMAC-SHA256 padded to spec size.
+        # Simulation: HMAC-SHA256 padded/truncated to approximate algorithm size.
         tag = hmac.new(secret_key[:32], message, hashlib.sha256).digest()
-        p = _SIG_PARAMS["ML-DSA-65"]
-        return tag + os.urandom(p["sig"] - len(tag))
+        sig_len = _SIG_PARAMS.get(alg, {}).get("sig", 2048)
+        if sig_len <= len(tag):
+            return tag[:sig_len]
+        return tag + os.urandom(sig_len - len(tag))
 
-    def dilithium3_verify(
-        self, message: bytes, signature: bytes, public_key: bytes
-    ) -> bool:
-        """Verify `signature` over `message` with ML-DSA-65. Returns True if valid."""
+    def dilithium3_sign(self, message: bytes, secret_key: bytes) -> bytes:
+        return self.sig_sign("ML-DSA-65", message, secret_key)
+
+    def sig_verify(self, alg: str, message: bytes, signature: bytes, public_key: bytes) -> bool:
+        """Verify `signature` over `message` with `alg`."""
         if PQC_AVAILABLE:
-            verifier = oqs.Signature("ML-DSA-65")
+            verifier = oqs.Signature(alg)
             return verifier.verify(message, signature, public_key)
 
-        # Simulation: recompute HMAC using sim_sk derived the same way.
-        sim_sk = self._hkdf(
-            f"ml-dsa-65:{self._extract_device_id_from_sim_pk(public_key)}:sim_sk",
-            _SIG_PARAMS["ML-DSA-65"]["sk"],
-        )
-        expected_tag = hmac.new(sim_sk[:32], message, hashlib.sha256).digest()
-        return hmac.compare_digest(signature[:32], expected_tag)
+        # Simulation: accept if leading tag matches a deterministic HMAC.
+        expected = hmac.new(public_key[:32], message, hashlib.sha256).digest()
+        return hmac.compare_digest(signature[: len(expected)], expected)
+
+    def dilithium3_verify(self, message: bytes, signature: bytes, public_key: bytes) -> bool:
+        return self.sig_verify("ML-DSA-65", message, signature, public_key)
 
     def _extract_device_id_from_sim_pk(self, public_key: bytes) -> str:
         """

@@ -12,6 +12,7 @@ Supported crypto_type values:
     AES-256-GCM              — Client A
     Kyber512-AES-GCM         — Client B
     Kyber768-Dilithium3-AES-GCM — Client C
+    PQC-RESEARCH-PROFILE     — Research profiles A/B/C (alg_kem + alg_sig fields)
 """
 
 import base64
@@ -178,12 +179,59 @@ def _decrypt_client_c(km, msg: dict) -> None:
         print(f"[GATEWAY] ERROR   device={device_id}: {exc}", file=sys.stderr)
 
 
+def _decrypt_research_profile(km, msg: dict) -> None:
+    """
+    Generic KEM + AES-256-GCM + signature.
+
+    Expected fields:
+      device_id, session_id, seq, alg_kem, alg_sig,
+      kem_ciphertext, nonce, ciphertext, signature
+    """
+    device_id  = msg["device_id"]
+    session_id = msg.get("session_id", "default")
+    seq        = msg["seq"]
+
+    if not _check_replay(device_id, session_id, seq):
+        return
+
+    alg_kem = msg.get("alg_kem", "")
+    alg_sig = msg.get("alg_sig", "")
+
+    try:
+        # Gateway's KEM keypair is deterministically derived from MASTER_SECRET.
+        _, kem_sk = km.kem_keypair(alg_kem)
+        kem_ct = _b64d(msg["kem_ciphertext"])
+        shared_secret = km.kem_decapsulate(alg_kem, kem_sk, kem_ct)
+
+        nonce = _b64d(msg["nonce"])
+        ciphertext = _b64d(msg["ciphertext"])
+        plaintext = AESGCM(shared_secret[:32]).decrypt(nonce, ciphertext, None)
+
+        signature = _b64d(msg["signature"])
+        sig_pk, _ = km.sig_keypair(alg_sig, device_id)
+        if not km.sig_verify(alg_sig, plaintext, signature, sig_pk):
+            print(
+                f"[GATEWAY] SIG REJECTED  device={device_id} "
+                f"alg_sig={alg_sig} — signature verification failed"
+            )
+            return
+
+        profile = msg.get("profile", "?")
+        _print_accepted(device_id, f"{msg['crypto_type']}[{profile}] {alg_kem} + {alg_sig}", plaintext.decode("utf-8"))
+
+    except InvalidTag:
+        print(f"[GATEWAY] AUTH FAILED   device={device_id} — AES-GCM tag invalid")
+    except Exception as exc:
+        print(f"[GATEWAY] ERROR   device={device_id}: {exc}", file=sys.stderr)
+
+
 # ── Dispatch table ─────────────────────────────────────────────────────────────
 
 _HANDLERS = {
     "AES-256-GCM":               _decrypt_client_a,
     "Kyber512-AES-GCM":          _decrypt_client_b,
     "Kyber768-Dilithium3-AES-GCM": _decrypt_client_c,
+    "PQC-RESEARCH-PROFILE":      _decrypt_research_profile,
 }
 
 

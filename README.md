@@ -33,6 +33,19 @@ material is ever transmitted over the network.
 | C   | client/client_c.py | Kyber-768 KEM + Dilithium-3 + AES-GCM | nodes/client-c/data    |
 | G   | gateway/gateway.py | Decryption router (all three)          | nodes/+/data           |
 
+### Research Profiles (Journal Benchmarking Suite)
+
+These are additional clients that implement the three **Archetypal Profiles** for
+comparative study. They publish a unified wire format that always includes
+KEM ciphertext, AES-256-GCM encrypted data, and a signature — plus they log
+high-resolution performance metrics to CSV.
+
+| Profile | Script | Pairing |
+|---|---|---|
+| A (Constrained Efficiency) | `client/profile_a_constrained_efficiency.py` | `ML-KEM-512` + `Falcon-512` |
+| B (Standardized Compliance) | `client/profile_b_standardized_compliance.py` | `ML-KEM-768` + `ML-DSA-65` |
+| C (High-Assurance Fallback) | `client/profile_c_high_assurance_fallback.py` | `FrodoKEM-640-AES` + `SLH-DSA` variant |
+
 ---
 
 ## Project Structure
@@ -44,11 +57,16 @@ pi_sim/
 │   ├── client_a.py          # AES-256-GCM
 │   ├── client_b.py          # Kyber-512 + AES-256-GCM
 │   └── client_c.py          # Kyber-768 + AES-256-GCM + Dilithium-3
+│   ├── research_base_client.py               # profile base (KEM+SIG+AES + benchmarking)
+│   ├── profile_a_constrained_efficiency.py   # Profile A
+│   ├── profile_b_standardized_compliance.py  # Profile B
+│   └── profile_c_high_assurance_fallback.py  # Profile C
 ├── gateway/
 │   └── gateway.py           # unified subscriber + decryption router
 ├── shared/
 │   ├── topics.py            # MQTT topic constants
-│   └── key_manager.py       # HKDF derivation + pyoqs wrappers
+│   ├── key_manager.py       # HKDF derivation + liboqs-python (oqs) wrappers
+│   └── metrics.py           # benchmarking decorator + CSV logger
 ├── .env                     # secrets — gitignored, same file on every Pi
 ├── .env.example             # template committed to the repo
 ├── client_requirements.txt
@@ -81,7 +99,7 @@ On the **Gateway Pi**:
 pip install -r gateway_requirements.txt
 ```
 
-### 3. (Optional) Install liboqs for real post-quantum crypto
+### 3. (Optional) Install liboqs + liboqs-python for real post-quantum crypto
 
 Without this the code runs in **simulation mode** — the MQTT pipeline, AES
 encryption, and replay protection all work, but Kyber/Dilithium use
@@ -96,7 +114,7 @@ ninja
 sudo ninja install
 sudo ldconfig
 cd ..
-pip install pyoqs
+pip install git+https://github.com/open-quantum-safe/liboqs-python.git
 ```
 
 ---
@@ -149,6 +167,29 @@ python client/client_c.py
 ```
 
 All three clients can run simultaneously; the Gateway handles all of them.
+
+### Step 3 (optional) — Run the Research Profile clients
+
+These clients write CSV metrics to `benchmarks/pqc_metrics.csv` by default.
+You can override the path with:
+
+```bash
+export BENCH_CSV_PATH="benchmarks/my_run.csv"
+```
+
+Run one profile per Pi (or run sequentially on the same Pi):
+
+```bash
+python client/profile_a_constrained_efficiency.py
+python client/profile_b_standardized_compliance.py
+python client/profile_c_high_assurance_fallback.py
+```
+
+To include metrics on the wire (usually keep this off to avoid skewing payload size):
+
+```bash
+export INCLUDE_METRICS_ON_WIRE=1
+```
 
 ---
 
