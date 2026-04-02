@@ -235,9 +235,23 @@ class ResearchProfileClient(ABC):
             "_t_sign_ns": t5 - t4,
         }
 
-    def run(self) -> None:
+    def _max_messages_limit(self, max_messages: int | None) -> int | None:
+        """Resolve publish cap: explicit arg, then BENCHMARK_MAX_MESSAGES env, else unlimited."""
+        if max_messages is not None and max_messages > 0:
+            return int(max_messages)
+        raw = os.getenv("BENCHMARK_MAX_MESSAGES", "").strip()
+        if raw:
+            try:
+                n = int(raw)
+                return n if n > 0 else None
+            except ValueError:
+                pass
+        return None
+
+    def run(self, max_messages: int | None = None) -> None:
         tag = f"[{self.DEVICE_ID.upper()}]"
         mode = "real PQC" if self.PQC_AVAILABLE else "SIMULATION"
+        limit = self._max_messages_limit(max_messages)
         print(f"{tag} Profile ID  : {self._profile_id}")
         print(f"{tag} Client tag  : {self._client_tag}")
         print(f"{tag} Client UUID : {self._client_uuid}")
@@ -249,6 +263,8 @@ class ResearchProfileClient(ABC):
         print(f"{tag} Session ID  : {self._session_id}")
         print(f"{tag} Plaintarget  : {self._effective_payload_target() or 'off'} B")
         print(f"{tag} Topic       : {self._topic}")
+        if limit is not None:
+            print(f"{tag} Max messages: {limit} (then disconnect)")
         print(f"{tag} Connecting to {GATEWAY_IP}:{GATEWAY_PORT} …")
 
         try:
@@ -261,7 +277,7 @@ class ResearchProfileClient(ABC):
 
         seq = 1
         try:
-            while True:
+            while limit is None or seq <= limit:
                 msg = self.build_message(seq)
                 body = json.dumps(msg)
                 res = self._mqtt.publish(self._topic, payload=body, qos=1)
@@ -270,9 +286,12 @@ class ResearchProfileClient(ABC):
                 else:
                     print(f"{tag} Publish failed (rc={res.rc})", file=sys.stderr)
                 seq += 1
+                if limit is not None and seq > limit:
+                    break
                 time.sleep(self.get_publish_interval_s())
         except KeyboardInterrupt:
-            print(f"\n{tag} Shutting down.")
+            print(f"\n{tag} Shutting down (keyboard interrupt).", file=sys.stderr)
+        finally:
             self._mqtt.loop_stop()
             self._mqtt.disconnect()
 

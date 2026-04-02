@@ -248,6 +248,7 @@ def main() -> int:
         root / "gateway" / "gateway.py",
         root / "scripts" / "analyze_pqc_benchmarks.py",
         root / "scripts" / "mqtt_rtt_baseline.py",
+        root / "scripts" / "run_client_benchmark_matrix.py",
         root / "scripts" / "test_all_features.py",
     ]
     rc = subprocess.run([sys.executable, "-m", "py_compile", *[str(p) for p in mods]])

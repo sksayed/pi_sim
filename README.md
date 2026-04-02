@@ -186,6 +186,16 @@ export GATEWAY_BENCH_CSV_PATH="benchmarks/gateway/my_gateway_run.csv"
 
 MQTT RTT samples (client-side) default to `benchmarks/client/mqtt_rtt_samples.csv`.
 
+To run **all research + classical profiles** × **three payload sizes** sequentially on the client Pi
+(**600** MQTT publishes **per** scenario by default; full matrix ≈ 30 × 600 rows), use:
+
+```bash
+python scripts/run_client_benchmark_matrix.py
+```
+
+See `python scripts/run_client_benchmark_matrix.py --help` for `--per-scenario`, `--interval`,
+and `--profiles pqc|classical|all`.
+
 If you still have files under `benchmarks/*.csv` from an older layout, copy or merge them into
 `benchmarks/client/` and `benchmarks/gateway/` (or pass explicit paths to `analyze_pqc_benchmarks.py`).
 
