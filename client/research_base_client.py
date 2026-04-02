@@ -46,6 +46,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from shared.key_manager import load_key_manager, PQC_AVAILABLE
 from shared.metrics import benchmark_pqc
+from shared.payload_pad import pad_json_plaintext
 
 
 load_dotenv(dotenv_path=Path(__file__).resolve().parents[1] / ".env")
@@ -64,6 +65,10 @@ class ResearchProfileClient(ABC):
     PUBLISH_INTERVAL_DEFAULT_S: float = 2.0
     CLIENT_TAG_ENV: str = "CLIENT_TAG"
     CLIENT_TAG_STATE_ENV: str = "CLIENT_TAG_STATE_PATH"
+    # Target plaintext JSON size (bytes) when >0; also set env PAYLOAD_TARGET_BYTES.
+    # Suggested: 5120, 10240, 102400 for 5KB / 10KB / ~100KB.
+    PAYLOAD_TARGET_BYTES: int = 0
+    CRYPTO_KIND: str = "PQC"
 
     def __init__(self) -> None:
         if not self.DEVICE_ID:
@@ -113,7 +118,7 @@ class ResearchProfileClient(ABC):
         Uses a small JSON state file with an advisory file lock so launching
         multiple clients in parallel won't collide.
         """
-        state_path = os.getenv(self.CLIENT_TAG_STATE_ENV, "benchmarks/client_tag_state.json")
+        state_path = os.getenv(self.CLIENT_TAG_STATE_ENV, "benchmarks/client/client_tag_state.json")
         p = Path(state_path)
         p.parent.mkdir(parents=True, exist_ok=True)
 
@@ -155,7 +160,19 @@ class ResearchProfileClient(ABC):
     def _b64(self, b: bytes) -> str:
         return base64.b64encode(b).decode()
 
-    def _make_plaintext(self, seq: int) -> bytes:
+    def _effective_payload_target(self) -> int:
+        v = int(getattr(self, "PAYLOAD_TARGET_BYTES", 0) or 0)
+        if v > 0:
+            return v
+        raw = os.getenv("PAYLOAD_TARGET_BYTES", "").strip()
+        if raw:
+            try:
+                return int(raw)
+            except ValueError:
+                pass
+        return 0
+
+    def _plaintext_bytes(self, seq: int) -> bytes:
         obj = {
             "device_id": self.DEVICE_ID,
             "profile_id": self._profile_id,
@@ -165,7 +182,7 @@ class ResearchProfileClient(ABC):
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "data": self.sample_data(seq),
         }
-        return json.dumps(obj).encode("utf-8")
+        return pad_json_plaintext(obj, self._effective_payload_target())
 
     @abstractmethod
     def sample_data(self, seq: int) -> str:
@@ -173,7 +190,8 @@ class ResearchProfileClient(ABC):
 
     @benchmark_pqc
     def build_message(self, seq: int) -> dict:
-        plaintext = self._make_plaintext(seq)
+        plaintext = self._plaintext_bytes(seq)
+        pt_target = self._effective_payload_target()
 
         # KEM encap benchmark
         t0 = time.perf_counter_ns()
@@ -201,7 +219,10 @@ class ResearchProfileClient(ABC):
             "instance_id": self._instance_id,
             "seq": seq,
             "crypto_type": self.CRYPTO_TYPE,
+            "crypto_kind": self.CRYPTO_KIND,
             "profile": self.PROFILE_NAME,
+            "payload_target_bytes": pt_target,
+            "security_bits": self.SECURITY_BITS,
             "alg_kem": self.ALG_KEM,
             "alg_sig": self.ALG_SIG,
             "kem_ciphertext": self._b64(kem_ct),
@@ -226,6 +247,7 @@ class ResearchProfileClient(ABC):
         print(f"{tag} Security    : {self.SECURITY_BITS} bits (for η)")
         print(f"{tag} PQC mode    : {mode}")
         print(f"{tag} Session ID  : {self._session_id}")
+        print(f"{tag} Plaintarget  : {self._effective_payload_target() or 'off'} B")
         print(f"{tag} Topic       : {self._topic}")
         print(f"{tag} Connecting to {GATEWAY_IP}:{GATEWAY_PORT} …")
 

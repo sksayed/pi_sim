@@ -76,8 +76,9 @@ pi_sim/
 │   └── metrics.py           # benchmarking decorator + CSV logger
 ├── .env                     # secrets — gitignored, same file on every Pi
 ├── .env.example             # template committed to the repo
-├── client_requirements.txt
-├── gateway_requirements.txt
+├── requirements.txt       # all Python deps (client + gateway)
+├── client_requirements.txt # alias → -r requirements.txt
+├── gateway_requirements.txt # alias → -r requirements.txt
 └── README.md
 ```
 
@@ -96,15 +97,12 @@ sudo systemctl start mosquitto
 
 ### 2. Install Python dependencies
 
-On each **Client Pi**:
+On **each Pi** (client or gateway), from the repo root:
 ```bash
-pip install -r client_requirements.txt
+pip install -r requirements.txt
 ```
 
-On the **Gateway Pi**:
-```bash
-pip install -r gateway_requirements.txt
-```
+The files `client_requirements.txt` and `gateway_requirements.txt` only include `requirements.txt` for backward compatibility.
 
 ### 3. (Optional) Install liboqs + liboqs-python for real post-quantum crypto
 
@@ -177,12 +175,19 @@ All three clients can run simultaneously; the Gateway handles all of them.
 
 ### Step 3 (optional) — Run the Research Profile clients
 
-These clients write CSV metrics to `benchmarks/pqc_metrics.csv` by default.
-You can override the path with:
+**Client Pi:** CSV metrics go to `benchmarks/client/pqc_metrics.csv` by default.
+**Gateway Pi:** decrypt metrics go to `benchmarks/gateway/pqc_metrics_gateway.csv` by default.
+Override if needed:
 
 ```bash
-export BENCH_CSV_PATH="benchmarks/my_run.csv"
+export BENCH_CSV_PATH="benchmarks/client/my_run.csv"
+export GATEWAY_BENCH_CSV_PATH="benchmarks/gateway/my_gateway_run.csv"
 ```
+
+MQTT RTT samples (client-side) default to `benchmarks/client/mqtt_rtt_samples.csv`.
+
+If you still have files under `benchmarks/*.csv` from an older layout, copy or merge them into
+`benchmarks/client/` and `benchmarks/gateway/` (or pass explicit paths to `analyze_pqc_benchmarks.py`).
 
 Run one profile per Pi (or run sequentially on the same Pi):
 

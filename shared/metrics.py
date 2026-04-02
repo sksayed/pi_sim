@@ -35,6 +35,10 @@ class BenchSample:
     profile: str
     alg_kem: str
     alg_sig: str
+    crypto_type: str
+    crypto_kind: str
+    payload_target_bytes: int
+    security_bits: int
     t_total_ns: int
     t_encap_ns: int
     t_sign_ns: int
@@ -56,6 +60,10 @@ class GatewayBenchSample:
     profile: str
     alg_kem: str
     alg_sig: str
+    crypto_type: str
+    crypto_kind: str
+    payload_target_bytes: int
+    security_bits: int
     t_total_ns: int
     t_decap_ns: int
     t_aes_dec_ns: int
@@ -110,6 +118,10 @@ class CsvBenchLogger:
                     "profile",
                     "alg_kem",
                     "alg_sig",
+                    "crypto_type",
+                    "crypto_kind",
+                    "payload_target_bytes",
+                    "security_bits",
                     "t_total_ns",
                     "t_encap_ns",
                     "t_sign_ns",
@@ -175,6 +187,10 @@ class CsvGatewayBenchLogger:
                     "profile",
                     "alg_kem",
                     "alg_sig",
+                    "crypto_type",
+                    "crypto_kind",
+                    "payload_target_bytes",
+                    "security_bits",
                     "t_total_ns",
                     "t_decap_ns",
                     "t_aes_dec_ns",
@@ -249,6 +265,15 @@ def benchmark_pqc(func: Callable[..., Dict[str, Any]]) -> Callable[..., Dict[str
         denom = float(max(t_crypto_ns, 1) * max(payload_bytes, 1))
         eta = float(getattr(self, "SECURITY_BITS", 0)) / denom
 
+        pt_target = int(getattr(self, "PAYLOAD_TARGET_BYTES", 0) or 0)
+        if pt_target == 0:
+            _pte = os.getenv("PAYLOAD_TARGET_BYTES", "").strip()
+            if _pte:
+                try:
+                    pt_target = int(_pte)
+                except ValueError:
+                    pt_target = 0
+
         sample = BenchSample(
             ts_unix_ns=time.time_ns(),
             device_id=self.DEVICE_ID,
@@ -257,6 +282,10 @@ def benchmark_pqc(func: Callable[..., Dict[str, Any]]) -> Callable[..., Dict[str
             profile=getattr(self, "PROFILE_NAME", ""),
             alg_kem=getattr(self, "ALG_KEM", ""),
             alg_sig=getattr(self, "ALG_SIG", ""),
+            crypto_type=str(getattr(self, "CRYPTO_TYPE", "")),
+            crypto_kind=str(getattr(self, "CRYPTO_KIND", "PQC")),
+            payload_target_bytes=pt_target,
+            security_bits=int(getattr(self, "SECURITY_BITS", 0)),
             t_total_ns=t_total_ns,
             t_encap_ns=t_encap_ns,
             t_sign_ns=t_sign_ns,
@@ -269,7 +298,7 @@ def benchmark_pqc(func: Callable[..., Dict[str, Any]]) -> Callable[..., Dict[str
             pqc_available=bool(getattr(self, "PQC_AVAILABLE", False)),
         )
 
-        out_path = os.getenv("BENCH_CSV_PATH", "benchmarks/pqc_metrics.csv")
+        out_path = os.getenv("BENCH_CSV_PATH", "benchmarks/client/pqc_metrics.csv")
         CsvBenchLogger.get(out_path).log(sample)
 
         # Optionally attach a minimal metrics block on the wire.
@@ -299,6 +328,10 @@ def log_gateway_pqc(
     profile: str,
     alg_kem: str,
     alg_sig: str,
+    crypto_type: str = "",
+    crypto_kind: str = "PQC",
+    payload_target_bytes: int = 0,
+    security_bits: int = 0,
     payload_bytes: int,
     pqc_available: bool,
     accepted: bool,
@@ -313,7 +346,7 @@ def log_gateway_pqc(
     """
     Append one gateway-side PQC decrypt/verify benchmark row to CSV.
 
-    Output path defaults to `benchmarks/pqc_metrics_gateway.csv` and can be
+    Output path defaults to `benchmarks/gateway/pqc_metrics_gateway.csv` and can be
     overridden via `GATEWAY_BENCH_CSV_PATH`.
     """
     sample = GatewayBenchSample(
@@ -324,6 +357,10 @@ def log_gateway_pqc(
         profile=profile,
         alg_kem=alg_kem,
         alg_sig=alg_sig,
+        crypto_type=crypto_type,
+        crypto_kind=crypto_kind,
+        payload_target_bytes=int(payload_target_bytes),
+        security_bits=int(security_bits),
         t_total_ns=int(t_total_ns),
         t_decap_ns=int(t_decap_ns),
         t_aes_dec_ns=int(t_aes_dec_ns),
@@ -336,6 +373,6 @@ def log_gateway_pqc(
         accepted=bool(accepted),
     )
 
-    out_path = os.getenv("GATEWAY_BENCH_CSV_PATH", "benchmarks/pqc_metrics_gateway.csv")
+    out_path = os.getenv("GATEWAY_BENCH_CSV_PATH", "benchmarks/gateway/pqc_metrics_gateway.csv")
     CsvGatewayBenchLogger.get(out_path).log(sample)
 

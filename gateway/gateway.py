@@ -13,19 +13,26 @@ Supported crypto_type values:
     Kyber512-AES-GCM         — Client B
     Kyber768-Dilithium3-AES-GCM — Client C
     PQC-RESEARCH-PROFILE     — Research profiles A/B/C (alg_kem + alg_sig fields)
+    CLASSICAL-AES-GCM / CLASSICAL-CHACHA20 — symmetric baseline (pre-shared key from HKDF)
+    CLASSICAL-ECDH-ECDSA     — classical asymmetric baseline (ephemeral ECDH P-256 + ECDSA + AES-GCM)
 """
 
 import base64
 import json
 import os
 import sys
+import threading
+import time
 import uuid
 from pathlib import Path
 
 import paho.mqtt.client as mqtt
+import psutil
 from dotenv import load_dotenv
-from cryptography.hazmat.primitives.ciphers.aead import AESGCM
-from cryptography.exceptions import InvalidTag
+from cryptography.hazmat.primitives.ciphers.aead import AESGCM, ChaCha20Poly1305
+from cryptography.hazmat.primitives.asymmetric import ec
+from cryptography.hazmat.primitives import hashes
+from cryptography.exceptions import InvalidTag, InvalidSignature
 
 # ── Path setup ─────────────────────────────────────────────────────────────────
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -33,6 +40,41 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from shared.key_manager import load_key_manager, PQC_AVAILABLE
 from shared.metrics import log_gateway_pqc
 from shared.topics import TOPIC_PATTERN
+
+RTT_REQUEST_TOPIC = "benchmark/rtt/request"
+RTT_REPLY_TOPIC = "benchmark/rtt/reply"
+
+# Classical ECDH/ECDSA: cache derived material on the gateway (stable for process lifetime).
+_ecdh_p256_static_sk: ec.EllipticCurvePrivateKey | None = None
+_ecdh_p256_static_sk_lock = threading.Lock()
+_ecdsa_p256_verify_key_by_device: dict[str, ec.EllipticCurvePublicKey] = {}
+_ecdsa_p256_vk_lock = threading.Lock()
+
+
+def _cached_ecdh_p256_static_private_key(km) -> ec.EllipticCurvePrivateKey:
+    global _ecdh_p256_static_sk
+    sk = _ecdh_p256_static_sk
+    if sk is not None:
+        return sk
+    with _ecdh_p256_static_sk_lock:
+        if _ecdh_p256_static_sk is None:
+            _ecdh_p256_static_sk = km.ecdh_p256_static_private_key()
+        return _ecdh_p256_static_sk
+
+
+def _cached_ecdsa_p256_verify_key(km, device_id: str) -> ec.EllipticCurvePublicKey:
+    with _ecdsa_p256_vk_lock:
+        vk = _ecdsa_p256_verify_key_by_device.get(device_id)
+        if vk is None:
+            vk = km.ecdsa_p256_signing_key(device_id).public_key()
+            _ecdsa_p256_verify_key_by_device[device_id] = vk
+        return vk
+
+
+def _cpu_times_ns(process: psutil.Process) -> tuple[int, int]:
+    t = process.cpu_times()
+    return int(t.user * 1e9), int(t.system * 1e9)
+
 
 # ── Load env ───────────────────────────────────────────────────────────────────
 load_dotenv(dotenv_path=Path(__file__).resolve().parents[1] / ".env")
@@ -191,6 +233,9 @@ def _decrypt_research_profile(km, msg: dict) -> None:
     alg_kem = msg.get("alg_kem", "")
     alg_sig = msg.get("alg_sig", "")
     payload_bytes = int(msg.pop("_payload_bytes", 0))
+    pt_target = int(msg.get("payload_target_bytes", 0) or 0)
+    sec_bits = int(msg.get("security_bits", 0) or 0)
+    cty = msg.get("crypto_type", "PQC-RESEARCH-PROFILE")
 
     try:
         process = psutil.Process()
@@ -231,6 +276,10 @@ def _decrypt_research_profile(km, msg: dict) -> None:
                 profile=str(msg.get("profile", "?")),
                 alg_kem=alg_kem,
                 alg_sig=alg_sig,
+                crypto_type=cty,
+                crypto_kind="PQC",
+                payload_target_bytes=pt_target,
+                security_bits=sec_bits,
                 payload_bytes=payload_bytes,
                 pqc_available=PQC_AVAILABLE,
                 accepted=False,
@@ -257,6 +306,10 @@ def _decrypt_research_profile(km, msg: dict) -> None:
             profile=str(profile),
             alg_kem=alg_kem,
             alg_sig=alg_sig,
+            crypto_type=cty,
+            crypto_kind="PQC",
+            payload_target_bytes=pt_target,
+            security_bits=sec_bits,
             payload_bytes=payload_bytes,
             pqc_available=PQC_AVAILABLE,
             accepted=True,
@@ -275,6 +328,238 @@ def _decrypt_research_profile(km, msg: dict) -> None:
         print(f"[GATEWAY] ERROR   device={device_id}: {exc}", file=sys.stderr)
 
 
+def _decrypt_classical_aes_research(km, msg: dict) -> None:
+    """AES-256-GCM research-format frame (CLASSICAL-AES-GCM)."""
+    device_id = msg["device_id"]
+    session_id = msg.get("session_id", "default")
+    seq = msg["seq"]
+
+    if not _check_replay(device_id, session_id, seq):
+        return
+
+    payload_bytes = int(msg.pop("_payload_bytes", 0))
+    pt_target = int(msg.get("payload_target_bytes", 0) or 0)
+    sec_bits = int(msg.get("security_bits", 0) or 0)
+    crypto_type = msg.get("crypto_type", "CLASSICAL-AES-GCM")
+
+    try:
+        process = psutil.Process()
+        start_rss = process.memory_info().rss
+        start_cpu_user, start_cpu_sys = _cpu_times_ns(process)
+        t_start = time.perf_counter_ns()
+
+        key = km.aes_key(device_id)
+        nonce = _b64d(msg["nonce"])
+        ciphertext = _b64d(msg["ciphertext"])
+        t0 = time.perf_counter_ns()
+        plaintext = AESGCM(key).decrypt(nonce, ciphertext, None)
+        t1 = time.perf_counter_ns()
+
+        profile = msg.get("profile", "?")
+        _print_accepted(device_id, f"{crypto_type}[{profile}]", plaintext.decode("utf-8"))
+
+        t_end = time.perf_counter_ns()
+        end_cpu_user, end_cpu_sys = _cpu_times_ns(process)
+        end_rss = process.memory_info().rss
+        log_gateway_pqc(
+            device_id=device_id,
+            session_id=session_id,
+            seq=seq,
+            profile=str(profile),
+            alg_kem="-",
+            alg_sig="AES-256-GCM",
+            crypto_type=crypto_type,
+            crypto_kind="CLASSICAL",
+            payload_target_bytes=pt_target,
+            security_bits=sec_bits,
+            payload_bytes=payload_bytes,
+            pqc_available=PQC_AVAILABLE,
+            accepted=True,
+            t_total_ns=t_end - t_start,
+            t_decap_ns=0,
+            t_aes_dec_ns=t1 - t0,
+            t_verify_ns=0,
+            cpu_user_ns=end_cpu_user - start_cpu_user,
+            cpu_sys_ns=end_cpu_sys - start_cpu_sys,
+            rss_delta_kb=int((end_rss - start_rss) / 1024),
+        )
+    except InvalidTag:
+        print(f"[GATEWAY] AUTH FAILED   device={device_id} — AES-GCM tag invalid")
+    except Exception as exc:
+        print(f"[GATEWAY] ERROR   device={device_id}: {exc}", file=sys.stderr)
+
+
+def _decrypt_classical_chacha_research(km, msg: dict) -> None:
+    """ChaCha20-Poly1305 research-format frame (CLASSICAL-CHACHA20)."""
+    device_id = msg["device_id"]
+    session_id = msg.get("session_id", "default")
+    seq = msg["seq"]
+
+    if not _check_replay(device_id, session_id, seq):
+        return
+
+    payload_bytes = int(msg.pop("_payload_bytes", 0))
+    pt_target = int(msg.get("payload_target_bytes", 0) or 0)
+    sec_bits = int(msg.get("security_bits", 0) or 0)
+    crypto_type = msg.get("crypto_type", "CLASSICAL-CHACHA20")
+
+    try:
+        process = psutil.Process()
+        start_rss = process.memory_info().rss
+        start_cpu_user, start_cpu_sys = _cpu_times_ns(process)
+        t_start = time.perf_counter_ns()
+
+        key = km.chacha20poly1305_key(device_id)
+        nonce = _b64d(msg["nonce"])
+        ciphertext = _b64d(msg["ciphertext"])
+        t0 = time.perf_counter_ns()
+        plain = ChaCha20Poly1305(key).decrypt(nonce, ciphertext, None)
+        t1 = time.perf_counter_ns()
+
+        profile = msg.get("profile", "?")
+        _print_accepted(device_id, f"{crypto_type}[{profile}]", plain.decode("utf-8"))
+
+        t_end = time.perf_counter_ns()
+        end_cpu_user, end_cpu_sys = _cpu_times_ns(process)
+        end_rss = process.memory_info().rss
+        log_gateway_pqc(
+            device_id=device_id,
+            session_id=session_id,
+            seq=seq,
+            profile=str(profile),
+            alg_kem="-",
+            alg_sig="ChaCha20-Poly1305",
+            crypto_type=crypto_type,
+            crypto_kind="CLASSICAL",
+            payload_target_bytes=pt_target,
+            security_bits=sec_bits,
+            payload_bytes=payload_bytes,
+            pqc_available=PQC_AVAILABLE,
+            accepted=True,
+            t_total_ns=t_end - t_start,
+            t_decap_ns=0,
+            t_aes_dec_ns=t1 - t0,
+            t_verify_ns=0,
+            cpu_user_ns=end_cpu_user - start_cpu_user,
+            cpu_sys_ns=end_cpu_sys - start_cpu_sys,
+            rss_delta_kb=int((end_rss - start_rss) / 1024),
+        )
+    except InvalidTag:
+        print(f"[GATEWAY] AUTH FAILED   device={device_id} — ChaCha20-Poly1305 tag invalid")
+    except Exception as exc:
+        print(f"[GATEWAY] ERROR   device={device_id}: {exc}", file=sys.stderr)
+
+
+def _decrypt_classical_ecdh_ecdsa_research(km, msg: dict) -> None:
+    """
+    Ephemeral ECDH (P-256) to static gateway key + AES-256-GCM + ECDSA-P256-SHA256
+    over plaintext (CLASSICAL-ECDH-ECDSA). Mirrors PQC timer columns.
+    """
+    device_id = msg["device_id"]
+    session_id = msg.get("session_id", "default")
+    seq = msg["seq"]
+
+    if not _check_replay(device_id, session_id, seq):
+        return
+
+    alg_kem = msg.get("alg_kem", "ECDH-P256")
+    alg_sig = msg.get("alg_sig", "ECDSA-P256-SHA256")
+    payload_bytes = int(msg.pop("_payload_bytes", 0))
+    pt_target = int(msg.get("payload_target_bytes", 0) or 0)
+    sec_bits = int(msg.get("security_bits", 0) or 0)
+    crypto_type = msg.get("crypto_type", "CLASSICAL-ECDH-ECDSA")
+    crypto_kind = msg.get("crypto_kind", "CLASSICAL-ASYM")
+
+    try:
+        process = psutil.Process()
+        start_rss = process.memory_info().rss
+        start_cpu_user, start_cpu_sys = _cpu_times_ns(process)
+        t_start = time.perf_counter_ns()
+
+        static_sk = _cached_ecdh_p256_static_private_key(km)
+        t0 = time.perf_counter_ns()
+        eph_pub_bytes = _b64d(msg["ecdh_ephemeral_pub"])
+        peer_eph = ec.EllipticCurvePublicKey.from_encoded_point(
+            ec.SECP256R1(), eph_pub_bytes
+        )
+        shared = static_sk.exchange(ec.ECDH(), peer_eph)
+        aes_key = km.derive_classical_ecdh_aes_key(shared)
+        t1 = time.perf_counter_ns()
+
+        nonce = _b64d(msg["nonce"])
+        ciphertext = _b64d(msg["ciphertext"])
+        t2 = time.perf_counter_ns()
+        plaintext = AESGCM(aes_key).decrypt(nonce, ciphertext, None)
+        t3 = time.perf_counter_ns()
+
+        signature = _b64d(msg["signature"])
+        sig_vk = _cached_ecdsa_p256_verify_key(km, device_id)
+        t4 = time.perf_counter_ns()
+        try:
+            sig_vk.verify(signature, plaintext, ec.ECDSA(hashes.SHA256()))
+            sig_ok = True
+        except InvalidSignature:
+            sig_ok = False
+        t5 = time.perf_counter_ns()
+
+        def _log(accepted: bool) -> None:
+            t_end = time.perf_counter_ns()
+            end_cpu_user, end_cpu_sys = _cpu_times_ns(process)
+            end_rss = process.memory_info().rss
+            log_gateway_pqc(
+                device_id=device_id,
+                session_id=session_id,
+                seq=seq,
+                profile=str(msg.get("profile", "?")),
+                alg_kem=alg_kem,
+                alg_sig=alg_sig,
+                crypto_type=crypto_type,
+                crypto_kind=crypto_kind,
+                payload_target_bytes=pt_target,
+                security_bits=sec_bits,
+                payload_bytes=payload_bytes,
+                pqc_available=PQC_AVAILABLE,
+                accepted=accepted,
+                t_total_ns=t_end - t_start,
+                t_decap_ns=t1 - t0,
+                t_aes_dec_ns=t3 - t2,
+                t_verify_ns=t5 - t4,
+                cpu_user_ns=end_cpu_user - start_cpu_user,
+                cpu_sys_ns=end_cpu_sys - start_cpu_sys,
+                rss_delta_kb=int((end_rss - start_rss) / 1024),
+            )
+
+        if not sig_ok:
+            print(
+                f"[GATEWAY] SIG REJECTED  device={device_id} "
+                f"— ECDSA-P256 verification failed (classical asymmetric baseline)"
+            )
+            _log(False)
+            return
+
+        profile = msg.get("profile", "?")
+        _print_accepted(device_id, f"{crypto_type}[{profile}]", plaintext.decode("utf-8"))
+        _log(True)
+
+    except InvalidTag:
+        print(f"[GATEWAY] AUTH FAILED   device={device_id} — AES-GCM tag invalid")
+    except Exception as exc:
+        print(f"[GATEWAY] ERROR   device={device_id}: {exc}", file=sys.stderr)
+
+
+def _handle_rtt_echo(mqtt_client: mqtt.Client, mqtt_msg: mqtt.MQTTMessage) -> None:
+    """Echo JSON RTT probe (no crypto). Adds t_gateway_recv_ns; client measures latency."""
+    try:
+        data = json.loads(mqtt_msg.payload.decode("utf-8"))
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        return
+    data["t_gateway_recv_ns"] = time.time_ns()
+    try:
+        mqtt_client.publish(RTT_REPLY_TOPIC, json.dumps(data, separators=(",", ":")), qos=0)
+    except Exception:
+        pass
+
+
 # ── Dispatch table ─────────────────────────────────────────────────────────────
 
 _HANDLERS = {
@@ -282,6 +567,9 @@ _HANDLERS = {
     "Kyber512-AES-GCM":          _decrypt_client_b,
     "Kyber768-Dilithium3-AES-GCM": _decrypt_client_c,
     "PQC-RESEARCH-PROFILE":      _decrypt_research_profile,
+    "CLASSICAL-AES-GCM":         _decrypt_classical_aes_research,
+    "CLASSICAL-CHACHA20":        _decrypt_classical_chacha_research,
+    "CLASSICAL-ECDH-ECDSA":      _decrypt_classical_ecdh_ecdsa_research,
 }
 
 
@@ -289,6 +577,10 @@ _HANDLERS = {
 
 def _make_on_message(km):
     def on_message(client, userdata, mqtt_msg):
+        if mqtt_msg.topic == RTT_REQUEST_TOPIC:
+            _handle_rtt_echo(client, mqtt_msg)
+            return
+
         try:
             msg = json.loads(mqtt_msg.payload.decode("utf-8"))
         except json.JSONDecodeError:
@@ -321,6 +613,8 @@ def on_connect(client, userdata, flags, rc):
         print(f"[GATEWAY] Connected to broker at {GATEWAY_IP}:{GATEWAY_PORT}")
         client.subscribe(TOPIC_PATTERN, qos=1)
         print(f"[GATEWAY] Subscribed to: {TOPIC_PATTERN}")
+        client.subscribe(RTT_REQUEST_TOPIC, qos=0)
+        print(f"[GATEWAY] Subscribed to: {RTT_REQUEST_TOPIC} (MQTT RTT echo, no crypto)")
     else:
         print(f"[GATEWAY] Connection failed — rc={rc}", file=sys.stderr)
 

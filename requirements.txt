@@ -1,0 +1,15 @@
+# Shared Python dependencies — Client Pi, Gateway Pi, and dev/analysis (same venv recipe).
+#
+# From repo root:
+#   pip install -r requirements.txt
+#
+# liboqs-python runs real PQC when the system liboqs is installed; otherwise the
+# code falls back to simulation. Alternative pip-only install (may need matching liboqs):
+#   pip install git+https://github.com/open-quantum-safe/liboqs-python.git
+
+paho-mqtt>=1.6.1,<2.0
+python-dotenv>=1.0.0
+cryptography>=41.0.0
+psutil>=5.9.0
+pandas>=2.0,<3
+liboqs-python>=0.14.0

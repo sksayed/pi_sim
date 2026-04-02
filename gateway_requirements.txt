@@ -1,11 +1,3 @@
-# Gateway Pi dependencies
-# Install with: pip install -r gateway_requirements.txt
-paho-mqtt>=1.6.1,<2.0
-python-dotenv>=1.0.0
-cryptography>=41.0.0
-psutil>=5.9.0
-
-# Post-quantum crypto Python bindings (optional — simulation mode runs without it).
-# Install after system-installing liboqs:
-#   pip install git+https://github.com/open-quantum-safe/liboqs-python.git
-liboqs-python>=0.14.0
+# Gateway Pi — same packages as requirements.txt (kept for older docs/commands).
+# pip install -r gateway_requirements.txt
+-r requirements.txt

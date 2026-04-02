@@ -22,6 +22,7 @@ from typing import Callable, Dict, Optional, Tuple
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives.asymmetric import ec
 
 # ── PQC library ────────────────────────────────────────────────────────────────
 try:
@@ -79,6 +80,8 @@ _SIG_PARAMS = {
 
 class KeyManager:
     """Derives all cryptographic keys from a single master secret."""
+
+    _SECP256R1_ORDER = 0xFFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551
 
     def __init__(self, master_secret: str) -> None:
         if not master_secret:
@@ -171,6 +174,52 @@ class KeyManager:
     def aes_key(self, device_id: str) -> bytes:
         """Return a 32-byte AES-256 key scoped to `device_id`."""
         return self._hkdf(f"aes:{device_id}", 32)
+
+    def chacha20poly1305_key(self, device_id: str) -> bytes:
+        """Return a 32-byte ChaCha20-Poly1305 key scoped to `device_id`."""
+        return self._hkdf(f"chacha20-poly1305:{device_id}", 32)
+
+    # ── Classical P-256 (secp256r1) for ECDH + ECDSA baselines ─────────────────
+
+    def _p256_private_key_from_seed(self, info: str) -> ec.EllipticCurvePrivateKey:
+        """
+        Derive a secp256r1 private key deterministically from HKDF(info).
+        Used for the gateway's static ECDH key (same info on client + gateway)
+        and per-device ECDSA signing keys.
+        """
+        seed = self._hkdf(info, 48)
+        order = self._SECP256R1_ORDER
+        x = int.from_bytes(seed, "big") % order
+        if x == 0:
+            x = 1
+        return ec.derive_private_key(x, ec.SECP256R1(), default_backend())
+
+    def ecdh_p256_static_private_key(self) -> ec.EllipticCurvePrivateKey:
+        """
+        Long-term ECDH private key for the gateway (classical asymmetric baseline).
+
+        Peers derive the matching public key from the same master secret without
+        wire transfer — analogous to deterministic kem_keypair(alg_kem) for PQC.
+        """
+        return self._p256_private_key_from_seed("ecdh-static:P-256")
+
+    def ecdh_p256_static_peer_public_key(self) -> ec.EllipticCurvePublicKey:
+        """Public half of the static ECDH key (for clients to run ECDH)."""
+        return self.ecdh_p256_static_private_key().public_key()
+
+    def ecdsa_p256_signing_key(self, device_id: str) -> ec.EllipticCurvePrivateKey:
+        """ECDSA (P-256, SHA-256) signing key for this MQTT device_id."""
+        return self._p256_private_key_from_seed(f"ecdsa-p256:{device_id}")
+
+    def derive_classical_ecdh_aes_key(self, shared_secret: bytes) -> bytes:
+        """HKDF expand shared ECDH output to a 32-byte AES-256 key (research baseline)."""
+        return HKDF(
+            algorithm=hashes.SHA256(),
+            length=32,
+            salt=None,
+            info=b"classical-ecdh-research-aes:v1",
+            backend=default_backend(),
+        ).derive(shared_secret)
 
     # ── Deterministic RNG hook (liboqs custom RNG) ─────────────────────────────
 
