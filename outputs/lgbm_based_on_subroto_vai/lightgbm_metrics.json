@@ -1,0 +1,39 @@
+{
+  "accuracy": 0.9785484920135052,
+  "macro_f1": 0.8997650583876535,
+  "train_time_sec": 17.589246605988592,
+  "n_train_samples": 1129927,
+  "n_test_samples": 484255,
+  "n_features": 45,
+  "classes": [
+    "ARP_Spoofing",
+    "Benign",
+    "MQTT-DDoS-Connect_Flood",
+    "MQTT-DDoS-Publish_Flood",
+    "MQTT-DoS-Connect_Flood",
+    "MQTT-DoS-Publish_Flood",
+    "MQTT-Malformed_Data",
+    "Recon-OS_Scan",
+    "Recon-Ping_Sweep",
+    "Recon-Port_Scan",
+    "Recon-VulScan",
+    "TCP_IP-DDoS-ICMP1",
+    "TCP_IP-DDoS-ICMP2",
+    "TCP_IP-DDoS-SYN",
+    "TCP_IP-DDoS-TCP",
+    "TCP_IP-DDoS-UDP1",
+    "TCP_IP-DDoS-UDP2",
+    "TCP_IP-DoS-ICMP",
+    "TCP_IP-DoS-SYN",
+    "TCP_IP-DoS-TCP",
+    "TCP_IP-DoS-UDP"
+  ],
+  "params": {
+    "objective": "multiclass",
+    "num_class": 21,
+    "metric": "multi_logloss",
+    "learning_rate": 0.05,
+    "num_leaves": 31,
+    "verbose": -1
+  }
+}

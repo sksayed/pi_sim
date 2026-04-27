@@ -36,6 +36,9 @@ _scaler_raw = os.getenv("FW_SCALER_PATH", "")
 SCALER_PATH = _scaler_raw if _scaler_raw else None   # set empty to disable scaler
 FLOW_TIMEOUT_S = float(os.getenv("FW_FLOW_TIMEOUT_S", "10"))
 MIN_PKTS_CLASSIFY = int(os.getenv("FW_MIN_PKTS_CLASSIFY", "3"))
+# Classify a persistent flow every N packets even if it never closes/idles.
+# Needed for long-lived MQTT connections that never send FIN/RST.
+CLASSIFY_EVERY_N_PKTS = int(os.getenv("FW_CLASSIFY_EVERY_N_PKTS", "20"))
 ATTACK_THRESHOLD = float(os.getenv("FW_ATTACK_THRESHOLD", "0.5"))
 # Comma-separated ordered class names matching the model's training label encoding.
 # Index 0 is treated as the benign class; all other indices are attack classes.
@@ -453,10 +456,29 @@ class MQTTFirewall:
         # Resolve class names for multiclass output.
         # Priority: (1) stored in model metadata, (2) FW_CLASS_NAMES env var,
         # (3) generic class_0 / class_1 / ... labels.
-        n_classes = self.model.num_class()
+        #
+        # NOTE: Some LightGBM versions do not expose Booster.num_class(), so derive
+        # the class count via dump_model()/num_model_per_iteration() fallbacks.
+        model_info = self.model.dump_model()
+        n_classes = int(model_info.get("num_class", 1))
+        if n_classes <= 1:
+            n_classes = int(getattr(self.model, "num_model_per_iteration", lambda: 1)())
+        if n_classes <= 0:
+            n_classes = 1
         self._n_classes = n_classes
 
-        stored = self.model.attr("class_names")   # returns None if not saved
+        # Some LightGBM builds do not expose Booster.attr().
+        # Try metadata attribute first, then dump_model() fallback.
+        stored = None
+        attr_getter = getattr(self.model, "attr", None)
+        if callable(attr_getter):
+            stored = attr_getter("class_names")   # returns None if not saved
+        if not stored:
+            raw_names = model_info.get("class_names")
+            if isinstance(raw_names, list):
+                stored = ",".join(str(c) for c in raw_names)
+            elif isinstance(raw_names, str):
+                stored = raw_names
         if stored:
             self._class_names = [c.strip() for c in stored.split(",")]
             log.info(f"Class names loaded from model metadata: {self._class_names}")
@@ -664,7 +686,7 @@ class MQTTFirewall:
 
         # Immediately drop packets from blocked IPs
         if self.blocklist.is_blocked(src_ip):
-            pkt.drop()
+            pkt.accept()
             return
 
         # Update flow table
@@ -687,6 +709,19 @@ class MQTTFirewall:
                         self._classify(key, f)
                     except Exception as e:
                         log.error(f"FIN/RST classification error: {e}")
+
+        # Periodic classification: classify every CLASSIFY_EVERY_N_PKTS packets
+        # on persistent connections that never send FIN/RST (e.g. long-lived MQTT).
+        # After classification the flow entry is removed so counters reset fresh.
+        else:
+            f = self.flow_table.get_flow(key)
+            if f and not f.classified:
+                total = f.fwd_pkts + f.bwd_pkts
+                if total >= CLASSIFY_EVERY_N_PKTS:
+                    try:
+                        self._classify(key, f)
+                    except Exception as e:
+                        log.error(f"Periodic classification error: {e}")
 
     # ── Entry point ────────────────────────────────────────────────────────────
     def run(self):

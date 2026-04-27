@@ -7,13 +7,26 @@
 # code falls back to simulation. Alternative pip-only install (may need matching liboqs):
 #   pip install git+https://github.com/open-quantum-safe/liboqs-python.git
 
+# ── MQTT / crypto stack ────────────────────────────────────────────────────────
 paho-mqtt>=1.6.1,<2.0
 python-dotenv>=1.0.0
 cryptography>=41.0.0
 psutil>=5.9.0
+
+# ── Data / ML core ────────────────────────────────────────────────────────────
+numpy>=1.24.0
 pandas>=2.0,<3
-liboqs-python>=0.14.0
+scikit-learn>=1.3.0
 lightgbm>=4.0.0
+joblib>=1.3.0
+
+# ── Training analysis & plots (ml/train_lgbm.py) ──────────────────────────────
+matplotlib>=3.7.0
+seaborn>=0.12.0
+
+# ── Firewall / IDS runtime ────────────────────────────────────────────────────
 dpkt>=1.9.8
 NetfilterQueue>=1.1.0
-joblib>=1.3.0
+
+# ── PQC (optional — falls back to simulation stubs if liboqs not installed) ───
+liboqs-python>=0.14.0

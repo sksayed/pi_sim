@@ -1,0 +1,39 @@
+Use either of these:
+
+- Service status (best if managed by systemd):
+  - `systemctl is-active mosquitto`
+  - `systemctl status mosquitto`
+
+- Process check:
+  - `pgrep -a mosquitto`
+
+- Port check (MQTT default 1883):
+  - `ss -ltnp | grep 1883`
+
+Quick yes/no one-liner:
+- `systemctl is-active --quiet mosquitto && echo "running" || echo "not running"`
+
+Default full stack:
+
+python scripts/start_stack.py
+Dry run:
+
+python scripts/start_stack.py --dry-run
+Run without firewall:
+
+python scripts/start_stack.py --skip-firewall
+Run only broker + firewall (no gateway):
+
+python scripts/start_stack.py --skip-gateway
+Use custom broker target:
+
+python scripts/start_stack.py --broker-host 192.168.1.10 --broker-port 1883 --broker-timeout 30
+Multiple clients:
+
+python scripts/start_stack.py --client-cmd "python client/client_a.py" --client-cmd "python client/client_b.py" --client-cmd "python client/client_c.py"
+Custom gateway command:
+
+python scripts/start_stack.py --gateway-cmd "python gateway/gateway.py"
+Custom service start commands:
+
+python scripts/start_stack.py --mosquitto-cmd "sudo service mosquitto start" --firewall-cmd "sudo systemctl restart mqtt_firewall"
