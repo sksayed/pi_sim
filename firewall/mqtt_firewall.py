@@ -37,6 +37,16 @@ SCALER_PATH = _scaler_raw if _scaler_raw else None   # set empty to disable scal
 FLOW_TIMEOUT_S = float(os.getenv("FW_FLOW_TIMEOUT_S", "10"))
 MIN_PKTS_CLASSIFY = int(os.getenv("FW_MIN_PKTS_CLASSIFY", "3"))
 ATTACK_THRESHOLD = float(os.getenv("FW_ATTACK_THRESHOLD", "0.5"))
+# Comma-separated ordered class names matching the model's training label encoding.
+# Index 0 is treated as the benign class; all other indices are attack classes.
+# Example: "Benign,DoS,Reconnaissance,MQTT_Flood,Mirai"
+# Leave empty to fall back to "class_0", "class_1", ... labels.
+_CLASS_NAMES_RAW = os.getenv("FW_CLASS_NAMES", "")
+CLASS_NAMES: list[str] = (
+    [c.strip() for c in _CLASS_NAMES_RAW.split(",") if c.strip()]
+    if _CLASS_NAMES_RAW else []
+)
+BENIGN_LABEL = os.getenv("FW_BENIGN_LABEL", "Benign")  # exact name of the benign class
 BLOCK_VERDICT = _env_bool("FW_BLOCK_VERDICT", True)   # False = IDS mode (log only)
 BLOCK_TTL_S = float(os.getenv("FW_BLOCK_TTL_S", "0")) # <=0 means no auto-unblock
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -45,6 +55,9 @@ DEFAULT_LOG_FILE = DEFAULT_LOG_DIR / "mqtt_firewall.log"
 LOG_FILE = os.getenv("FW_LOG_FILE", str(DEFAULT_LOG_FILE))
 VERBOSE_PACKET_LOGS = _env_bool("FW_VERBOSE_PACKET_LOGS", True)
 JSON_EVENT_LOGS = _env_bool("FW_JSON_EVENT_LOGS", True)
+_jsonl_raw = os.getenv("FW_JSONL_FILE", "")
+DEFAULT_JSONL_FILE = DEFAULT_LOG_DIR / "mqtt_firewall.jsonl"
+JSONL_FILE = _jsonl_raw if _jsonl_raw else str(DEFAULT_JSONL_FILE)
 
 # Ensure log directory exists for file-based logging.
 Path(LOG_FILE).parent.mkdir(parents=True, exist_ok=True)
@@ -60,13 +73,23 @@ logging.basicConfig(
 )
 log = logging.getLogger(__name__)
 
+# Separate logger for machine-readable JSON events (one JSON object per line).
+# Writes only to JSONL_FILE — never appears in the human log.
+_jsonl_logger = logging.getLogger("fw.jsonl")
+_jsonl_logger.propagate = False   # do not bubble up to root handler
+_jsonl_logger.setLevel(logging.INFO)
+if JSON_EVENT_LOGS:
+    _jh = logging.FileHandler(JSONL_FILE)
+    _jh.setFormatter(logging.Formatter("%(message)s"))  # raw JSON, no prefix
+    _jsonl_logger.addHandler(_jh)
+
 
 def log_event(event: str, **data) -> None:
-    """Structured JSON logs for downstream analysis."""
+    """Write a structured JSON event to the .jsonl sidecar file only."""
     if not JSON_EVENT_LOGS:
         return
     payload = {"event": event, "ts": time.time(), **data}
-    log.info("[EVENT] %s", json.dumps(payload, separators=(",", ":"), sort_keys=True))
+    _jsonl_logger.info(json.dumps(payload, separators=(",", ":"), sort_keys=True))
 
 # ─── Flow Record ──────────────────────────────────────────────────────────────
 @dataclass
@@ -427,6 +450,56 @@ class MQTTFirewall:
             f"produces 45. Update extract_features() to match model.feature_name()."
         )
 
+        # Resolve class names for multiclass output.
+        # Priority: (1) stored in model metadata, (2) FW_CLASS_NAMES env var,
+        # (3) generic class_0 / class_1 / ... labels.
+        n_classes = self.model.num_class()
+        self._n_classes = n_classes
+
+        stored = self.model.attr("class_names")   # returns None if not saved
+        if stored:
+            self._class_names = [c.strip() for c in stored.split(",")]
+            log.info(f"Class names loaded from model metadata: {self._class_names}")
+            if len(self._class_names) != n_classes:
+                log.warning(
+                    f"model attr 'class_names' has {len(self._class_names)} entries "
+                    f"but model has {n_classes} classes — falling back to generic labels."
+                )
+                self._class_names = [f"class_{i}" for i in range(n_classes)]
+        elif CLASS_NAMES:
+            if len(CLASS_NAMES) != n_classes:
+                log.warning(
+                    f"FW_CLASS_NAMES has {len(CLASS_NAMES)} entries but model has "
+                    f"{n_classes} classes — falling back to generic labels."
+                )
+                self._class_names = [f"class_{i}" for i in range(n_classes)]
+            else:
+                self._class_names = CLASS_NAMES
+                log.info(f"Class names loaded from FW_CLASS_NAMES: {self._class_names}")
+        else:
+            self._class_names = [f"class_{i}" for i in range(n_classes)]
+            log.warning(
+                f"No class names found in model metadata or FW_CLASS_NAMES. "
+                f"Using generic labels: {self._class_names}. "
+                f"Run firewall/embed_class_names.py to bake class names into the model."
+            )
+
+        # Index of the benign class (used to decide ATTACK vs benign)
+        if BENIGN_LABEL in self._class_names:
+            self._benign_idx = self._class_names.index(BENIGN_LABEL)
+        else:
+            self._benign_idx = 0   # assume class 0 is benign if label not found
+            log.warning(
+                f"Benign label '{BENIGN_LABEL}' not found in class names — "
+                f"assuming class_0 ('{self._class_names[0]}') is benign."
+            )
+
+        log.info(
+            f"Classifier: {n_classes} class(es) | "
+            f"benign='{self._class_names[self._benign_idx]}' (idx={self._benign_idx}) | "
+            f"classes={self._class_names}"
+        )
+
         # Optional scaler
         self.scaler = None
         if SCALER_PATH and os.path.exists(SCALER_PATH):
@@ -469,48 +542,67 @@ class MQTTFirewall:
     # ── Classifier ────────────────────────────────────────────────────────────
     def _classify(self, key: FlowKey, flow: Flow):
         feats = flow.extract_features()
-        # Detailed pre-inference feature dump (45 columns in model order).
-        if VERBOSE_PACKET_LOGS:
-            feat_vals = feats.flatten().tolist()
-            feat_text = ", ".join([f"Column_{i}={v:.6f}" for i, v in enumerate(feat_vals)])
-            log.info(
-                f"[PRE-INFER] flow={flow.src_ip}:{flow.src_port}->{flow.dst_ip}:{flow.dst_port} "
-                f"pkts={flow.fwd_pkts + flow.bwd_pkts} features=[{feat_text}]"
-            )
+        pkts  = flow.fwd_pkts + flow.bwd_pkts
+        dur   = flow.last_ts - flow.start_ts
+
+        # Full 45-feature vector goes to the .jsonl sidecar only.
         log_event(
             "pre_infer",
             flow_src_ip=flow.src_ip,
             flow_src_port=flow.src_port,
             flow_dst_ip=flow.dst_ip,
             flow_dst_port=flow.dst_port,
-            pkts=flow.fwd_pkts + flow.bwd_pkts,
+            pkts=pkts,
             features=feats.flatten().tolist(),
         )
+
         if self.scaler:
             feats = self.scaler.transform(feats)
 
-        proba = self.model.predict(feats)  # shape (1,) or (1, n_classes)
+        proba = self.model.predict(feats)  # shape (1, n_classes) for multiclass, (1,) for binary
 
-        # Handle both binary and multiclass output
-        if proba.ndim == 2:
-            attack_prob = float(proba[0][1])
+        if proba.ndim == 2 and self._n_classes > 2:
+            # ── Multiclass ────────────────────────────────────────────────────
+            # proba[0] is a probability vector over all classes.
+            # The predicted class is whichever has the highest probability.
+            class_probs = proba[0]                          # shape: (n_classes,)
+            pred_idx    = int(np.argmax(class_probs))       # winning class index
+            pred_label  = self._class_names[pred_idx]       # e.g. "DoS", "Benign"
+            pred_prob   = float(class_probs[pred_idx])      # confidence in that class
+            benign_prob = float(class_probs[self._benign_idx])
+
+            # It is an attack if the predicted class is not the benign class
+            # AND the model is confident enough (benign_prob < 1 - threshold).
+            is_attack = (pred_idx != self._benign_idx) and (benign_prob < 1.0 - ATTACK_THRESHOLD)
+            attack_type = pred_label if is_attack else "benign"
+            attack_prob = 1.0 - benign_prob   # "how non-benign is this flow"
+
+            all_probs = {self._class_names[i]: round(float(class_probs[i]), 4)
+                         for i in range(self._n_classes)}
         else:
-            attack_prob = float(proba[0])
+            # ── Binary (or binary-treated multiclass with 2 classes) ──────────
+            attack_prob = float(proba[0][1]) if proba.ndim == 2 else float(proba[0])
+            is_attack   = attack_prob > ATTACK_THRESHOLD
+            pred_label  = self._class_names[1] if (is_attack and self._n_classes >= 2) else self._class_names[0]
+            attack_type = pred_label if is_attack else "benign"
+            all_probs   = {self._class_names[0]: round(1 - attack_prob, 4),
+                           self._class_names[1] if self._n_classes >= 2 else "attack": round(attack_prob, 4)}
 
-        label = "ATTACK" if attack_prob > ATTACK_THRESHOLD else "benign"
-        pkts  = flow.fwd_pkts + flow.bwd_pkts
-        dur   = flow.last_ts - flow.start_ts
+        label = "ATTACK" if is_attack else "benign"
 
-        # Post-inference verdict log.
+        # Human-readable single-line verdict — includes specific attack type for multiclass.
         log.info(
-            f"[POST-INFER] verdict={label} attack_prob={attack_prob:.6f} "
-            f"threshold={ATTACK_THRESHOLD:.3f}"
+            f"[VERDICT] {flow.src_ip}:{flow.src_port} -> {flow.dst_ip}:{flow.dst_port} | "
+            f"verdict={label}  type={attack_type}  confidence={attack_prob:.4f}  "
+            f"pkts={pkts}  bytes={flow.fwd_bytes+flow.bwd_bytes}  dur={dur:.3f}s"
         )
         log_event(
-            "post_infer",
+            "verdict",
             verdict=label,
+            attack_type=attack_type,
             attack_prob=attack_prob,
             threshold=ATTACK_THRESHOLD,
+            class_probabilities=all_probs,
             flow_src_ip=flow.src_ip,
             flow_src_port=flow.src_port,
             flow_dst_ip=flow.dst_ip,
@@ -518,12 +610,6 @@ class MQTTFirewall:
             flow_pkts=pkts,
             flow_bytes=flow.fwd_bytes + flow.bwd_bytes,
             flow_duration_s=dur,
-        )
-        log.info(
-            f"[{label}] {flow.src_ip}:{flow.src_port} → "
-            f"{flow.dst_ip}:{flow.dst_port} | "
-            f"pkts={pkts} bytes={flow.fwd_bytes+flow.bwd_bytes} "
-            f"dur={dur:.3f}s | p={attack_prob:.4f}"
         )
 
         if label == "ATTACK":
@@ -556,11 +642,14 @@ class MQTTFirewall:
             return
 
         src_ip, dst_ip, sport, dport, proto, pkt_len, flags, hdr_len = parsed
+
+        # Per-packet line: concise, readable. Skipped when VERBOSE_PACKET_LOGS=false.
         if VERBOSE_PACKET_LOGS:
             log.info(
-                f"[PARSED] {src_ip}:{sport} -> {dst_ip}:{dport} "
-                f"proto={proto} payload_len={pkt_len} flags=0x{flags:02x} hdr_len={hdr_len}"
+                f"[PKT] {src_ip}:{sport} -> {dst_ip}:{dport}  "
+                f"len={pkt_len}  flags=0x{flags:02x}"
             )
+        # Full detail goes to .jsonl only.
         log_event(
             "packet_parsed",
             src_ip=src_ip,
@@ -583,11 +672,6 @@ class MQTTFirewall:
             src_ip, dst_ip, sport, dport, proto,
             pkt_len, flags, ts, hdr_len
         )
-        if VERBOSE_PACKET_LOGS:
-            log.info(
-                f"[FLOW-UPDATE] key={key} fwd_pkts={flow.fwd_pkts} bwd_pkts={flow.bwd_pkts} "
-                f"fwd_bytes={flow.fwd_bytes} bwd_bytes={flow.bwd_bytes}"
-            )
 
         # Accept all packets first (passive-classify model)
         # Prevents added latency on legitimate MQTT traffic

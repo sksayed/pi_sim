@@ -21,3 +21,37 @@ MQTT_TOPIC=pi/sensor/data
 # ── Behaviour ─────────────────────────────────────────────────────────────────
 # How often (seconds) the client publishes a message
 PUBLISH_INTERVAL=2
+
+# ── Firewall (mqtt_firewall.py) ───────────────────────────────────────────────
+# NFQUEUE number (must match iptables rule: -j NFQUEUE --queue-num <N>)
+FW_QUEUE_NUM=0
+# Path to trained LightGBM model file
+FW_MODEL_PATH=firewall/lightgbm_model.txt
+# Path to sklearn scaler pickle (leave empty to disable)
+FW_SCALER_PATH=
+# Seconds of idle time before a flow is classified
+FW_FLOW_TIMEOUT_S=10
+# Minimum packet count required before classifying a flow
+FW_MIN_PKTS_CLASSIFY=3
+# Attack probability threshold (0.0–1.0)
+FW_ATTACK_THRESHOLD=0.5
+# Ordered class names matching the model's training label encoding (comma-separated).
+# Class index 0 is treated as benign unless FW_BENIGN_LABEL matches another entry.
+# Example for CIC IoMT 2024: Benign,DoS,Reconnaissance,MQTT_Flood,Mirai
+# Leave empty to use generic labels (class_0, class_1, ...).
+FW_CLASS_NAMES=
+# Exact name of the benign class in FW_CLASS_NAMES (default: Benign)
+FW_BENIGN_LABEL=Benign
+# true = IPS mode (iptables DROP); false = IDS mode (log only)
+FW_BLOCK_VERDICT=true
+# Seconds before a blocked IP is auto-unblocked (0 = permanent)
+FW_BLOCK_TTL_S=0
+# Path to firewall human-readable log file
+FW_LOG_FILE=Firewall_logs/mqtt_firewall.log
+# Path to machine-readable JSON events sidecar (one JSON object per line)
+# Parsed by scripts/analyze_firewall_logs.py
+FW_JSONL_FILE=Firewall_logs/mqtt_firewall.jsonl
+# Log a concise line per packet (src->dst len= flags=) — noisy on high traffic
+FW_VERBOSE_PACKET_LOGS=true
+# Write structured JSON events to FW_JSONL_FILE for offline analysis
+FW_JSON_EVENT_LOGS=true
