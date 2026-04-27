@@ -582,10 +582,10 @@ def _make_on_message(km):
             return
 
         try:
-            msg = json.loads(mqtt_msg.payload.decode("utf-8"))
-        except json.JSONDecodeError:
+            msg = json.loads(mqtt_msg.payload.decode("utf-8", errors="replace"))
+        except (json.JSONDecodeError, ValueError):
             print(
-                f"[GATEWAY] Non-JSON message on {mqtt_msg.topic} — ignored",
+                f"[GATEWAY] Non-JSON/malformed message on {mqtt_msg.topic} — ignored",
                 file=sys.stderr,
             )
             return

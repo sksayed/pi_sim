@@ -5,6 +5,7 @@ Requires=mosquitto.service
 
 [Service]
 Type=simple
+EnvironmentFile=/home/sayed/journal_paper_proj/pi_sim/.env
 ExecStart=/home/sayed/journal_paper_proj/pi_sim/.venv/bin/python /home/sayed/journal_paper_proj/pi_sim/firewall/mqtt_firewall.py
 Restart=always
 RestartSec=5

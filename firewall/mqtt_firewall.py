@@ -634,7 +634,7 @@ class MQTTFirewall:
             flow_duration_s=dur,
         )
 
-        if label == "ATTACK":
+        if label == "ATTACK" and BLOCK_VERDICT:
             self.blocklist.block(flow.src_ip)
 
         self.flow_table.mark_classified(key)
@@ -684,8 +684,9 @@ class MQTTFirewall:
             hdr_len=hdr_len,
         )
 
-        # Immediately drop packets from blocked IPs
-        if self.blocklist.is_blocked(src_ip):
+        # In IPS mode: drop (or accept per config) packets from blocked IPs and skip analysis.
+        # In IDS mode (BLOCK_VERDICT=False): never skip analysis — every packet is inspected.
+        if BLOCK_VERDICT and self.blocklist.is_blocked(src_ip):
             pkt.accept()
             return
 

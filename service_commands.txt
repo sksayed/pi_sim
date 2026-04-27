@@ -37,3 +37,6 @@ python scripts/start_stack.py --gateway-cmd "python gateway/gateway.py"
 Custom service start commands:
 
 python scripts/start_stack.py --mosquitto-cmd "sudo service mosquitto start" --firewall-cmd "sudo systemctl restart mqtt_firewall"
+
+
+sudo rm -f Firewall_logs/*
