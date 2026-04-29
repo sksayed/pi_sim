@@ -1,42 +1,35 @@
-Use either of these:
+### Stop order (do earlier steps first)
 
-- Service status (best if managed by systemd):
-  - `systemctl is-active mosquitto`
-  - `systemctl status mosquitto`
+1. **Gateway**  
+   ```bash
+   pkill -f '/gateway/gateway\.py'
+   ```  
+   (Or **Ctrl+C** in the terminal where `python gateway/gateway.py` is running.)
 
-- Process check:
-  - `pgrep -a mosquitto`
+2. **MQTT firewall**  
+   ```bash
+   sudo systemctl stop mqtt_firewall
+   ```  
+   If it was started by hand (not systemd):  
+   ```bash
+   pkill -f 'mqtt_firewall\.py'
+   ```
 
-- Port check (MQTT default 1883):
-  - `ss -ltnp | grep 1883`
+3. **Mosquitto**  
+   ```bash
+   sudo systemctl stop mosquitto
+   ```  
+   Alternative: `sudo service mosquitto stop`
 
-Quick yes/no one-liner:
-- `systemctl is-active --quiet mosquitto && echo "running" || echo "not running"`
+---
 
-Default full stack:
+### One line (systemd firewall + same machine)
 
-python scripts/start_stack.py
-Dry run:
+```bash
+pkill -f '/gateway/gateway\.py' 2>/dev/null; sudo systemctl stop mqtt_firewall mosquitto
+```
 
-python scripts/start_stack.py --dry-run
-Run without firewall:
-
-python scripts/start_stack.py --skip-firewall
-Run only broker + firewall (no gateway):
-
-python scripts/start_stack.py --skip-gateway
-Use custom broker target:
-
-python scripts/start_stack.py --broker-host 192.168.1.10 --broker-port 1883 --broker-timeout 30
-Multiple clients:
-
-python scripts/start_stack.py --client-cmd "python client/client_a.py" --client-cmd "python client/client_b.py" --client-cmd "python client/client_c.py"
-Custom gateway command:
-
-python scripts/start_stack.py --gateway-cmd "python gateway/gateway.py"
-Custom service start commands:
-
-python scripts/start_stack.py --mosquitto-cmd "sudo service mosquitto start" --firewall-cmd "sudo systemctl restart mqtt_firewall"
+**Why this order:** gateway releases its MQTT session first; firewall stops before the broker so the inline filter/queue is not left active while Mosquitto goes away; Mosquitto last.
 
 
 sudo rm -f Firewall_logs/*
