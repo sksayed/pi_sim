@@ -3,13 +3,14 @@
 parse_firewall_logs.py — Firewall log analyser.
 
 Reads mqtt_firewall.jsonl (machine-readable) and/or mqtt_firewall.log
-(human-readable fallback) and prints a console summary, and optionally
-writes a Markdown report and/or exports a PDF.
+(human-readable fallback) and prints a console summary, writes a Markdown
+report (default: benchmarks/firewall_report.md), and writes a PDF beside it
+unless --no-pdf is passed.
 
 Usage:
-    python scripts/parse_firewall_logs.py                          # console only
-    python scripts/parse_firewall_logs.py --report report.md       # + Markdown file
-    python scripts/parse_firewall_logs.py --report report.md --pdf # + PDF from MD
+    python scripts/parse_firewall_logs.py                          # console + MD + PDF
+    python scripts/parse_firewall_logs.py --no-pdf               # console + MD only
+    python scripts/parse_firewall_logs.py --report report.md     # custom Markdown path (+ PDF)
     python scripts/parse_firewall_logs.py --export verdicts.csv    # raw CSV export
     python scripts/parse_firewall_logs.py --tail 20                # last N verdicts
     python scripts/parse_firewall_logs.py --since "02:00:00"       # filter by time
@@ -413,8 +414,9 @@ def parse_args() -> argparse.Namespace:
                         "(e.g. --from-md benchmarks/firewall_report.md)")
     p.add_argument("--report",  default=str(DEFAULT_REPORT),
                    help=f"Write Markdown report to this path (default: {DEFAULT_REPORT})")
-    p.add_argument("--pdf",     action="store_true",
-                   help="Also convert the Markdown report to PDF (requires --report)")
+    p.set_defaults(pdf=True)
+    p.add_argument("--no-pdf", dest="pdf", action="store_false",
+                   help="Skip PDF generation (default: write PDF next to the Markdown report)")
     p.add_argument("--export",  default="",
                    help="Export raw verdict rows to this CSV path")
     p.add_argument("--tail",    type=int, default=10,

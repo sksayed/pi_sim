@@ -174,7 +174,11 @@ OS_SCAN_PROBES = [
 
 def run_os_scan() -> None:
     """Send varied TCP flag combinations to fingerprint the OS (needs root)."""
-    print(f"[OS-SCAN] Mode: os_scan (Recon-OS_Scan)  target: {SCAN_TARGET}:{GATEWAY_IP}")
+    ports_to_probe = [22, 80, 443, 1883, 8080]
+    print(
+        f"[OS-SCAN] Mode: os_scan (Recon-OS_Scan)  target={SCAN_TARGET}  "
+        f"ports={ports_to_probe}"
+    )
     try:
         raw = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_TCP)
         raw.setsockopt(socket.IPPROTO_IP, socket.IP_HDRINCL, 1)
@@ -185,7 +189,6 @@ def run_os_scan() -> None:
     src_ip = socket.gethostbyname(socket.gethostname()) or "127.0.0.1"
     probed = 0
 
-    ports_to_probe = [22, 80, 443, 1883, 8080]
     try:
         while True:
             for port in ports_to_probe:

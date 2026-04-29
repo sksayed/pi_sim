@@ -550,16 +550,24 @@ class MQTTFirewall:
         except Exception:
             return None
 
-        if not isinstance(ip.data, dpkt.tcp.TCP):
-            return None   # only handle TCP (MQTT uses TCP)
+        if isinstance(ip.data, dpkt.tcp.TCP):
+            tcp     = ip.data
+            src_ip  = dpkt.utils.inet_to_str(ip.src)
+            dst_ip  = dpkt.utils.inet_to_str(ip.dst)
+            hdr_len = (ip.hl * 4) + (tcp.off * 4)   # IP header + TCP header bytes
+            return (src_ip, dst_ip, tcp.sport, tcp.dport,
+                    ip.p, len(tcp.data), tcp.flags, hdr_len)
 
-        tcp     = ip.data
-        src_ip  = dpkt.utils.inet_to_str(ip.src)
-        dst_ip  = dpkt.utils.inet_to_str(ip.dst)
-        hdr_len = (ip.hl * 4) + (tcp.off * 4)   # IP header + TCP header bytes
+        # UDP (e.g. udp_flood_client) — requires iptables NFQUEUE on UDP ports; flags unused (0).
+        if isinstance(ip.data, dpkt.udp.UDP):
+            udp = ip.data
+            src_ip  = dpkt.utils.inet_to_str(ip.src)
+            dst_ip  = dpkt.utils.inet_to_str(ip.dst)
+            hdr_len = (ip.hl * 4) + 8   # IP + UDP header
+            return (src_ip, dst_ip, udp.sport, udp.dport,
+                    ip.p, len(udp.data), 0, hdr_len)
 
-        return (src_ip, dst_ip, tcp.sport, tcp.dport,
-                ip.p, len(tcp.data), tcp.flags, hdr_len)
+        return None
 
     # ── Classifier ────────────────────────────────────────────────────────────
     def _classify(self, key: FlowKey, flow: Flow):
