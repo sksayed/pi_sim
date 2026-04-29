@@ -27,9 +27,10 @@ from datetime import datetime
 from io import StringIO
 from pathlib import Path
 
-REPO_ROOT    = Path(__file__).resolve().parents[1]
-DEFAULT_LOG  = REPO_ROOT / "Firewall_logs" / "mqtt_firewall.log"
+REPO_ROOT     = Path(__file__).resolve().parents[1]
+DEFAULT_LOG   = REPO_ROOT / "Firewall_logs" / "mqtt_firewall.log"
 DEFAULT_JSONL = REPO_ROOT / "Firewall_logs" / "mqtt_firewall.jsonl"
+DEFAULT_REPORT = REPO_ROOT / "benchmarks" / "firewall_report.md"
 
 
 # ── Parsers ──────────────────────────────────────────────────────────────────
@@ -410,8 +411,8 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--from-md", default="", dest="from_md",
                    help="Convert an existing .md file directly to PDF, skipping log parsing "
                         "(e.g. --from-md benchmarks/firewall_report.md)")
-    p.add_argument("--report",  default="",
-                   help="Write Markdown report to this path (e.g. report.md)")
+    p.add_argument("--report",  default=str(DEFAULT_REPORT),
+                   help=f"Write Markdown report to this path (default: {DEFAULT_REPORT})")
     p.add_argument("--pdf",     action="store_true",
                    help="Also convert the Markdown report to PDF (requires --report)")
     p.add_argument("--export",  default="",
@@ -440,18 +441,54 @@ def main() -> int:
         write_pdf(md_text, pdf_path)
         return 0
 
-    # ── Load verdicts ─────────────────────────────────────────────────────────
-    if jsonl.exists():
-        verdicts = _parse_jsonl(jsonl)
-        source   = str(jsonl)
-        print(f"[source] JSONL: {jsonl}  ({len(verdicts):,} verdict events)")
-    elif log.exists():
-        verdicts = _parse_log(log)
-        source   = str(log)
-        print(f"[source] .log fallback: {log}  ({len(verdicts):,} verdict events)")
-    else:
+    # ── Load verdicts (merge JSONL + .log, deduplicate) ──────────────────────
+    sources: list[str] = []
+    all_verdicts: list[dict] = []
+
+    if not jsonl.exists() and not log.exists():
         print(f"[ERROR] No log files found at:\n  {jsonl}\n  {log}", file=sys.stderr)
         return 1
+
+    if jsonl.exists():
+        jv = _parse_jsonl(jsonl)
+        all_verdicts.extend(jv)
+        sources.append(f"JSONL ({len(jv):,} verdicts)")
+        print(f"[source] JSONL : {jsonl}  ({len(jv):,} verdict events)")
+
+    if log.exists():
+        lv = _parse_log(log)
+        sources.append(f".log ({len(lv):,} verdicts)")
+        print(f"[source] .log  : {log}  ({len(lv):,} verdict events)")
+        if all_verdicts:
+            # Deduplicate: key = (ts rounded to 1 decimal, src_ip, src_port, dst_ip, dst_port)
+            seen: set[tuple] = set()
+            for v in all_verdicts:
+                seen.add((
+                    round(v.get("ts", 0.0), 1),
+                    v.get("flow_src_ip"), v.get("flow_src_port"),
+                    v.get("flow_dst_ip"), v.get("flow_dst_port"),
+                ))
+            added = 0
+            for v in lv:
+                key = (
+                    round(v.get("ts", 0.0), 1),
+                    v.get("flow_src_ip"), v.get("flow_src_port"),
+                    v.get("flow_dst_ip"), v.get("flow_dst_port"),
+                )
+                if key not in seen:
+                    all_verdicts.append(v)
+                    seen.add(key)
+                    added += 1
+            if added:
+                print(f"[merge] +{added:,} unique verdicts from .log not in JSONL")
+            else:
+                print(f"[merge] .log contains no new verdicts beyond JSONL (both in sync)")
+        else:
+            all_verdicts.extend(lv)
+
+    verdicts = sorted(all_verdicts, key=lambda v: v.get("ts", 0.0))
+    source   = " + ".join(sources)
+    print(f"[total] {len(verdicts):,} verdicts after merge")
 
     if not verdicts:
         print("[INFO] No verdict events found.")
@@ -482,17 +519,15 @@ def main() -> int:
     print_console_report(verdicts, agg, args.tail)
 
     # ── Markdown report ───────────────────────────────────────────────────────
-    if args.report:
-        md_path = Path(args.report)
-        md_text = build_markdown(verdicts, agg, args.tail, source)
-        md_path.write_text(md_text, encoding="utf-8")
-        print(f"[report] → {md_path}")
+    md_path = Path(args.report)
+    md_path.parent.mkdir(parents=True, exist_ok=True)
+    md_text = build_markdown(verdicts, agg, args.tail, source)
+    md_path.write_text(md_text, encoding="utf-8")
+    print(f"[report] → {md_path}")
 
-        if args.pdf:
-            pdf_path = md_path.with_suffix(".pdf")
-            write_pdf(md_text, pdf_path)
-    elif args.pdf:
-        print("[WARN] --pdf requires --report <file.md> to be set.", file=sys.stderr)
+    if args.pdf:
+        pdf_path = md_path.with_suffix(".pdf")
+        write_pdf(md_text, pdf_path)
 
     # ── CSV export ────────────────────────────────────────────────────────────
     if args.export:

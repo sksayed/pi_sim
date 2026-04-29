@@ -30,8 +30,6 @@ Usage:
     python attack_clients/run_attack.py syn_flood --mode dos        # requires root
     python attack_clients/run_attack.py syn_flood --mode ddos       # requires root
 
-    python attack_clients/run_attack.py arp_spoof                   # requires root
-
     python attack_clients/run_attack.py --list
 
 All attacks also respect GATEWAY_IP and GATEWAY_PORT from .env.
@@ -139,14 +137,6 @@ ATTACKS = {
         "modes": ["dos", "ddos"],
         "mode_help": "dos=single-thread | ddos=multi-thread",
     },
-    "arp_spoof": {
-        "description": "Gratuitous ARP reply flood — ARP_Spoofing (requires root, isolated lab only)",
-        "extra_args": [
-            ("--rate",  "ATTACK_RATE_HZ",       "Packets per second (default: 2)"),
-            ("--count", "ATTACK_BURST_COUNT",    "Stop after N packets (default: 0)"),
-            ("--iface", "ARP_SPOOF_INTERFACE",   "Network interface (default: eth0)"),
-        ],
-    },
 }
 
 
@@ -187,8 +177,6 @@ def main() -> None:
     # port_scan
     parser.add_argument("--start", help="PORT_SCAN_START override")
     parser.add_argument("--end",   help="PORT_SCAN_END override")
-    # arp_spoof
-    parser.add_argument("--iface", help="ARP_SPOOF_INTERFACE override")
     args = parser.parse_args()
 
     if args.list or not args.attack:
@@ -203,7 +191,6 @@ def main() -> None:
     _set_env("SLOWLORIS_DRIP_S",      args.drip)
     _set_env("PORT_SCAN_START",       args.start)
     _set_env("PORT_SCAN_END",         args.end)
-    _set_env("ARP_SPOOF_INTERFACE",   args.iface)
 
     if args.attack == "flood":
         _set_env("ATTACK_FLOOD_TARGET", args.topic)
@@ -279,10 +266,6 @@ def main() -> None:
             syn_ddos()
         else:
             syn_dos()
-
-    elif args.attack == "arp_spoof":
-        from attack_clients.arp_spoof_client import run
-        run()
 
 
 def _set_env(key: str, value: str | None) -> None:

@@ -40,7 +40,7 @@ Usage
 
 Notes
 ─────
-  • Root-required attacks (icmp_flood, syn_flood, arp_spoof) are skipped
+  • Root-required attacks (icmp_flood, syn_flood) are skipped
     automatically when not running as root; re-run with sudo to include them.
   • The replay attack is skipped if attack_clients/captured.jsonl does not exist.
     Capture first:  python attack_clients/run_attack.py replay --mode capture
@@ -53,6 +53,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import random
 import shlex
 import signal
 import subprocess
@@ -143,15 +144,9 @@ ATTACKS: list[tuple[str, str, str, float]] = [
         "TCP SYN flood [root]            [TCP_IP-DoS-SYN]",
         1.0,
     ),
-    (
-        "arp_spoof",
-        f"{PYTHON} attack_clients/run_attack.py arp_spoof --rate 1",
-        "Gratuitous ARP flood [root]     [ARP_Spoofing]",
-        1.0,
-    ),
 ]
 
-ROOT_ATTACKS = {"icmp_flood", "syn_flood", "arp_spoof"}
+ROOT_ATTACKS = {"icmp_flood", "syn_flood"}
 
 # ── Benign client definitions ─────────────────────────────────────────────────
 # Run throughout the full_eval session in the background.
@@ -180,6 +175,165 @@ BENIGN_CLIENTS: list[tuple[str, str, str]] = [
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# Per-attack argument randomiser (used only in full_eval)
+# ─────────────────────────────────────────────────────────────────────────────
+
+_UDP_PORTS  = [1883, 8883, 5683, 1884, 49152]   # MQTT, MQTT-TLS, CoAP, alt-MQTT, ephemeral
+_MQTT_PORTS = [1883, 8883, 1884]                 # TCP MQTT variants (all go through NFQUEUE)
+
+
+def _build_random_cmd(name: str) -> tuple[str, str, float, dict]:
+    """
+    Return (cmd, sampled_args_summary, estimated_rate_per_s, extra_env) for `name`.
+
+    Arguments and target/source ports are randomly sampled from Pi-safe ranges
+    each time full_eval runs, so the firewall sees diverse traffic patterns
+    within each attack class across repeated runs.
+    extra_env is merged into the subprocess environment at launch time.
+    """
+    if name == "flood":
+        rate = random.choice([1, 2, 5])
+        port = random.choice(_MQTT_PORTS)
+        return (
+            f"{PYTHON} attack_clients/run_attack.py flood --rate {rate}",
+            f"rate={rate} msg/s  port={port}",
+            float(rate),
+            {"GATEWAY_PORT": str(port)},
+        )
+
+    if name == "malformed":
+        rate     = random.choice([1, 2])
+        strategy = random.choice(["", "0", "1", "2", "3", "4", "5", "6", "7"])
+        port     = random.choice(_MQTT_PORTS)
+        s_arg    = f"--strategy {strategy}" if strategy else ""
+        s_label  = f"strategy={'cycle-all' if not strategy else strategy}"
+        return (
+            f"{PYTHON} attack_clients/run_attack.py malformed --rate {rate} {s_arg}".strip(),
+            f"rate={rate} msg/s  {s_label}  port={port}",
+            float(rate),
+            {"GATEWAY_PORT": str(port)},
+        )
+
+    if name == "replay":
+        rate = random.choice([1, 2])
+        port = random.choice(_MQTT_PORTS)
+        return (
+            f"{PYTHON} attack_clients/run_attack.py replay --mode replay --rate {rate}",
+            f"rate={rate} msg/s  port={port}",
+            float(rate),
+            {"GATEWAY_PORT": str(port)},
+        )
+
+    if name == "slowloris":
+        mode  = random.choice(["hold", "exhaust"])
+        conns = random.randint(3, 10)
+        port  = random.choice(_MQTT_PORTS)
+        return (
+            f"{PYTHON} attack_clients/run_attack.py slowloris --mode {mode} --connections {conns}",
+            f"mode={mode}  connections={conns}  port={port}",
+            0.2,
+            {"GATEWAY_PORT": str(port)},
+        )
+
+    if name == "connect_flood":
+        rate = random.choice([1, 2, 5])
+        port = random.choice(_MQTT_PORTS)
+        return (
+            f"{PYTHON} attack_clients/run_attack.py connect_flood --mode serial --rate {rate}",
+            f"mode=serial  rate={rate} conn/s  port={port}",
+            float(rate),
+            {"GATEWAY_PORT": str(port)},
+        )
+
+    if name == "connect_flood_ddos":
+        threads = random.randint(3, 10)
+        rate    = random.choice([1, 2])
+        port    = random.choice(_MQTT_PORTS)
+        return (
+            f"{PYTHON} attack_clients/run_attack.py connect_flood --mode parallel"
+            f" --threads {threads} --rate {rate}",
+            f"mode=parallel  threads={threads}  rate={rate} conn/s/thread  port={port}",
+            float(rate * threads),
+            {"GATEWAY_PORT": str(port)},
+        )
+
+    if name == "port_scan":
+        start = random.choice([1, 20, 80])
+        end   = start + random.choice([100, 500, 1024])
+        return (
+            f"{PYTHON} attack_clients/run_attack.py port_scan --mode port_scan"
+            f" --rate 1 --start {start} --end {end}",
+            f"mode=port_scan  range={start}-{end}",
+            1.0,
+            {},
+        )
+
+    if name == "vul_scan":
+        rate = random.choice([1, 2])
+        return (
+            f"{PYTHON} attack_clients/run_attack.py port_scan --mode vul_scan --rate {rate}",
+            f"mode=vul_scan  rate={rate} probes/s",
+            float(rate),
+            {},
+        )
+
+    if name == "udp_flood":
+        payload = random.choice([64, 128, 512, 1024])
+        rate    = random.choice([1, 2, 5])
+        port    = random.choice(_UDP_PORTS)
+        return (
+            f"{PYTHON} attack_clients/run_attack.py udp_flood --mode dos"
+            f" --rate {rate} --payload {payload}",
+            f"mode=dos  rate={rate} pkt/s  payload={payload}B  port={port}",
+            float(rate),
+            {"UDP_FLOOD_TARGET_PORT": str(port)},
+        )
+
+    if name == "udp_flood_ddos":
+        threads = random.randint(3, 8)
+        payload = random.choice([64, 512, 1024])
+        rate    = random.choice([1, 2])
+        port    = random.choice(_UDP_PORTS)
+        return (
+            f"{PYTHON} attack_clients/run_attack.py udp_flood --mode ddos"
+            f" --threads {threads} --rate {rate} --payload {payload}",
+            f"mode=ddos  threads={threads}  rate={rate} pkt/s/thread  payload={payload}B  port={port}",
+            float(rate * threads),
+            {"UDP_FLOOD_TARGET_PORT": str(port)},
+        )
+
+    if name == "icmp_flood":
+        payload = random.choice([56, 128, 512, 1024])
+        mode    = random.choice(["dos", "ddos"])
+        threads = random.randint(2, 6) if mode == "ddos" else 1
+        t_arg   = f"--threads {threads}" if mode == "ddos" else ""
+        return (
+            f"{PYTHON} attack_clients/run_attack.py icmp_flood --mode {mode}"
+            f" --rate 1 --payload {payload} {t_arg}".strip(),
+            f"mode={mode}  payload={payload}B  threads={threads}",
+            float(threads),
+            {},   # ICMP has no port concept
+        )
+
+    if name == "syn_flood":
+        mode    = random.choice(["dos", "ddos"])
+        threads = random.randint(2, 6) if mode == "ddos" else 1
+        port    = random.choice(_MQTT_PORTS)
+        spoof   = random.choice(["0", "1"])   # randomise source port each packet when 1
+        t_arg   = f"--threads {threads}" if mode == "ddos" else ""
+        return (
+            f"{PYTHON} attack_clients/run_attack.py syn_flood --mode {mode}"
+            f" --rate 1 {t_arg}".strip(),
+            f"mode={mode}  threads={threads}  dst_port={port}  src_spoof={spoof}",
+            float(threads),
+            {"SYN_FLOOD_TARGET_PORT": str(port), "SYN_FLOOD_SPOOF": spoof},
+        )
+
+    # Fallback — should never be reached
+    raise ValueError(f"No randomiser defined for attack: {name}")
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 # Utilities
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -187,8 +341,12 @@ def _ts() -> str:
     return datetime.now().strftime("%H:%M:%S")
 
 
-def _launch(cmd: str, name: str, capture: bool = False) -> subprocess.Popen:
+def _launch(cmd: str, name: str, capture: bool = False,
+            extra_env: dict | None = None) -> subprocess.Popen:
     print(f"[{_ts()}] ▶  START  {name}")
+    env = os.environ.copy()
+    if extra_env:
+        env.update(extra_env)
     return subprocess.Popen(
         shlex.split(cmd),
         cwd=REPO_ROOT,
@@ -196,6 +354,7 @@ def _launch(cmd: str, name: str, capture: bool = False) -> subprocess.Popen:
         stderr=subprocess.DEVNULL,
         preexec_fn=os.setsid,
         text=True,
+        env=env,
     )
 
 
@@ -433,13 +592,27 @@ def run_full_eval(attacks: list, duration: float, stagger: float) -> None:
     print(f"\n[{_ts()}] Benign clients running. Starting attacks in 2s...\n")
     time.sleep(2)
 
-    # ── 2. Run attacks sequentially, record time windows ─────────────────────
+    # ── 2. Run attacks sequentially with randomised args, record time windows ──
     windows:  list[tuple[str, float, float]] = []
     rate_map: dict[str, float] = {}
 
+    print(f"[{_ts()}] Sampling randomised arguments for each attack ...\n")
+    sampled: list[tuple[str, str, str, float]] = []   # (name, cmd, args_summary, rate)
+    for name, _base_cmd, desc, _base_rate in attacks:
+        try:
+            cmd, args_summary, rate = _build_random_cmd(name)
+        except ValueError:
+            # No randomiser defined — fall back to base command
+            cmd, args_summary, rate = _base_cmd, "(fixed args)", _base_rate
+        sampled.append((name, cmd, args_summary, rate))
+        print(f"  {name:<22}  {args_summary}")
+
+    print()
+
     try:
-        for name, cmd, desc, rate_hz in attacks:
-            print(f"[{_ts()}] ── ATTACK  {name}: {desc}")
+        for name, cmd, args_summary, rate_hz in sampled:
+            print(f"[{_ts()}] ── ATTACK  {name}  [{args_summary}]")
+            print(f"           cmd: {cmd}")
             t0   = time.time()
             proc = _launch(cmd, name)
 
