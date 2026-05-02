@@ -23,7 +23,8 @@ import csv
 import json
 import re
 import sys
-from collections import Counter
+import math
+from collections import Counter, defaultdict
 from datetime import datetime
 from io import StringIO
 from pathlib import Path
@@ -57,6 +58,9 @@ _LOG_VERDICT_RE = re.compile(
     r"(?P<src_ip>[\d.]+):(?P<src_port>\d+) -> (?P<dst_ip>[\d.]+):(?P<dst_port>\d+) \| "
     r"verdict=(?P<verdict>\S+)\s+type=(?P<attack_type>\S+)\s+confidence=(?P<confidence>[\d.]+)\s+"
     r"pkts=(?P<pkts>\d+)\s+bytes=(?P<bytes>\d+)\s+dur=(?P<dur>[\d.]+)s"
+    r"(?:\s+infer=(?P<infer>[\d.]+)ms)?"
+    r"(?:\s+classify=(?P<classify>[\d.]+)ms)?"
+    r"(?:\s+inspect=(?P<inspect>[\d.]+)ms)?"
 )
 
 def _parse_log(path: Path) -> list[dict]:
@@ -73,17 +77,20 @@ def _parse_log(path: Path) -> list[dict]:
             except ValueError:
                 ts = 0.0
             verdicts.append({
-                "ts":              ts,
-                "verdict":         m.group("verdict"),
-                "attack_type":     m.group("attack_type"),
-                "attack_prob":     float(m.group("confidence")),
-                "flow_src_ip":     m.group("src_ip"),
-                "flow_src_port":   int(m.group("src_port")),
-                "flow_dst_ip":     m.group("dst_ip"),
-                "flow_dst_port":   int(m.group("dst_port")),
-                "flow_pkts":       int(m.group("pkts")),
-                "flow_bytes":      int(m.group("bytes")),
-                "flow_duration_s": float(m.group("dur")),
+                "ts":               ts,
+                "verdict":          m.group("verdict"),
+                "attack_type":      m.group("attack_type"),
+                "attack_prob":      float(m.group("confidence")),
+                "flow_src_ip":      m.group("src_ip"),
+                "flow_src_port":    int(m.group("src_port")),
+                "flow_dst_ip":      m.group("dst_ip"),
+                "flow_dst_port":    int(m.group("dst_port")),
+                "flow_pkts":        int(m.group("pkts")),
+                "flow_bytes":       int(m.group("bytes")),
+                "flow_duration_s":  float(m.group("dur")),
+                "t_inference_ns":   int(float(m.group("infer")   or 0) * 1e6),
+                "t_classify_ns":    int(float(m.group("classify") or 0) * 1e6),
+                "t_inspection_ns":  int(float(m.group("inspect")  or 0) * 1e6),
             })
     return verdicts
 
@@ -115,6 +122,12 @@ def _ts_fmt(ts: float) -> str:
 def _safe_mean(lst: list) -> float:
     return sum(lst) / len(lst) if lst else 0.0
 
+def _safe_std(lst: list) -> float:
+    if len(lst) < 2:
+        return 0.0
+    mean = sum(lst) / len(lst)
+    return math.sqrt(sum((x - mean) ** 2 for x in lst) / len(lst))
+
 
 # ── Data aggregation ─────────────────────────────────────────────────────────
 
@@ -132,6 +145,47 @@ def _aggregate(verdicts: list[dict], log_path: Path) -> dict:
     pkts_l = [v.get("flow_pkts",       0)   for v in verdicts]
     byt_l  = [v.get("flow_bytes",      0)   for v in verdicts]
     dur_l  = [v.get("flow_duration_s", 0.0) for v in verdicts]
+
+    # ── Per-attack-type timing ─────────────────────────────────────────────────
+    _timing_raw: dict = defaultdict(lambda: {"infer": [], "classify": [], "inspect": []})
+    for v in verdicts:
+        atype   = v.get("attack_type", "unknown")
+        inf_ns  = v.get("t_inference_ns",  0)
+        cls_ns  = v.get("t_classify_ns",   0)
+        ins_ns  = v.get("t_inspection_ns", 0)
+        if inf_ns  > 0: _timing_raw[atype]["infer"].append(inf_ns  / 1e6)
+        if cls_ns  > 0: _timing_raw[atype]["classify"].append(cls_ns  / 1e6)
+        if ins_ns  > 0: _timing_raw[atype]["inspect"].append(ins_ns  / 1e6)
+
+    def _tstats(lst: list) -> dict:
+        return dict(
+            n    = len(lst),
+            mean = _safe_mean(lst),
+            std  = _safe_std(lst),
+            mn   = min(lst) if lst else 0.0,
+            mx   = max(lst) if lst else 0.0,
+        )
+
+    timing_by_type = {
+        atype: dict(
+            count    = max(len(d["infer"]), len(d["classify"]), 1),
+            infer    = _tstats(d["infer"]),
+            classify = _tstats(d["classify"]),
+            inspect  = _tstats(d["inspect"]),
+        )
+        for atype, d in sorted(_timing_raw.items())
+    }
+
+    all_infer    = [x for d in _timing_raw.values() for x in d["infer"]]
+    all_classify = [x for d in _timing_raw.values() for x in d["classify"]]
+    all_inspect  = [x for d in _timing_raw.values() for x in d["inspect"]]
+    timing_overall = dict(
+        count    = len(verdicts),
+        infer    = _tstats(all_infer),
+        classify = _tstats(all_classify),
+        inspect  = _tstats(all_inspect),
+    )
+    has_timing = bool(all_infer or all_classify)
 
     return dict(
         total_lines=total_lines,
@@ -156,6 +210,9 @@ def _aggregate(verdicts: list[dict], log_path: Path) -> dict:
         dur_min  =min(dur_l)          if dur_l  else 0.0,
         dur_max  =max(dur_l)          if dur_l  else 0.0,
         dur_avg  =_safe_mean(dur_l),
+        timing_by_type=timing_by_type,
+        timing_overall=timing_overall,
+        has_timing=has_timing,
     )
 
 
@@ -201,6 +258,38 @@ def print_console_report(verdicts: list[dict], agg: dict, tail: int) -> None:
     extra = len(agg["attack_flows"]) - 15
     if extra > 0:
         print(f"  ... and {extra} more flows")
+
+    if agg.get("has_timing"):
+        _print_header("TIMING PERFORMANCE — PER ATTACK TYPE  (ms)")
+        print(
+            f"  Note: infer=model.predict() only | classify=feature+infer+decision | "
+            f"inspect=packet-arrival→verdict (inline only)\n"
+        )
+        col_w = max(len(k) for k in agg["timing_by_type"]) + 2 if agg["timing_by_type"] else 30
+        hdr = (
+            f"  {'Attack Type':<{col_w}} {'N':>5}  "
+            f"{'Infer μ':>9} {'±σ':>7}  "
+            f"{'Classify μ':>10} {'±σ':>7}  "
+            f"{'Inspect μ':>9} {'±σ':>7}"
+        )
+        print(hdr)
+        print(f"  {'─'*col_w} {'─'*5}  {'─'*9} {'─'*7}  {'─'*10} {'─'*7}  {'─'*9} {'─'*7}")
+        for atype, t in agg["timing_by_type"].items():
+            print(
+                f"  {atype:<{col_w}} {t['count']:>5}  "
+                f"{t['infer']['mean']:>8.3f}ms {t['infer']['std']:>6.3f}ms  "
+                f"{t['classify']['mean']:>9.3f}ms {t['classify']['std']:>6.3f}ms  "
+                f"{t['inspect']['mean']:>8.3f}ms {t['inspect']['std']:>6.3f}ms"
+            )
+        ov = agg["timing_overall"]
+        print(f"  {'─'*col_w} {'─'*5}  {'─'*9} {'─'*7}  {'─'*10} {'─'*7}  {'─'*9} {'─'*7}")
+        print(
+            f"  {'OVERALL':<{col_w}} {ov['count']:>5}  "
+            f"{ov['infer']['mean']:>8.3f}ms {ov['infer']['std']:>6.3f}ms  "
+            f"{ov['classify']['mean']:>9.3f}ms {ov['classify']['std']:>6.3f}ms  "
+            f"{ov['inspect']['mean']:>8.3f}ms {ov['inspect']['std']:>6.3f}ms"
+        )
+        print()
 
     if tail > 0:
         _print_header(f"LAST {tail} VERDICTS")
@@ -293,8 +382,49 @@ def build_markdown(verdicts: list[dict], agg: dict, tail: int, source: str) -> s
     w(f"| Bytes per flow | {agg['byt_min']:,} | {agg['byt_max']:,} | {agg['byt_avg']:,.0f} |\n")
     w(f"| Flow duration (s) | {agg['dur_min']:.4f} | {agg['dur_max']:.4f} | {agg['dur_avg']:.4f} |\n\n")
 
-    # ── 5. Top attacker flows ─────────────────────────────────────────────────
-    w("## 5. Top Attacker Flows\n\n")
+    # ── 5. Timing performance ─────────────────────────────────────────────────
+    if agg.get("has_timing"):
+        w("## 5. Timing Performance — Per Attack Type\n\n")
+        w(
+            "> **infer** = `model.predict()` only &nbsp;|&nbsp; "
+            "**classify** = feature extraction + inference + decision &nbsp;|&nbsp; "
+            "**inspect** = packet arrival → verdict (inline classifications only; "
+            "0 for background reaper-triggered flows)\n\n"
+        )
+        timing_rows = []
+        for atype, t in agg["timing_by_type"].items():
+            timing_rows.append([
+                atype,
+                str(t["count"]),
+                f"{t['infer']['mean']:.3f}",
+                f"{t['infer']['std']:.3f}",
+                f"{t['classify']['mean']:.3f}",
+                f"{t['classify']['std']:.3f}",
+                f"{t['inspect']['mean']:.3f}",
+                f"{t['inspect']['std']:.3f}",
+            ])
+        ov = agg["timing_overall"]
+        timing_rows.append([
+            "**Overall**",
+            str(ov["count"]),
+            f"{ov['infer']['mean']:.3f}",
+            f"{ov['infer']['std']:.3f}",
+            f"{ov['classify']['mean']:.3f}",
+            f"{ov['classify']['std']:.3f}",
+            f"{ov['inspect']['mean']:.3f}",
+            f"{ov['inspect']['std']:.3f}",
+        ])
+        w(_md_table(
+            ["Attack Type", "N",
+             "Infer Mean (ms)", "Infer Std (ms)",
+             "Classify Mean (ms)", "Classify Std (ms)",
+             "Inspect Mean (ms)", "Inspect Std (ms)"],
+            timing_rows,
+        ))
+        w("\n\n")
+
+    # ── 6. Top attacker flows ─────────────────────────────────────────────────
+    w("## 6. Top Attacker Flows\n\n")
     w(f"**{len(agg['attack_flows']):,}** distinct `(src_ip:src_port, attack_type)` flows detected.\n\n")
     top_flows = agg["attack_flows"].most_common(20)
     rows = [
@@ -306,9 +436,9 @@ def build_markdown(verdicts: list[dict], agg: dict, tail: int, source: str) -> s
         w(f"\n\n*...and {len(agg['attack_flows'])-20} additional flows not shown.*")
     w("\n\n")
 
-    # ── 6. Recent verdicts ────────────────────────────────────────────────────
+    # ── 7. Recent verdicts ────────────────────────────────────────────────────
     if tail > 0 and verdicts:
-        w(f"## 6. Last {tail} Verdicts\n\n")
+        w(f"## 7. Last {tail} Verdicts\n\n")
         recent = verdicts[-tail:]
         rows = [
             [
@@ -391,6 +521,7 @@ def write_csv(verdicts: list[dict], csv_path: Path) -> None:
         "ts", "verdict", "attack_type", "attack_prob",
         "flow_src_ip", "flow_src_port", "flow_dst_ip", "flow_dst_port",
         "flow_pkts", "flow_bytes", "flow_duration_s", "threshold",
+        "t_inference_ns", "t_classify_ns", "t_inspection_ns",
     ]
     with csv_path.open("w", newline="") as f:
         w = csv.DictWriter(f, fieldnames=fields, extrasaction="ignore")

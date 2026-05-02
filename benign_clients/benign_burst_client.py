@@ -73,14 +73,15 @@ _EVENTS = [
 
 def _reading_payload(seq: int, burst_id: int, event: str) -> bytes:
     return json.dumps({
-        "device_id":  DEVICE_ID,
+        "device_id":   DEVICE_ID,
         "crypto_type": "benign",
-        "seq":        seq,
-        "burst_id":   burst_id,
-        "event":      event,
-        "timestamp":  datetime.now(timezone.utc).isoformat(),
-        "value":      round(random.uniform(0.0, 100.0), 3),
-        "unit":       random.choice(["celsius", "lux", "rh", "m/s2"]),
+        "seq":         seq,
+        "burst_id":    burst_id,
+        "event":       event,
+        "timestamp":   datetime.now(timezone.utc).isoformat(),
+        "value":       round(random.uniform(0.0, 100.0), 3),
+        "unit":        random.choice(["celsius", "lux", "rh", "m/s2"]),
+        "t_publish_ns": time.time_ns(),
     }).encode()
 
 

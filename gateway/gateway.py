@@ -40,6 +40,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from shared.key_manager import load_key_manager, PQC_AVAILABLE
 from shared.metrics import log_gateway_pqc
 from shared.topics import TOPIC_PATTERN
+_GW_DIR = Path(__file__).resolve().parent
+sys.path.insert(0, str(_GW_DIR))
+from benign_pipeline import handle_benign
+from attack_passthrough import handle_attack_passthrough
 
 RTT_REQUEST_TOPIC = "benchmark/rtt/request"
 RTT_REPLY_TOPIC = "benchmark/rtt/reply"
@@ -132,7 +136,7 @@ def _print_accepted(device_id: str, crypto_type: str, plaintext_json: str) -> No
     )
 
 
-def _decrypt_client_a(km, msg: dict) -> None:
+def _decrypt_client_a(km, msg: dict, t_recv_ns: int = 0, t_handler_start: int = 0) -> None:
     """AES-256-GCM: derive key from device_id and decrypt."""
     device_id  = msg["device_id"]
     session_id = msg.get("session_id", "default")
@@ -153,7 +157,7 @@ def _decrypt_client_a(km, msg: dict) -> None:
         print(f"[GATEWAY] ERROR   device={device_id}: {exc}", file=sys.stderr)
 
 
-def _decrypt_client_b(km, msg: dict) -> None:
+def _decrypt_client_b(km, msg: dict, t_recv_ns: int = 0, t_handler_start: int = 0) -> None:
     """Kyber-512 KEM + AES-256-GCM: decapsulate to recover AES key, then decrypt."""
     device_id  = msg["device_id"]
     session_id = msg.get("session_id", "default")
@@ -177,7 +181,7 @@ def _decrypt_client_b(km, msg: dict) -> None:
         print(f"[GATEWAY] ERROR   device={device_id}: {exc}", file=sys.stderr)
 
 
-def _decrypt_client_c(km, msg: dict) -> None:
+def _decrypt_client_c(km, msg: dict, t_recv_ns: int = 0, t_handler_start: int = 0) -> None:
     """Kyber-768 KEM + AES-256-GCM + Dilithium-3: decapsulate, decrypt, verify sig."""
     device_id  = msg["device_id"]
     session_id = msg.get("session_id", "default")
@@ -215,7 +219,7 @@ def _decrypt_client_c(km, msg: dict) -> None:
         print(f"[GATEWAY] ERROR   device={device_id}: {exc}", file=sys.stderr)
 
 
-def _decrypt_research_profile(km, msg: dict) -> None:
+def _decrypt_research_profile(km, msg: dict, t_recv_ns: int = 0, t_handler_start: int = 0) -> None:
     """
     Generic KEM + AES-256-GCM + signature.
 
@@ -269,6 +273,7 @@ def _decrypt_research_profile(km, msg: dict) -> None:
             t_end = time.perf_counter_ns()
             end_cpu_user, end_cpu_sys = _cpu_times_ns(process)
             end_rss = process.memory_info().rss
+            _t_pub = int(msg.get("t_publish_ns", 0))
             log_gateway_pqc(
                 device_id=device_id,
                 session_id=session_id,
@@ -290,6 +295,9 @@ def _decrypt_research_profile(km, msg: dict) -> None:
                 cpu_user_ns=end_cpu_user - start_cpu_user,
                 cpu_sys_ns=end_cpu_sys - start_cpu_sys,
                 rss_delta_kb=int((end_rss - start_rss) / 1024),
+                t_publish_ns=_t_pub,
+                t_broker_transit_ns=(t_recv_ns - _t_pub) if _t_pub else 0,
+                t_total_gateway_ns=t_end - t_handler_start,
             )
             return
 
@@ -299,6 +307,7 @@ def _decrypt_research_profile(km, msg: dict) -> None:
         t_end = time.perf_counter_ns()
         end_cpu_user, end_cpu_sys = _cpu_times_ns(process)
         end_rss = process.memory_info().rss
+        _t_pub = int(msg.get("t_publish_ns", 0))
         log_gateway_pqc(
             device_id=device_id,
             session_id=session_id,
@@ -320,6 +329,9 @@ def _decrypt_research_profile(km, msg: dict) -> None:
             cpu_user_ns=end_cpu_user - start_cpu_user,
             cpu_sys_ns=end_cpu_sys - start_cpu_sys,
             rss_delta_kb=int((end_rss - start_rss) / 1024),
+            t_publish_ns=_t_pub,
+            t_broker_transit_ns=(t_recv_ns - _t_pub) if _t_pub else 0,
+            t_total_gateway_ns=t_end - t_handler_start,
         )
 
     except InvalidTag:
@@ -328,7 +340,7 @@ def _decrypt_research_profile(km, msg: dict) -> None:
         print(f"[GATEWAY] ERROR   device={device_id}: {exc}", file=sys.stderr)
 
 
-def _decrypt_classical_aes_research(km, msg: dict) -> None:
+def _decrypt_classical_aes_research(km, msg: dict, t_recv_ns: int = 0, t_handler_start: int = 0) -> None:
     """AES-256-GCM research-format frame (CLASSICAL-AES-GCM)."""
     device_id = msg["device_id"]
     session_id = msg.get("session_id", "default")
@@ -361,6 +373,7 @@ def _decrypt_classical_aes_research(km, msg: dict) -> None:
         t_end = time.perf_counter_ns()
         end_cpu_user, end_cpu_sys = _cpu_times_ns(process)
         end_rss = process.memory_info().rss
+        _t_pub = int(msg.get("t_publish_ns", 0))
         log_gateway_pqc(
             device_id=device_id,
             session_id=session_id,
@@ -382,6 +395,9 @@ def _decrypt_classical_aes_research(km, msg: dict) -> None:
             cpu_user_ns=end_cpu_user - start_cpu_user,
             cpu_sys_ns=end_cpu_sys - start_cpu_sys,
             rss_delta_kb=int((end_rss - start_rss) / 1024),
+            t_publish_ns=_t_pub,
+            t_broker_transit_ns=(t_recv_ns - _t_pub) if _t_pub else 0,
+            t_total_gateway_ns=t_end - t_handler_start,
         )
     except InvalidTag:
         print(f"[GATEWAY] AUTH FAILED   device={device_id} — AES-GCM tag invalid")
@@ -389,7 +405,7 @@ def _decrypt_classical_aes_research(km, msg: dict) -> None:
         print(f"[GATEWAY] ERROR   device={device_id}: {exc}", file=sys.stderr)
 
 
-def _decrypt_classical_chacha_research(km, msg: dict) -> None:
+def _decrypt_classical_chacha_research(km, msg: dict, t_recv_ns: int = 0, t_handler_start: int = 0) -> None:
     """ChaCha20-Poly1305 research-format frame (CLASSICAL-CHACHA20)."""
     device_id = msg["device_id"]
     session_id = msg.get("session_id", "default")
@@ -422,6 +438,7 @@ def _decrypt_classical_chacha_research(km, msg: dict) -> None:
         t_end = time.perf_counter_ns()
         end_cpu_user, end_cpu_sys = _cpu_times_ns(process)
         end_rss = process.memory_info().rss
+        _t_pub = int(msg.get("t_publish_ns", 0))
         log_gateway_pqc(
             device_id=device_id,
             session_id=session_id,
@@ -443,6 +460,9 @@ def _decrypt_classical_chacha_research(km, msg: dict) -> None:
             cpu_user_ns=end_cpu_user - start_cpu_user,
             cpu_sys_ns=end_cpu_sys - start_cpu_sys,
             rss_delta_kb=int((end_rss - start_rss) / 1024),
+            t_publish_ns=_t_pub,
+            t_broker_transit_ns=(t_recv_ns - _t_pub) if _t_pub else 0,
+            t_total_gateway_ns=t_end - t_handler_start,
         )
     except InvalidTag:
         print(f"[GATEWAY] AUTH FAILED   device={device_id} — ChaCha20-Poly1305 tag invalid")
@@ -450,7 +470,7 @@ def _decrypt_classical_chacha_research(km, msg: dict) -> None:
         print(f"[GATEWAY] ERROR   device={device_id}: {exc}", file=sys.stderr)
 
 
-def _decrypt_classical_ecdh_ecdsa_research(km, msg: dict) -> None:
+def _decrypt_classical_ecdh_ecdsa_research(km, msg: dict, t_recv_ns: int = 0, t_handler_start: int = 0) -> None:
     """
     Ephemeral ECDH (P-256) to static gateway key + AES-256-GCM + ECDSA-P256-SHA256
     over plaintext (CLASSICAL-ECDH-ECDSA). Mirrors PQC timer columns.
@@ -506,6 +526,7 @@ def _decrypt_classical_ecdh_ecdsa_research(km, msg: dict) -> None:
             t_end = time.perf_counter_ns()
             end_cpu_user, end_cpu_sys = _cpu_times_ns(process)
             end_rss = process.memory_info().rss
+            _t_pub = int(msg.get("t_publish_ns", 0))
             log_gateway_pqc(
                 device_id=device_id,
                 session_id=session_id,
@@ -527,6 +548,9 @@ def _decrypt_classical_ecdh_ecdsa_research(km, msg: dict) -> None:
                 cpu_user_ns=end_cpu_user - start_cpu_user,
                 cpu_sys_ns=end_cpu_sys - start_cpu_sys,
                 rss_delta_kb=int((end_rss - start_rss) / 1024),
+                t_publish_ns=_t_pub,
+                t_broker_transit_ns=(t_recv_ns - _t_pub) if _t_pub else 0,
+                t_total_gateway_ns=t_end - t_handler_start,
             )
 
         if not sig_ok:
@@ -563,13 +587,14 @@ def _handle_rtt_echo(mqtt_client: mqtt.Client, mqtt_msg: mqtt.MQTTMessage) -> No
 # ── Dispatch table ─────────────────────────────────────────────────────────────
 
 _HANDLERS = {
-    "AES-256-GCM":               _decrypt_client_a,
-    "Kyber512-AES-GCM":          _decrypt_client_b,
-    "Kyber768-Dilithium3-AES-GCM": _decrypt_client_c,
-    "PQC-RESEARCH-PROFILE":      _decrypt_research_profile,
-    "CLASSICAL-AES-GCM":         _decrypt_classical_aes_research,
-    "CLASSICAL-CHACHA20":        _decrypt_classical_chacha_research,
-    "CLASSICAL-ECDH-ECDSA":      _decrypt_classical_ecdh_ecdsa_research,
+    "AES-256-GCM":                  _decrypt_client_a,
+    "Kyber512-AES-GCM":             _decrypt_client_b,
+    "Kyber768-Dilithium3-AES-GCM":  _decrypt_client_c,
+    "PQC-RESEARCH-PROFILE":         _decrypt_research_profile,
+    "CLASSICAL-AES-GCM":            _decrypt_classical_aes_research,
+    "CLASSICAL-CHACHA20":           _decrypt_classical_chacha_research,
+    "CLASSICAL-ECDH-ECDSA":         _decrypt_classical_ecdh_ecdsa_research,
+    "benign":                       handle_benign,
 }
 
 
@@ -577,6 +602,9 @@ _HANDLERS = {
 
 def _make_on_message(km):
     def on_message(client, userdata, mqtt_msg):
+        t_recv_ns      = time.time_ns()
+        t_handler_start = time.perf_counter_ns()
+
         if mqtt_msg.topic == RTT_REQUEST_TOPIC:
             _handle_rtt_echo(client, mqtt_msg)
             return
@@ -587,6 +615,16 @@ def _make_on_message(km):
             print(
                 f"[GATEWAY] Non-JSON/malformed message on {mqtt_msg.topic} — ignored",
                 file=sys.stderr,
+            )
+            return
+
+        # Attack messages that slipped past the firewall — log and stop.
+        if msg.get("is_attack"):
+            handle_attack_passthrough(
+                msg,
+                t_recv_ns=t_recv_ns,
+                t_handler_start=t_handler_start,
+                raw_payload=mqtt_msg.payload.decode("utf-8", errors="replace"),
             )
             return
 
@@ -603,7 +641,7 @@ def _make_on_message(km):
         # Attach raw payload size for gateway benchmarking (crypto-only timing is
         # recorded inside handlers).
         msg["_payload_bytes"] = len(mqtt_msg.payload)
-        handler(km, msg)
+        handler(km, msg, t_recv_ns, t_handler_start)
 
     return on_message
 

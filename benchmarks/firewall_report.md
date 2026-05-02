@@ -1,31 +1,36 @@
 # MQTT Firewall Intrusion Detection Report
 
-**Generated:** 2026-04-30 00:10:12  
-**Source file:** `JSONL (1,573 verdicts) + .log (1,573 verdicts)`  
-**Time range:** 00:09:41 → 00:09:57  
+**Generated:** 2026-05-02 15:18:40  
+**Source file:** `JSONL (52 verdicts) + .log (52 verdicts)`  
+**Time range:** 15:06:19 → 15:18:30  
 
 ---
 
 ## 1. Executive Summary
 
-The LightGBM-based MQTT firewall processed **15,696 packets** (17,276 log lines) and issued **1,574 flow-level verdicts**. Of these, **1,568 (99.6%) were classified as attacks** and **6 (0.4%) as benign**. Mean model confidence on attack flows was **0.9464**.
+The LightGBM-based MQTT firewall processed **349 packets** (408 log lines) and issued **53 flow-level verdicts**. Of these, **49 (92.5%) were classified as attacks** and **4 (7.5%) as benign**. Mean model confidence on attack flows was **0.9621**.
 
 | Metric | Value |
 |--------|-------|
-| Total log lines | 17,276 |
-| Total packets intercepted | 15,696 |
-| Total flow verdicts | 1,574 |
-| Attack verdicts | 1,568 (99.6%) |
-| Benign verdicts | 6 (0.4%) |
-| Observation window | 00:09:41 → 00:09:57 |
+| Total log lines | 408 |
+| Total packets intercepted | 349 |
+| Total flow verdicts | 53 |
+| Attack verdicts | 49 (92.5%) |
+| Benign verdicts | 4 (7.5%) |
+| Observation window | 15:06:19 → 15:18:30 |
 
 ## 2. Attack Type Breakdown
 
-| Attack Type            | Verdict Count | Share (%) |
-| ---------------------- | ------------- | --------- |
-| MQTT-DoS-Publish_Flood | 1,540         | 97.8%     |
-| Recon-OS_Scan          | 28            | 1.8%      |
-| benign                 | 6             | 0.4%      |
+| Attack Type             | Verdict Count | Share (%) |
+| ----------------------- | ------------- | --------- |
+| MQTT-DDoS-Connect_Flood | 15            | 28.3%     |
+| TCP_IP-DDoS-UDP1        | 12            | 22.6%     |
+| Recon-Port_Scan         | 12            | 22.6%     |
+| benign                  | 4             | 7.5%      |
+| MQTT-DDoS-Publish_Flood | 3             | 5.7%      |
+| MQTT-DoS-Connect_Flood  | 3             | 5.7%      |
+| ARP_Spoofing            | 3             | 5.7%      |
+| TCP_IP-DDoS-SYN         | 1             | 1.9%      |
 
 ## 3. Model Confidence Statistics
 
@@ -33,60 +38,79 @@ Statistics computed over **attack-classified flows only**.
 
 | Statistic | Value |
 |-----------|-------|
-| Sample size | 1,568 flows |
-| Minimum confidence | 0.8029 |
+| Sample size | 49 flows |
+| Minimum confidence | 0.6199 |
 | Maximum confidence | 1.0000 |
-| Mean confidence | 0.9464 |
-| Flows with confidence ≥ 0.90 | 1,567 (99.9%) |
+| Mean confidence | 0.9621 |
+| Flows with confidence ≥ 0.90 | 39 (79.6%) |
 
 ## 4. Flow Statistics
 
 | Metric | Min | Max | Mean |
 |--------|-----|-----|------|
-| Packets per flow | 3 | 10 | 10.0 |
-| Bytes per flow | 3,072 | 10,240 | 10,215 |
-| Flow duration (s) | 0.0002 | 0.3007 | 0.0336 |
+| Packets per flow | 3 | 10 | 6.2 |
+| Bytes per flow | 0 | 2,900 | 737 |
+| Flow duration (s) | 0.0005 | 28.1485 | 1.8504 |
 
-## 5. Top Attacker Flows
+## 5. Timing Performance — Per Attack Type
 
-**19** distinct `(src_ip:src_port, attack_type)` flows detected.
+> **infer** = `model.predict()` only &nbsp;|&nbsp; **classify** = feature extraction + inference + decision &nbsp;|&nbsp; **inspect** = packet arrival → verdict (inline classifications only; 0 for background reaper-triggered flows)
 
-| Source (ip:port) | Classified Attack Type | Verdict Count |
-| ---------------- | ---------------------- | ------------- |
-| 127.0.0.1:34150  | MQTT-DoS-Publish_Flood | 191           |
-| 127.0.0.1:48133  | MQTT-DoS-Publish_Flood | 186           |
-| 127.0.0.1:50525  | MQTT-DoS-Publish_Flood | 173           |
-| 127.0.0.1:34043  | MQTT-DoS-Publish_Flood | 169           |
-| 127.0.0.1:52725  | MQTT-DoS-Publish_Flood | 153           |
-| 127.0.0.1:43293  | MQTT-DoS-Publish_Flood | 148           |
-| 127.0.0.1:53089  | MQTT-DoS-Publish_Flood | 138           |
-| 127.0.0.1:45091  | MQTT-DoS-Publish_Flood | 133           |
-| 127.0.0.1:38231  | MQTT-DoS-Publish_Flood | 125           |
-| 127.0.0.1:52696  | MQTT-DoS-Publish_Flood | 124           |
-| 127.0.0.1:53089  | Recon-OS_Scan          | 5             |
-| 127.0.0.1:52725  | Recon-OS_Scan          | 4             |
-| 127.0.0.1:45091  | Recon-OS_Scan          | 4             |
-| 127.0.0.1:38231  | Recon-OS_Scan          | 3             |
-| 127.0.0.1:43293  | Recon-OS_Scan          | 3             |
-| 127.0.0.1:34043  | Recon-OS_Scan          | 3             |
-| 127.0.0.1:34150  | Recon-OS_Scan          | 3             |
-| 127.0.0.1:50525  | Recon-OS_Scan          | 2             |
-| 127.0.0.1:48133  | Recon-OS_Scan          | 1             |
+| Attack Type             | N  | Infer Mean (ms) | Infer Std (ms) | Classify Mean (ms) | Classify Std (ms) | Inspect Mean (ms) | Inspect Std (ms) |
+| ----------------------- | -- | --------------- | -------------- | ------------------ | ----------------- | ----------------- | ---------------- |
+| ARP_Spoofing            | 3  | 0.761           | 0.347          | 1.874              | 1.031             | 0.000             | 0.000            |
+| MQTT-DDoS-Connect_Flood | 15 | 0.450           | 0.022          | 1.060              | 0.056             | 1.285             | 0.119            |
+| MQTT-DDoS-Publish_Flood | 3  | 0.411           | 0.034          | 0.984              | 0.051             | 1.258             | 0.144            |
+| MQTT-DoS-Connect_Flood  | 3  | 0.446           | 0.011          | 1.107              | 0.038             | 0.000             | 0.000            |
+| Recon-Port_Scan         | 12 | 1.328           | 1.029          | 2.692              | 1.681             | 0.000             | 0.000            |
+| TCP_IP-DDoS-SYN         | 1  | 0.526           | 0.000          | 2.154              | 0.000             | 2.328             | 0.000            |
+| TCP_IP-DDoS-UDP1        | 12 | 0.635           | 0.225          | 1.515              | 0.344             | 0.000             | 0.000            |
+| benign                  | 4  | 0.451           | 0.013          | 1.065              | 0.055             | 1.277             | 0.177            |
+| **Overall**             | 53 | 0.708           | 0.616          | 1.598              | 1.072             | 1.325             | 0.251            |
 
-## 6. Last 10 Verdicts
+## 6. Top Attacker Flows
 
-| Time     | Verdict | Attack Type            | Confidence | Source          | Destination    | Pkts | Bytes  |
-| -------- | ------- | ---------------------- | ---------- | --------------- | -------------- | ---- | ------ |
-| 00:09:47 | ATTACK  | MQTT-DoS-Publish_Flood | 0.9418     | 127.0.0.1:34150 | 127.0.0.1:1883 | 10   | 10,240 |
-| 00:09:47 | ATTACK  | MQTT-DoS-Publish_Flood | 0.9392     | 127.0.0.1:43293 | 127.0.0.1:1883 | 10   | 10,240 |
-| 00:09:57 | ATTACK  | MQTT-DoS-Publish_Flood | 0.9140     | 127.0.0.1:53089 | 127.0.0.1:1883 | 9    | 9,216  |
-| 00:09:57 | benign  | benign                 | 0.0096     | 127.0.0.1:38231 | 127.0.0.1:1883 | 5    | 5,120  |
-| 00:09:57 | benign  | benign                 | 0.5976     | 127.0.0.1:34043 | 127.0.0.1:1883 | 6    | 6,144  |
-| 00:09:57 | ATTACK  | MQTT-DoS-Publish_Flood | 0.8029     | 127.0.0.1:48133 | 127.0.0.1:1883 | 7    | 7,168  |
-| 00:09:57 | benign  | benign                 | 0.0227     | 127.0.0.1:45091 | 127.0.0.1:1883 | 4    | 4,096  |
-| 00:09:57 | benign  | benign                 | 0.3204     | 127.0.0.1:52725 | 127.0.0.1:1883 | 3    | 3,072  |
-| 00:09:57 | benign  | benign                 | 0.0227     | 127.0.0.1:34150 | 127.0.0.1:1883 | 4    | 4,096  |
-| 00:09:57 | benign  | benign                 | 0.0209     | 127.0.0.1:43293 | 127.0.0.1:1883 | 4    | 4,096  |
+**23** distinct `(src_ip:src_port, attack_type)` flows detected.
+
+| Source (ip:port)     | Classified Attack Type  | Verdict Count |
+| -------------------- | ----------------------- | ------------- |
+| 127.0.0.1:59169      | Recon-Port_Scan         | 11            |
+| 127.0.0.1:1883       | MQTT-DDoS-Connect_Flood | 10            |
+| 127.0.0.1:59169      | MQTT-DDoS-Connect_Flood | 5             |
+| 127.0.0.1:1883       | MQTT-DoS-Connect_Flood  | 2             |
+| 10.255.255.254:44717 | TCP_IP-DDoS-UDP1        | 2             |
+| 192.168.208.1:137    | ARP_Spoofing            | 2             |
+| 127.0.0.1:59169      | TCP_IP-DDoS-SYN         | 1             |
+| 10.255.255.254:46222 | TCP_IP-DDoS-UDP1        | 1             |
+| 127.0.0.1:39933      | MQTT-DDoS-Publish_Flood | 1             |
+| 127.0.0.1:60737      | MQTT-DDoS-Publish_Flood | 1             |
+| 10.255.255.254:59019 | TCP_IP-DDoS-UDP1        | 1             |
+| 127.0.0.1:46679      | MQTT-DDoS-Publish_Flood | 1             |
+| 10.255.255.254:46725 | TCP_IP-DDoS-UDP1        | 1             |
+| 127.0.0.1:60737      | MQTT-DoS-Connect_Flood  | 1             |
+| 127.0.0.1:1883       | Recon-Port_Scan         | 1             |
+| 10.255.255.254:49492 | TCP_IP-DDoS-UDP1        | 1             |
+| 10.255.255.254:58290 | TCP_IP-DDoS-UDP1        | 1             |
+| 10.255.255.254:55930 | TCP_IP-DDoS-UDP1        | 1             |
+| 10.255.255.254:47186 | ARP_Spoofing            | 1             |
+| 10.255.255.254:46307 | TCP_IP-DDoS-UDP1        | 1             |
+
+*...and 3 additional flows not shown.*
+
+## 7. Last 10 Verdicts
+
+| Time     | Verdict | Attack Type      | Confidence | Source               | Destination         | Pkts | Bytes |
+| -------- | ------- | ---------------- | ---------- | -------------------- | ------------------- | ---- | ----- |
+| 15:14:16 | ATTACK  | TCP_IP-DDoS-UDP1 | 0.9559     | 10.255.255.254:46307 | 10.255.255.254:53   | 4    | 252   |
+| 15:14:30 | ATTACK  | Recon-Port_Scan  | 1.0000     | 127.0.0.1:59169      | 127.0.0.1:1883      | 3    | 4     |
+| 15:14:51 | ATTACK  | TCP_IP-DDoS-UDP1 | 0.8766     | 10.255.255.254:58380 | 10.255.255.254:53   | 4    | 350   |
+| 15:14:54 | ATTACK  | TCP_IP-DDoS-UDP1 | 0.8827     | 10.255.255.254:42228 | 10.255.255.254:53   | 4    | 202   |
+| 15:15:30 | ATTACK  | Recon-Port_Scan  | 1.0000     | 127.0.0.1:59169      | 127.0.0.1:1883      | 3    | 4     |
+| 15:15:54 | ATTACK  | TCP_IP-DDoS-UDP1 | 0.9523     | 10.255.255.254:38981 | 10.255.255.254:53   | 4    | 252   |
+| 15:16:30 | ATTACK  | Recon-Port_Scan  | 1.0000     | 127.0.0.1:59169      | 127.0.0.1:1883      | 3    | 4     |
+| 15:17:30 | ATTACK  | Recon-Port_Scan  | 1.0000     | 127.0.0.1:59169      | 127.0.0.1:1883      | 3    | 4     |
+| 15:17:39 | ATTACK  | ARP_Spoofing     | 0.8956     | 192.168.208.1:137    | 192.168.223.255:137 | 3    | 150   |
+| 15:18:30 | ATTACK  | Recon-Port_Scan  | 1.0000     | 127.0.0.1:59169      | 127.0.0.1:1883      | 3    | 4     |
 
 ---
 

@@ -279,6 +279,7 @@ class ResearchProfileClient(ABC):
         try:
             while limit is None or seq <= limit:
                 msg = self.build_message(seq)
+                msg["t_publish_ns"] = time.time_ns()
                 body = json.dumps(msg)
                 res = self._mqtt.publish(self._topic, payload=body, qos=1)
                 if res.rc == mqtt.MQTT_ERR_SUCCESS:

@@ -570,7 +570,8 @@ class MQTTFirewall:
         return None
 
     # ── Classifier ────────────────────────────────────────────────────────────
-    def _classify(self, key: FlowKey, flow: Flow):
+    def _classify(self, key: FlowKey, flow: Flow, t_arrival_ns: int = 0):
+        t_classify_start_ns = time.perf_counter_ns()
         feats = flow.extract_features()
         pkts  = flow.fwd_pkts + flow.bwd_pkts
         dur   = flow.last_ts - flow.start_ts
@@ -589,7 +590,10 @@ class MQTTFirewall:
         if self.scaler:
             feats = self.scaler.transform(feats)
 
+        t_inf_start = time.perf_counter_ns()
         proba = self.model.predict(feats)  # shape (1, n_classes) for multiclass, (1,) for binary
+        t_inf_end = time.perf_counter_ns()
+        t_inference_ns = t_inf_end - t_inf_start
 
         if proba.ndim == 2 and self._n_classes > 2:
             # ── Multiclass ────────────────────────────────────────────────────
@@ -620,12 +624,19 @@ class MQTTFirewall:
 
         label = "ATTACK" if is_attack else "benign"
 
+        t_verdict_ns    = time.perf_counter_ns()
+        t_inspection_ns = (t_verdict_ns - t_arrival_ns) if t_arrival_ns > 0 else 0
+        t_classify_ns   = t_verdict_ns - t_classify_start_ns
+
         # Human-readable single-line verdict — includes specific attack type for multiclass.
         log.info(
             f"[VERDICT] {flow.src_ip}:{flow.src_port} -> {flow.dst_ip}:{flow.dst_port} | "
             f"verdict={label}  type={attack_type}  confidence={attack_prob:.4f}  "
-            f"pkts={pkts}  bytes={flow.fwd_bytes+flow.bwd_bytes}  dur={dur:.3f}s"
+            f"pkts={pkts}  bytes={flow.fwd_bytes+flow.bwd_bytes}  dur={dur:.3f}s  "
+            f"infer={t_inference_ns/1e6:.3f}ms  classify={t_classify_ns/1e6:.3f}ms"
+            + (f"  inspect={t_inspection_ns/1e6:.3f}ms" if t_inspection_ns > 0 else "")
         )
+
         log_event(
             "verdict",
             verdict=label,
@@ -640,6 +651,9 @@ class MQTTFirewall:
             flow_pkts=pkts,
             flow_bytes=flow.fwd_bytes + flow.bwd_bytes,
             flow_duration_s=dur,
+            t_inference_ns=t_inference_ns,
+            t_classify_ns=t_classify_ns,
+            t_inspection_ns=t_inspection_ns,
         )
 
         if label == "ATTACK" and BLOCK_VERDICT:
@@ -663,6 +677,7 @@ class MQTTFirewall:
 
     # ── NFQUEUE callback ───────────────────────────────────────────────────────
     def handle_packet(self, pkt):
+        t_arrival_ns = time.perf_counter_ns()
         raw = bytes(pkt.get_payload())
         ts  = time.time()
 
@@ -715,7 +730,7 @@ class MQTTFirewall:
                 total = f.fwd_pkts + f.bwd_pkts
                 if total >= MIN_PKTS_CLASSIFY:
                     try:
-                        self._classify(key, f)
+                        self._classify(key, f, t_arrival_ns=t_arrival_ns)
                     except Exception as e:
                         log.error(f"FIN/RST classification error: {e}")
 
@@ -728,7 +743,7 @@ class MQTTFirewall:
                 total = f.fwd_pkts + f.bwd_pkts
                 if total >= CLASSIFY_EVERY_N_PKTS:
                     try:
-                        self._classify(key, f)
+                        self._classify(key, f, t_arrival_ns=t_arrival_ns)
                     except Exception as e:
                         log.error(f"Periodic classification error: {e}")
 

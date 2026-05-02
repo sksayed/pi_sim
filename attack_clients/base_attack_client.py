@@ -100,6 +100,9 @@ class BaseAttackClient(ABC):
                 payload = self.build_payload(seq)
 
                 if isinstance(payload, dict):
+                    payload["is_attack"]    = True
+                    payload["attack_label"] = self.ATTACK_NAME
+                    payload["t_publish_ns"] = time.time_ns()
                     body = json.dumps(payload).encode()
                 else:
                     body = payload

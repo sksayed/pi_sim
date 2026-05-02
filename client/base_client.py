@@ -98,6 +98,7 @@ class BaseClient(ABC):
                 msg  = self.build_message(seq)
                 msg["session_id"] = self._session_id
                 msg["instance_id"] = self._instance_id
+                msg["t_publish_ns"] = time.time_ns()
                 body = json.dumps(msg)
                 res  = self._mqtt.publish(self._topic, payload=body, qos=1)
 

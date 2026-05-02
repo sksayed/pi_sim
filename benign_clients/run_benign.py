@@ -36,7 +36,7 @@ PYTHON    = str(REPO_ROOT / ".venv" / "bin" / "python")
 
 CLIENTS = {
     "steady": {
-        "description": "Steady AES-256-GCM publish (client_a pattern) — fixed-rate baseline benign",
+        "description": "Steady plaintext publish (crypto_type=benign) — fixed-rate baseline benign",
         "extra_args": [
             ("--interval", "PUBLISH_INTERVAL", "Seconds between publishes (default: 2)"),
         ],

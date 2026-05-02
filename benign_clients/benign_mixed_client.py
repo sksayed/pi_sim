@@ -64,13 +64,14 @@ MAX_COUNT    = int(os.getenv("BENIGN_MIXED_COUNT", "0"))
 
 def _sensor_payload(seq: int) -> bytes:
     return json.dumps({
-        "device_id": DEVICE_ID,
+        "device_id":   DEVICE_ID,
         "crypto_type": "benign",
-        "seq": seq,
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "seq":         seq,
+        "timestamp":   datetime.now(timezone.utc).isoformat(),
         "temperature": round(20.0 + random.uniform(-2.0, 2.0), 2),
         "humidity":    round(55.0 + random.uniform(-5.0, 5.0), 2),
         "battery_mv":  random.randint(3200, 3700),
+        "t_publish_ns": time.time_ns(),
     }).encode()
 
 

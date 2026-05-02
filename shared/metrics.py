@@ -74,6 +74,9 @@ class GatewayBenchSample:
     payload_bytes: int
     pqc_available: bool
     accepted: bool
+    t_publish_ns: int        # time.time_ns() on client just before mqtt.publish()
+    t_broker_transit_ns: int # t_recv_ns (gateway) - t_publish_ns (client); 0 if unavailable
+    t_total_gateway_ns: int  # perf_counter wall time from on_message entry to handler exit
 
 
 class CsvBenchLogger:
@@ -201,6 +204,9 @@ class CsvGatewayBenchLogger:
                     "payload_bytes",
                     "pqc_available",
                     "accepted",
+                    "t_publish_ns",
+                    "t_broker_transit_ns",
+                    "t_total_gateway_ns",
                 ],
             )
             if not file_exists:
@@ -342,6 +348,9 @@ def log_gateway_pqc(
     cpu_user_ns: int,
     cpu_sys_ns: int,
     rss_delta_kb: int,
+    t_publish_ns: int = 0,
+    t_broker_transit_ns: int = 0,
+    t_total_gateway_ns: int = 0,
 ) -> None:
     """
     Append one gateway-side PQC decrypt/verify benchmark row to CSV.
@@ -371,6 +380,9 @@ def log_gateway_pqc(
         payload_bytes=int(payload_bytes),
         pqc_available=bool(pqc_available),
         accepted=bool(accepted),
+        t_publish_ns=int(t_publish_ns),
+        t_broker_transit_ns=int(t_broker_transit_ns),
+        t_total_gateway_ns=int(t_total_gateway_ns),
     )
 
     out_path = os.getenv("GATEWAY_BENCH_CSV_PATH", "benchmarks/gateway/pqc_metrics_gateway.csv")
