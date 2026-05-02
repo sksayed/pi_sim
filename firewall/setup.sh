@@ -27,7 +27,8 @@ sudo iptables -I OUTPUT -p udp --sport 1883 -j NFQUEUE --queue-num 0
 sudo netfilter-persistent save
 
 echo "[4/4] Installing systemd service..."
-sudo cp "$SERVICE_FILE" "/etc/systemd/system/${SERVICE_NAME}.service"
+UNIT_DST="/etc/systemd/system/${SERVICE_NAME}.service"
+sed "s|@@REPO_ROOT@@|${REPO_ROOT}|g" "$SERVICE_FILE" | sudo tee "$UNIT_DST" >/dev/null
 sudo systemctl daemon-reload
 sudo systemctl enable "$SERVICE_NAME"
 
