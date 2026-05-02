@@ -1,0 +1,39 @@
+# ── Shared secret ──────────────────────────────────────────────────────────────
+MASTER_SECRET=aa627673
+
+# ── Network ───────────────────────────────────────────────────────────────────
+NETWORK_SSID=Redmi Note 12 Pro 5G
+
+# ── Gitea ─────────────────────────────────────────────────────────────────────
+GITEA_USER=sayed
+GITEA_PASSWORD=sayed1234
+
+# ── Gateway (Broker) Pi ───────────────────────────────────────────────────────
+GATEWAY_IP=127.0.0.1
+GATEWAY_PORT=1883
+
+# ── Client identity ───────────────────────────────────────────────────────────
+CLIENT_ID=pi-client-01
+
+# ── MQTT topic ────────────────────────────────────────────────────────────────
+MQTT_TOPIC=pi/sensor/data
+
+# ── Behaviour ─────────────────────────────────────────────────────────────────
+PUBLISH_INTERVAL=2
+
+# ── Firewall (mqtt_firewall.py) ───────────────────────────────────────────────
+FW_QUEUE_NUM=0
+FW_MODEL_PATH=/home/sayed/journal_paper_proj/pi_sim/firewall/lightgbm_model.txt
+FW_SCALER_PATH=/home/sayed/journal_paper_proj/pi_sim/firewall/standard_scaler.pkl
+FW_FLOW_TIMEOUT_S=10
+FW_MIN_PKTS_CLASSIFY=3
+FW_ATTACK_THRESHOLD=0.5
+FW_CLASS_NAMES=ARP_Spoofing,Benign,MQTT-DDoS-Connect_Flood,MQTT-DDoS-Publish_Flood,MQTT-DoS-Connect_Flood,MQTT-DoS-Publish_Flood,MQTT-Malformed_Data,Recon-OS_Scan,Recon-Ping_Sweep,Recon-Port_Scan,Recon-VulScan,TCP_IP-DDoS-ICMP1,TCP_IP-DDoS-ICMP2,TCP_IP-DDoS-SYN,TCP_IP-DDoS-TCP,TCP_IP-DDoS-UDP1,TCP_IP-DDoS-UDP2,TCP_IP-DoS-ICMP,TCP_IP-DoS-SYN,TCP_IP-DoS-TCP,TCP_IP-DoS-UDP
+FW_BENIGN_LABEL=Benign
+FW_BLOCK_VERDICT=false
+FW_BLOCK_TTL_S=0
+FW_LOG_FILE=/home/sayed/journal_paper_proj/pi_sim/Firewall_logs/mqtt_firewall.log
+FW_JSONL_FILE=/home/sayed/journal_paper_proj/pi_sim/Firewall_logs/mqtt_firewall.jsonl
+FW_VERBOSE_PACKET_LOGS=true
+FW_JSON_EVENT_LOGS=true
+FW_CLASSIFY_EVERY_N_PKTS=10
