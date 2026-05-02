@@ -9,7 +9,7 @@ GITEA_USER=sayed
 GITEA_PASSWORD=sayed1234
 
 # ── Gateway (Broker) Pi ───────────────────────────────────────────────────────
-GATEWAY_IP=127.0.0.1
+GATEWAY_IP=10.126.109.39
 GATEWAY_PORT=1883
 
 # ── Client identity ───────────────────────────────────────────────────────────
