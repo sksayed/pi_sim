@@ -154,7 +154,7 @@ BENIGN_CLIENTS: list[tuple[str, str, str]] = [
     (
         "benign-steady",
         f"{PYTHON} benign_clients/run_benign.py steady --interval 2",
-        "Steady AES-GCM publish @ 0.5 msg/s  (client_a pattern)",
+        "Steady steady client publish @ 0.5 msg/s  (client_a pattern)",
     ),
     (
         "benign-subscriber",

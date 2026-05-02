@@ -4,7 +4,13 @@ parse_gateway_reencrypt.py — Report generator for the gateway PQC re-encryptio
 
 Reads:
   benchmarks/gateway/reencrypt_metrics.csv  — per-message re-encryption timing
+      (on-gateway: t_recv_to_done_ns, t_reencrypt_ns; t_broker_transit_ns is
+      WAN+skew only if logs were produced with GW_REENCRYPT_LOG_WAN_TRANSIT=1)
   Firewall_logs/firewall_misses.jsonl        — attack messages that slipped past firewall
+
+  Firewall IDS/IPS timing is in Firewall_logs/*.jsonl (event=verdict):
+      t_inference_ns, t_classify_ns, nfqueue_first_wall_ns, t_verdict_wall_ns —
+      flow-level, not joinable row-for-row to MQTT PUBLISH in reencrypt_metrics.csv.
 
 Outputs:
   Console summary
@@ -129,7 +135,9 @@ def aggregate_reencrypt(rows: list[dict]) -> dict:
     encap     = [r["t_encap_ns"]          for r in rows if r["t_encap_ns"]          > 0]
     aes_enc   = [r["t_aes_enc_ns"]        for r in rows if r["t_aes_enc_ns"]        > 0]
     sign      = [r["t_sign_ns"]           for r in rows if r["t_sign_ns"]           > 0]
-    total_gw  = [r["t_recv_to_done_ns"]   for r in rows if r["t_recv_to_done_ns"]   > 0]
+    # One row per completed re-encrypt — duration should always be > 0; use all rows
+    # so n matches len(rows) (and per-device count), not a filtered subset.
+    total_gw  = [r["t_recv_to_done_ns"] for r in rows]
     pbytes    = [r["payload_bytes"]       for r in rows if r["payload_bytes"]       > 0]
 
     # Per-device breakdown
@@ -205,17 +213,17 @@ def print_console_report(agg: dict, miss_agg: dict, tail: int,
         print(f"  Time range            : {agg['first_ts']} → {agg['last_ts']}")
 
         _hdr("TIMING BREAKDOWN (per message)")
-        _row_ms("Broker transit",   agg["transit"])
-        _row_ms("KEM encapsulate",  agg["encap"])
-        _row_ms("AES-256-GCM enc",  agg["aes_enc"])
-        _row_ms("Signature sign",   agg["sign_"])
-        _row_ms("Total re-encrypt", agg["reencrypt"])
-        _row_ms("Total gateway",    agg["total_gw"])
+        _row_ms("WAN transit (opt.)", agg["transit"])
+        _row_ms("KEM encapsulate",    agg["encap"])
+        _row_ms("AES-256-GCM enc",    agg["aes_enc"])
+        _row_ms("Signature sign",     agg["sign_"])
+        _row_ms("Total re-encrypt",   agg["reencrypt"])
+        _row_ms("On-device gateway",  agg["total_gw"])
 
         if agg["device_stats"]:
             _hdr("PER-DEVICE BREAKDOWN")
             col = max(len(d) for d in agg["device_stats"]) + 2
-            print(f"  {'Device':<{col}} {'N':>5}  {'Transit μ':>11}  {'Reencrypt μ':>12}  {'Total GW μ':>11}")
+            print(f"  {'Device':<{col}} {'N':>5}  {'WAN μ':>11}  {'Reencrypt μ':>12}  {'On-dev GW μ':>11}")
             print(f"  {'─'*col} {'─'*5}  {'─'*11}  {'─'*12}  {'─'*11}")
             for dev, s in agg["device_stats"].items():
                 print(
@@ -230,9 +238,9 @@ def print_console_report(agg: dict, miss_agg: dict, tail: int,
             for r in rows[-tail:]:
                 print(
                     f"  device={r['device_id']}  seq={r['seq']}  "
-                    f"transit={_fmt_ms(r['t_broker_transit_ns'])}  "
+                    f"wan={_fmt_ms(r['t_broker_transit_ns'])}  "
                     f"reencrypt={_fmt_ms(r['t_reencrypt_ns'])}  "
-                    f"total_gw={_fmt_ms(r['t_recv_to_done_ns'])}"
+                    f"on_dev_gw={_fmt_ms(r['t_recv_to_done_ns'])}"
                 )
 
     _hdr("FIREWALL MISSES (attacks that reached gateway)")
@@ -287,10 +295,16 @@ def build_markdown(agg: dict, miss_agg: dict, tail: int,
     # ── 1. Summary ────────────────────────────────────────────────────────────
     w("## 1. Executive Summary\n\n")
     if agg:
-        w(f"The gateway re-encrypted **{agg['total']:,} benign messages** using "
+        wan_blurb = (
+            "WAN transit omitted in CSV (default) — set GW_REENCRYPT_LOG_WAN_TRANSIT=1 to record it."
+            if agg["transit"]["n"] == 0
+            else f"Optional WAN transit mean: {_fmt_ms(agg['transit']['mean'])}."
+        )
+        w(f"The re-encrypted **{agg['total']:,} benign messages** used "
           f"`{agg['kem']}` + `{agg['sig']}` (AES-256-GCM). "
-          f"Mean broker transit was **{_fmt_ms(agg['transit']['mean'])}** and "
-          f"mean PQC re-encryption overhead was **{_fmt_ms(agg['reencrypt']['mean'])}**.\n\n")
+          f"Mean **on-device** handler time (MQTT callback → re-encrypt done) was "
+          f"**{_fmt_ms(agg['total_gw']['mean'])}**; mean KEM+AES+sign work was "
+          f"**{_fmt_ms(agg['reencrypt']['mean'])}**. {wan_blurb}\n\n")
         w("| Metric | Value |\n|--------|-------|\n")
         w(f"| Messages re-encrypted | {agg['total']:,} |\n")
         w(f"| KEM algorithm | `{agg['kem']}` |\n")
@@ -303,17 +317,21 @@ def build_markdown(agg: dict, miss_agg: dict, tail: int,
     # ── 2. Timing breakdown ───────────────────────────────────────────────────
     w("## 2. Timing Breakdown\n\n")
     w("> All values in milliseconds (ms). "
-      "**Broker transit** = `t_recv_ns − t_publish_ns` (includes broker + network latency). "
-      "**Total gateway** = full handler wall time from `on_message` entry.\n\n")
+      "**WAN transit** (optional) is only non-zero in the CSV if "
+      "`GW_REENCRYPT_LOG_WAN_TRANSIT=1` when the gateway was run — otherwise that column "
+      "is zero by design. "
+      "**On-device gateway** = handler wall time from `on_message` entry (perf_counter) "
+      "through end of re-encrypt; excludes WAN. "
+      "NFQUEUE / LightGBM times are not in this CSV (see Firewall `verdict` JSONL).\n\n")
     if agg:
         timing_rows = []
         for label, key in [
-            ("Broker transit (client→gateway)", "transit"),
-            ("KEM encapsulate",                 "encap"),
-            ("AES-256-GCM encrypt",             "aes_enc"),
-            ("Signature sign",                  "sign_"),
-            ("Total re-encrypt (KEM+AES+Sign)", "reencrypt"),
-            ("Total gateway (on_message→done)", "total_gw"),
+            ("WAN transit (optional, client clock)", "transit"),
+            ("KEM encapsulate",                      "encap"),
+            ("AES-256-GCM encrypt",                  "aes_enc"),
+            ("Signature sign",                       "sign_"),
+            ("Total re-encrypt (KEM+AES+Sign)",      "reencrypt"),
+            ("On-device gateway (on_message→done)",  "total_gw"),
         ]:
             s = agg[key]
             timing_rows.append([
@@ -348,8 +366,8 @@ def build_markdown(agg: dict, miss_agg: dict, tail: int,
                 f"{_fmt_ms(s['total_gw']['mean'])}",
             ])
         w(_md_table(
-            ["Device ID", "N", "Transit Mean", "Transit Std",
-             "Reencrypt Mean", "Reencrypt Std", "Total GW Mean"],
+            ["Device ID", "N", "WAN Mean", "WAN Std",
+             "Reencrypt Mean", "Reencrypt Std", "On-dev GW Mean"],
             dev_rows,
         ))
         w("\n")
@@ -415,7 +433,7 @@ def build_markdown(agg: dict, miss_agg: dict, tail: int,
             for r in rows[-tail:]
         ]
         w(_md_table(
-            ["Device", "Seq", "Broker Transit", "Re-Encrypt", "Total GW"],
+            ["Device", "Seq", "WAN Transit", "Re-Encrypt", "On-device GW"],
             recent_rows,
         ))
         w("\n")

@@ -12,6 +12,16 @@ Configuration (env vars):
     GW_REENCRYPT_SIG    Signature algo  (default: ML-DSA-65)
     GW_CLOUD_DEVICE_ID  Device ID used for key derivation on the cloud side
                         (default: gateway-cloud-relay)
+    GW_REENCRYPT_LOG_WAN_TRANSIT  If 1/true, CSV column t_broker_transit_ns is
+                        (gateway_recv_wall - client t_publish_ns), i.e. includes
+                        WAN + clock skew. Default 0: column is 0 — use CSV for
+                        on-gateway work only (t_recv_to_done_ns, t_reencrypt_ns).
+
+On-device pipeline (what this CSV captures):
+    MQTT has already traversed NFQUEUE/mqtt_firewall.py and the broker before
+    gateway.py's on_message runs. t_recv_to_done_ns spans that callback (JSON
+    routing + re-encrypt handler) on a monotonic clock — not WAN, not the LightGBM
+    pass (see Firewall_logs/*.jsonl verdict / t_inference_ns for flow-level IDS).
 """
 
 from __future__ import annotations
@@ -35,9 +45,14 @@ sys.path.insert(0, str(_REPO_ROOT))
 from shared.key_manager import PQC_AVAILABLE
 
 # ── Configuration ─────────────────────────────────────────────────────────────
+def _env_truthy(name: str, default: str = "0") -> bool:
+    return os.getenv(name, default).strip().lower() in ("1", "true", "yes", "on")
+
+
 REENCRYPT_KEM    = os.getenv("GW_REENCRYPT_KEM", "ML-KEM-768")
 REENCRYPT_SIG    = os.getenv("GW_REENCRYPT_SIG", "ML-DSA-65")
 CLOUD_DEVICE_ID  = os.getenv("GW_CLOUD_DEVICE_ID", "gateway-cloud-relay")
+LOG_WAN_TRANSIT  = _env_truthy("GW_REENCRYPT_LOG_WAN_TRANSIT", "0")
 REENCRYPT_CSV    = os.getenv(
     "GW_REENCRYPT_CSV_PATH",
     str(_REPO_ROOT / "benchmarks" / "gateway" / "reencrypt_metrics.csv"),
@@ -129,7 +144,9 @@ def handle_benign(km, msg: dict, t_recv_ns: int = 0, t_handler_start: int = 0) -
     device_id     = msg.get("device_id", "unknown")
     seq           = int(msg.get("seq", 0))
     t_publish_ns  = int(msg.get("t_publish_ns", 0))
-    t_broker_transit_ns = (t_recv_ns - t_publish_ns) if t_publish_ns else 0
+    t_broker_transit_ns = (
+        (t_recv_ns - t_publish_ns) if (LOG_WAN_TRANSIT and t_publish_ns) else 0
+    )
 
     # Serialise the full plaintext sensor payload for encryption
     plaintext = json.dumps({
@@ -180,12 +197,13 @@ def handle_benign(km, msg: dict, t_recv_ns: int = 0, t_handler_start: int = 0) -
             "signature":      base64.b64encode(signature).decode(),
         }
 
+        _wan = f"wan_ms={t_broker_transit_ns/1e6:.2f}  " if LOG_WAN_TRANSIT else ""
         print(
             f"[BENIGN-PIPELINE] CLOUD-READY  device={device_id}  seq={seq}  "
             f"kem={REENCRYPT_KEM}  sig={REENCRYPT_SIG}  "
-            f"transit={t_broker_transit_ns/1e6:.2f}ms  "
+            f"{_wan}"
             f"reencrypt={t_reencrypt_ns/1e6:.2f}ms  "
-            f"total_gw={t_recv_to_done/1e6:.2f}ms"
+            f"on_device_gw={t_recv_to_done/1e6:.2f}ms"
         )
 
         _CsvLogger.get().log(_ReencryptRow(

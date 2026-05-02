@@ -134,6 +134,8 @@ class Flow:
     hdr_lens: list = field(default_factory=list)
 
     classified: bool = False
+    # Wall time (time.time_ns) when this flow’s first packet was seen in NFQUEUE — on-host only.
+    nfqueue_first_wall_ns: int = 0
 
     def is_forward(self, src_ip: str, src_port: int) -> bool:
         return src_ip == self.src_ip and src_port == self.src_port
@@ -340,7 +342,8 @@ class FlowTable:
                     src_port=key[2], dst_port=key[3],
                     proto=proto,
                     start_ts=ts, last_ts=ts,
-                    _last_fwd_ts=0.0, _last_bwd_ts=0.0
+                    _last_fwd_ts=0.0, _last_bwd_ts=0.0,
+                    nfqueue_first_wall_ns=int(time.time_ns()),
                 )
             flow = self._flows[key]
             flow.add_packet(pkt_len, tcp_flags, ts, is_fwd, hdr_len)
@@ -654,6 +657,8 @@ class MQTTFirewall:
             t_inference_ns=t_inference_ns,
             t_classify_ns=t_classify_ns,
             t_inspection_ns=t_inspection_ns,
+            nfqueue_first_wall_ns=flow.nfqueue_first_wall_ns,
+            t_verdict_wall_ns=int(time.time_ns()),
         )
 
         if label == "ATTACK" and BLOCK_VERDICT:
@@ -719,8 +724,10 @@ class MQTTFirewall:
             pkt_len, flags, ts, hdr_len
         )
 
-        # Accept all packets first (passive-classify model)
-        # Prevents added latency on legitimate MQTT traffic
+        # Accept all packets first (passive-classify model): this packet continues
+        # through the stack toward Mosquitto before LightGBM runs below. Inference
+        # time can delay subsequent queued packets; per-MQTT-message latency is not
+        # a single field — see verdict JSONL (t_inference_ns, …) vs gateway CSV.
         pkt.accept()
 
         # Immediate classification on flow termination (FIN or RST)
