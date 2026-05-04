@@ -296,8 +296,8 @@ def print_console_report(fw_agg: dict, gw_agg: dict) -> None:
 
     # Firewall performance
     print(f"\n  §2 FIREWALL PERFORMANCE — PER ATTACK TYPE")
-    print(f"  {'Attack Type':<28} {'N':>5}  {'Det.Rate':>9}  {'Infer μ':>9}  {'Classify μ':>11}  {'Inspect μ':>10}")
-    print(f"  {'-'*28} {'-'*5}  {'-'*9}  {'-'*9}  {'-'*11}  {'-'*10}")
+    print(f"  {'Attack Type':<28} {'N':>5}  {'Confidence':>10}  {'LightGBM μ':>11}  {'Feat+Inf+Dec μ':>14}  {'Pkt→Verdict μ':>13}")
+    print(f"  {'-'*28} {'-'*5}  {'-'*10}  {'-'*11}  {'-'*14}  {'-'*13}")
 
     by_type = fw_agg.get("by_type", {})
     for label in sorted(by_type.keys(), key=lambda x: (x == "benign", x)):
@@ -323,13 +323,14 @@ def print_console_report(fw_agg: dict, gw_agg: dict) -> None:
     if gw_agg:
         print(f"\n  §3 GATEWAY PQC RE-ENCRYPTION TIMING")
         rows = [
-            ("WAN transit (optional, client clock)", gw_agg["transit"]),
             ("KEM encapsulate",                      gw_agg["encap"]),
             ("AES-256-GCM encrypt",                 gw_agg["aes"]),
             ("Signature sign",                      gw_agg["sign"]),
             ("Total re-encrypt (KEM+AES+Sign)",     gw_agg["reencrypt"]),
             ("On-device gateway (on_message→done)", gw_agg["total_gw"]),
         ]
+        if gw_agg["transit"]["n"] > 0:
+            rows.insert(0, ("WAN transit (client clock)", gw_agg["transit"]))
         print(f"  {'Stage':<35} {'N':>5}  {'Mean':>9}  {'Std':>9}  {'P95':>9}  {'Min':>9}  {'Max':>9}")
         print(f"  {'-'*35} {'-'*5}  {'-'*9}  {'-'*9}  {'-'*9}  {'-'*9}  {'-'*9}")
         for label, s in rows:
@@ -338,6 +339,8 @@ def print_console_report(fw_agg: dict, gw_agg: dict) -> None:
                 f"{_fmt(s['mean']):>9}  {_fmt(s['std']):>9}  "
                 f"{_fmt(s['p95']):>9}  {_fmt(s['min']):>9}  {_fmt(s['max']):>9}"
             )
+        if gw_agg["transit"]["n"] == 0:
+            print(f"  (WAN transit not recorded — set GW_REENCRYPT_LOG_WAN_TRANSIT=1 to log it.)")
 
     # §4 — non-overlapping path means + informational crypto subset
     if gw_agg:
@@ -440,13 +443,13 @@ def build_markdown(fw_agg: dict, gw_agg: dict) -> str:
     lines += [
         "## 2. Firewall Performance — Per Attack Type",
         "",
-        "> **Det. Rate** = mean model confidence on attack-classified flows.  "
-        "**Infer** = `model.predict()` only.  "
-        "**Classify** = feature extraction + inference + decision.  "
-        "**Inspect** = packet arrival → verdict (inline only).",
+        "> **Confidence μ** = mean model attack-probability on attack-classified flows (higher = more certain).  "
+        "**LightGBM μ/σ** = `model.predict()` wall time only.  "
+        "**Feat+Inf+Dec μ/σ** = feature extraction + LightGBM inference + threshold decision.  "
+        "**Pkt→Verdict μ** = packet arrival in NFQUEUE → verdict issued (FIN/RST-triggered flows only).",
         "",
-        "| Attack Type | N | Det. Rate | Infer μ (ms) | Infer σ (ms) | Classify μ (ms) | Classify σ (ms) | Inspect μ (ms) |",
-        "|-------------|---|-----------|--------------|--------------|-----------------|-----------------|----------------|",
+        "| Attack Type | N | Confidence μ | LightGBM μ (ms) | LightGBM σ (ms) | Feat+Inf+Dec μ (ms) | Feat+Inf+Dec σ (ms) | Pkt→Verdict μ (ms) |",
+        "|-------------|---|--------------|-----------------|-----------------|---------------------|---------------------|--------------------|",
     ]
 
     by_type = fw_agg.get("by_type", {})
@@ -481,18 +484,22 @@ def build_markdown(fw_agg: dict, gw_agg: dict) -> str:
             "|-------|---|-----------|----------|----------|----------|----------|",
         ]
         rows = [
-            ("WAN transit (optional, client clock)", gw_agg["transit"]),
             ("KEM encapsulate",                      gw_agg["encap"]),
             ("AES-256-GCM encrypt",                 gw_agg["aes"]),
             ("Signature sign",                      gw_agg["sign"]),
             ("Total re-encrypt (KEM+AES+Sign)",     gw_agg["reencrypt"]),
             ("On-device gateway (on_message→done)", gw_agg["total_gw"]),
         ]
+        if gw_agg["transit"]["n"] > 0:
+            rows.insert(0, ("WAN transit (client clock)", gw_agg["transit"]))
         for label, s in rows:
             lines.append(
                 f"| {label} | {s['n']} | {s['mean']:.3f} | {s['std']:.3f} | "
                 f"{s['p95']:.3f} | {s['min']:.3f} | {s['max']:.3f} |"
             )
+        if gw_agg["transit"]["n"] == 0:
+            lines.append("")
+            lines.append("> WAN transit not recorded — set `GW_REENCRYPT_LOG_WAN_TRANSIT=1` to log broker transit time.")
         lines.append("")
 
     # §4 — path latency (additive) + inside-handler breakdown (informational)

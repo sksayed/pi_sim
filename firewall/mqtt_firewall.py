@@ -375,59 +375,122 @@ class FlowTable:
 
 
 # ─── Blocklist ────────────────────────────────────────────────────────────────
+BlockKey = Tuple[str, int, int, int]  # (src_ip, proto, src_port, dst_port)
+
+
 class Blocklist:
     def __init__(self):
-        self._ips: set[str] = set()
-        self._blocked_at: Dict[str, float] = {}
+        self._flows: set[BlockKey] = set()
+        self._blocked_at: Dict[BlockKey, float] = {}
         self._lock = threading.Lock()
 
-    def block(self, ip: str):
-        with self._lock:
-            if ip not in self._ips:
-                self._ips.add(ip)
-                self._blocked_at[ip] = time.time()
-                if BLOCK_VERDICT:
-                    subprocess.run(
-                        ["iptables", "-I", "INPUT", "-s", ip, "-j", "DROP"],
-                        check=False
-                    )
-                log.warning(f"🚫 BLOCKED {ip}")
-                log_event("block_applied", ip=ip, block_verdict=BLOCK_VERDICT, block_ttl_s=BLOCK_TTL_S)
+    @staticmethod
+    def _proto_name(proto: int) -> str | None:
+        if proto == 6:
+            return "tcp"
+        if proto == 17:
+            return "udp"
+        return None
 
-    def is_blocked(self, ip: str) -> bool:
-        with self._lock:
-            return ip in self._ips
+    @classmethod
+    def _iptables_args(cls, key: BlockKey, action: str) -> list[str] | None:
+        ip, proto, sport, dport = key
+        proto_name = cls._proto_name(proto)
+        if proto_name is None:
+            return None
+        return [
+            "iptables", action, "INPUT",
+            "-s", ip,
+            "-p", proto_name,
+            "--sport", str(sport),
+            "--dport", str(dport),
+            "-m", "comment",
+            "--comment", "pi_sim_ips_block",
+            "-j", "DROP",
+        ]
 
-    def unblock(self, ip: str):
+    @staticmethod
+    def _fmt_key(key: BlockKey) -> str:
+        ip, proto, sport, dport = key
+        proto_name = Blocklist._proto_name(proto) or f"proto-{proto}"
+        return f"{ip}:{sport}->{dport}/{proto_name}"
+
+    def block(self, ip: str, proto: int, sport: int, dport: int):
+        key = (ip, proto, sport, dport)
         with self._lock:
-            if ip in self._ips:
-                self._ips.discard(ip)
-                self._blocked_at.pop(ip, None)
+            if key not in self._flows:
+                self._flows.add(key)
+                self._blocked_at[key] = time.time()
                 if BLOCK_VERDICT:
-                    subprocess.run(
-                        ["iptables", "-D", "INPUT", "-s", ip, "-j", "DROP"],
-                        check=False
-                    )
-                log.info(f"✅ UNBLOCKED {ip}")
-                log_event("block_removed", ip=ip, block_verdict=BLOCK_VERDICT)
+                    args = self._iptables_args(key, "-I")
+                    if args:
+                        subprocess.run(args, check=False)
+                    else:
+                        log.warning(f"Cannot port-block non-TCP/UDP flow: {self._fmt_key(key)}")
+                log.warning(f"🚫 BLOCKED flow {self._fmt_key(key)}")
+                log_event(
+                    "block_applied",
+                    ip=ip,
+                    proto=proto,
+                    src_port=sport,
+                    dst_port=dport,
+                    block_key=self._fmt_key(key),
+                    block_verdict=BLOCK_VERDICT,
+                    block_ttl_s=BLOCK_TTL_S,
+                )
+
+    def is_blocked(self, ip: str, proto: int, sport: int, dport: int) -> bool:
+        key = (ip, proto, sport, dport)
+        with self._lock:
+            return key in self._flows
+
+    def unblock(self, key: BlockKey):
+        with self._lock:
+            if key in self._flows:
+                self._flows.discard(key)
+                self._blocked_at.pop(key, None)
+                if BLOCK_VERDICT:
+                    args = self._iptables_args(key, "-D")
+                    if args:
+                        subprocess.run(args, check=False)
+                ip, proto, sport, dport = key
+                log.info(f"✅ UNBLOCKED flow {self._fmt_key(key)}")
+                log_event(
+                    "block_removed",
+                    ip=ip,
+                    proto=proto,
+                    src_port=sport,
+                    dst_port=dport,
+                    block_key=self._fmt_key(key),
+                    block_verdict=BLOCK_VERDICT,
+                )
 
     def list_blocked(self):
         with self._lock:
-            return list(self._ips)
+            return [self._fmt_key(key) for key in self._flows]
 
     def unblock_expired(self, ttl_s: float) -> int:
         if ttl_s <= 0:
             return 0
         now = time.time()
-        expired: list[str] = []
+        expired: list[BlockKey] = []
         with self._lock:
-            for ip in list(self._ips):
-                blocked_at = self._blocked_at.get(ip, now)
+            for key in list(self._flows):
+                blocked_at = self._blocked_at.get(key, now)
                 if now - blocked_at >= ttl_s:
-                    expired.append(ip)
-        for ip in expired:
-            self.unblock(ip)
-            log_event("block_ttl_expired", ip=ip, ttl_s=ttl_s)
+                    expired.append(key)
+        for key in expired:
+            self.unblock(key)
+            ip, proto, sport, dport = key
+            log_event(
+                "block_ttl_expired",
+                ip=ip,
+                proto=proto,
+                src_port=sport,
+                dst_port=dport,
+                block_key=self._fmt_key(key),
+                ttl_s=ttl_s,
+            )
         return len(expired)
 
 
@@ -540,6 +603,20 @@ class MQTTFirewall:
         self._reaper = threading.Thread(target=self._flow_reaper, daemon=True)
         self._reaper.start()
         log.info("MQTTFirewall ready.")
+
+    @staticmethod
+    def _client_side_block_tuple(flow: Flow) -> tuple[str, int, int, int]:
+        """
+        Return (client_ip, proto, client_src_port, server_dst_port).
+
+        NFQUEUE sees both INPUT and OUTPUT, especially on localhost tests. A flow
+        can therefore be first observed from either direction. For MQTT traffic,
+        normalize blocks to the client-side ephemeral source port -> broker port
+        so we avoid blocking all broker replies from source port 1883.
+        """
+        if flow.src_port == 1883 and flow.dst_port != 1883:
+            return (flow.dst_ip, flow.proto, flow.dst_port, flow.src_port)
+        return (flow.src_ip, flow.proto, flow.src_port, flow.dst_port)
 
     # ── Packet parser ──────────────────────────────────────────────────────────
     def _parse(self, raw: bytes):
@@ -662,7 +739,7 @@ class MQTTFirewall:
         )
 
         if label == "ATTACK" and BLOCK_VERDICT:
-            self.blocklist.block(flow.src_ip)
+            self.blocklist.block(*self._client_side_block_tuple(flow))
 
         self.flow_table.mark_classified(key)
         self.flow_table.remove(key)
@@ -712,10 +789,10 @@ class MQTTFirewall:
             hdr_len=hdr_len,
         )
 
-        # In IPS mode: drop (or accept per config) packets from blocked IPs and skip analysis.
+        # In IPS mode: drop packets from blocked source-port flows and skip analysis.
         # In IDS mode (BLOCK_VERDICT=False): never skip analysis — every packet is inspected.
-        if BLOCK_VERDICT and self.blocklist.is_blocked(src_ip):
-            pkt.accept()
+        if BLOCK_VERDICT and self.blocklist.is_blocked(src_ip, proto, sport, dport):
+            pkt.drop()
             return
 
         # Update flow table

@@ -1,35 +1,29 @@
-### Stop order (do earlier steps first)
-
-1. **Gateway**  
-   ```bash
-   pkill -f '/gateway/gateway\.py'
-   ```  
-   (Or **Ctrl+C** in the terminal where `python gateway/gateway.py` is running.)
-
-2. **MQTT firewall**  
-   ```bash
-   sudo systemctl stop mqtt_firewall
-   ```  
-   If it was started by hand (not systemd):  
-   ```bash
-   pkill -f 'mqtt_firewall\.py'
-   ```
-
-3. **Mosquitto**  
-   ```bash
-   sudo systemctl stop mosquitto
-   ```  
-   Alternative: `sudo service mosquitto stop`
-
----
-
-### One line (systemd firewall + same machine)
+From the repo root:
 
 ```bash
-pkill -f '/gateway/gateway\.py' 2>/dev/null; sudo systemctl stop mqtt_firewall mosquitto
+cd /home/sayed/journal_paper_proj/pi_sim
+source .venv/bin/activate
+python attack_clients/attack_manager.py --scenario full_eval
 ```
 
-**Why this order:** gateway releases its MQTT session first; firewall stops before the broker so the inline filter/queue is not left active while Mosquitto goes away; Mosquitto last.
+Common options:
+
+```bash
+# Full evaluation, 30s per attack, benign clients running throughout
+python attack_clients/attack_manager.py --scenario full_eval --duration 30 --stagger 3
+
+# Quick test
+python attack_clients/attack_manager.py --scenario sequential --duration 5 --stagger 1
+
+# See available attacks/benign clients
+python attack_clients/attack_manager.py --list
+```
+
+If you want root-only attacks too (`icmp_flood`, `syn_flood`):
+
+```bash
+sudo -E .venv/bin/python attack_clients/attack_manager.py --scenario full_eval --duration 30 --stagger 3
+```
 
 
 sudo rm -f Firewall_logs/*
