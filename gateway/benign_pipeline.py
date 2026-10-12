@@ -27,9 +27,11 @@ On-device pipeline (what this CSV captures):
 from __future__ import annotations
 
 import base64
+import binascii
 import csv
 import json
 import os
+import struct
 import sys
 import time
 import threading
@@ -133,9 +135,51 @@ class _CsvLogger:
                 f.flush()
 
 
+# ── Signed envelope encoding ───────────────────────────────────────────────────
+
+_ENVELOPE_DOMAIN = b"PI-SIM-GW-ENVELOPE-V1"
+
+
+def encode_signed_envelope(device_id: str, seq: int, kem_ct: bytes,
+                           nonce: bytes, ciphertext: bytes) -> bytes:
+    """
+    Canonical bytes signed by the gateway:
+    M = Encode(device_id, seq, kem_ciphertext, aes_nonce, aes_ciphertext).
+
+    Domain tag, then each field as a 4-byte big-endian length followed by its
+    bytes, so distinct field tuples never encode to the same M. device_id is
+    UTF-8; seq is an unsigned 64-bit big-endian integer.
+    """
+    fields = (
+        str(device_id).encode("utf-8"),
+        int(seq).to_bytes(8, "big"),
+        kem_ct,
+        nonce,
+        ciphertext,
+    )
+    return _ENVELOPE_DOMAIN + b"".join(struct.pack(">I", len(f)) + f for f in fields)
+
+
+def verify_cloud_envelope(km, envelope: dict, sig_pk: bytes,
+                          sig_alg: str = REENCRYPT_SIG) -> bool:
+    """Receiver-side check of a cloud_payload produced by handle_benign()."""
+    try:
+        message = encode_signed_envelope(
+            envelope["device_id"],
+            envelope["seq"],
+            base64.b64decode(envelope["kem_ciphertext"], validate=True),
+            base64.b64decode(envelope["nonce"], validate=True),
+            base64.b64decode(envelope["ciphertext"], validate=True),
+        )
+        signature = base64.b64decode(envelope["signature"], validate=True)
+    except (KeyError, TypeError, ValueError, OverflowError, binascii.Error):
+        return False
+    return bool(km.sig_verify(sig_alg, message, signature, sig_pk))
+
+
 # ── Main handler ───────────────────────────────────────────────────────────────
 
-def handle_benign(km, msg: dict, t_recv_ns: int = 0, t_handler_start: int = 0) -> None:
+def handle_benign(km, msg: dict, t_recv_ns: int = 0, t_handler_start: int = 0) -> dict | None:
     """
     Re-encrypt a benign plaintext sensor message with PQC and log pipeline timing.
 
@@ -172,9 +216,10 @@ def handle_benign(km, msg: dict, t_recv_ns: int = 0, t_handler_start: int = 0) -
         ciphertext = AESGCM(shared_secret[:32]).encrypt(nonce, plaintext, None)
         t3 = time.perf_counter_ns()
 
-        # ── Sign plaintext ─────────────────────────────────────────────────────
+        # ── Sign encrypted envelope ────────────────────────────────────────────
+        signed_message = encode_signed_envelope(device_id, seq, kem_ct, nonce, ciphertext)
         t4 = time.perf_counter_ns()
-        signature = km.sig_sign(REENCRYPT_SIG, plaintext, sig_sk)
+        signature = km.sig_sign(REENCRYPT_SIG, signed_message, sig_sk)
         t5 = time.perf_counter_ns()
 
         t_done = time.perf_counter_ns()
@@ -222,6 +267,8 @@ def handle_benign(km, msg: dict, t_recv_ns: int = 0, t_handler_start: int = 0) -
             t_reencrypt_ns      = t_reencrypt_ns,
             pqc_available       = PQC_AVAILABLE,
         ))
+        return cloud_payload
 
     except Exception as exc:
         print(f"[BENIGN-PIPELINE] ERROR  device={device_id} seq={seq}: {exc}", file=sys.stderr)
+        return None

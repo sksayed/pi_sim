@@ -7,3 +7,5 @@ __pycache__/
 venv/
 data/
 Firewall_logs/
+paper/literature/pdf/
+paper/literature/notes/_extract_*.txt
