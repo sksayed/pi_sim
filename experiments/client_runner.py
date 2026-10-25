@@ -4,8 +4,11 @@ client_runner.py — Client-Pi side of the labelled live evaluation.
 
 Start experiments/gateway_agent.py on the gateway Pi first, then:
 
-    sudo .venv/bin/python experiments/client_runner.py --gateway <GATEWAY_PI_IP>
-    sudo .venv/bin/python experiments/client_runner.py --gateway <IP> --runs R1 --reps 1
+    sudo .venv/bin/python experiments/client_runner.py
+    sudo .venv/bin/python experiments/client_runner.py --runs R1 --reps 1
+
+The gateway is found automatically (UDP broadcast, then a scan of the local
+/24 network); pass --gateway <IP> to skip that.
 
 Root is needed only for syn_flood; without it, syn_flood is skipped.
 
@@ -66,6 +69,59 @@ def _clock_offset(gateway: str) -> float:
         t1 = time.time()
         samples.append(resp["gw_time"] - (t0 + t1) / 2)
     return sorted(samples)[len(samples) // 2]
+
+
+def _listen_for_beacon(timeout_s: float) -> str | None:
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        s.bind(("", plan.BEACON_PORT))
+        s.settimeout(1.0)
+        deadline = time.time() + timeout_s
+        while time.time() < deadline:
+            try:
+                data, (ip, _) = s.recvfrom(4096)
+            except socket.timeout:
+                continue
+            try:
+                if json.loads(data.decode()).get("magic") == plan.BEACON_MAGIC:
+                    return ip
+            except (ValueError, UnicodeDecodeError):
+                continue
+    return None
+
+
+def _scan_subnet() -> str | None:
+    from concurrent.futures import ThreadPoolExecutor
+
+    try:
+        own = _local_ip_towards("8.8.8.8")
+    except OSError:
+        own = subprocess.run(["hostname", "-I"], capture_output=True, text=True).stdout.split()[0]
+    prefix = own.rsplit(".", 1)[0]
+
+    def probe(host: str) -> str | None:
+        try:
+            if _call(host, {"cmd": "ping"}, timeout=0.7):
+                return host
+        except (OSError, ValueError, RuntimeError):
+            return None
+        return None
+
+    hosts = [f"{prefix}.{i}" for i in range(1, 255) if f"{prefix}.{i}" != own]
+    with ThreadPoolExecutor(max_workers=64) as pool:
+        for found in pool.map(probe, hosts):
+            if found:
+                return found
+    return None
+
+
+def find_gateway() -> str | None:
+    print(f"[CLIENT] Looking for the gateway agent (broadcast on UDP {plan.BEACON_PORT}) ...")
+    ip = _listen_for_beacon(30)
+    if ip:
+        return ip
+    print("[CLIENT] No broadcast heard; scanning the local network ...")
+    return _scan_subnet()
 
 
 def _local_ip_towards(gateway: str) -> str:
@@ -171,7 +227,7 @@ def _estimate_minutes(runs: list[str], n_attacks: int, reps: int) -> float:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--gateway", required=True, help="Gateway Pi IP address")
+    parser.add_argument("--gateway", help="Gateway Pi IP address (default: find it automatically)")
     parser.add_argument("--runs", default="R1,R2,R3,R4,R5")
     parser.add_argument("--reps", type=int, default=3)
     parser.add_argument("--first-rep", type=int, default=1)
@@ -187,6 +243,14 @@ def main() -> int:
     skipped = [a[0] for a in plan.ATTACKS if a not in attacks]
     if skipped:
         print(f"[CLIENT] Not root: skipping {skipped}. Use sudo to include them.")
+
+    if not args.gateway:
+        args.gateway = find_gateway()
+        if not args.gateway:
+            print("[CLIENT] Could not find the gateway agent. Is gateway_agent.py running, "
+                  "and are both Pis on the same hotspot?")
+            return 1
+        print(f"[CLIENT] Found gateway at {args.gateway}")
 
     try:
         resp = _call(args.gateway, {"cmd": "ping"}, timeout=10)

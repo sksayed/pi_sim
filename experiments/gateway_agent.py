@@ -29,6 +29,7 @@ import socket
 import socketserver
 import subprocess
 import sys
+import threading
 import time
 from pathlib import Path
 
@@ -202,6 +203,20 @@ class Agent:
         return {"ok": True}
 
 
+def _beacon(stop: threading.Event) -> None:
+    """Broadcast this agent's presence so the client Pi can find it without an IP."""
+    msg = json.dumps({"magic": plan.BEACON_MAGIC, "port": plan.CONTROL_PORT,
+                      "host": socket.gethostname()}).encode()
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+        while not stop.is_set():
+            try:
+                s.sendto(msg, ("255.255.255.255", plan.BEACON_PORT))
+            except OSError:
+                pass
+            stop.wait(2.0)
+
+
 def _chown_to_user(path: Path) -> None:
     user = os.getenv("SUDO_USER")
     if user:
@@ -241,6 +256,8 @@ def main() -> int:
 
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
     agent = Agent()
+    stop_beacon = threading.Event()
+    threading.Thread(target=_beacon, args=(stop_beacon,), daemon=True).start()
     socketserver.TCPServer.allow_reuse_address = True
     with socketserver.TCPServer(("0.0.0.0", args.port), Handler) as server:
         server.agent = agent  # type: ignore[attr-defined]
@@ -253,6 +270,7 @@ def main() -> int:
         except KeyboardInterrupt:
             print("\n[AGENT] Interrupted.")
         finally:
+            stop_beacon.set()
             if agent.session:
                 agent.stop({"session": agent.session})
     print("[AGENT] All sessions done. Results in results/gateway/ — now run: git add results && git commit && git push")

@@ -15,6 +15,8 @@ Runs
 from __future__ import annotations
 
 CONTROL_PORT = 9100
+BEACON_PORT = 9101
+BEACON_MAGIC = "pi_sim_gateway_agent"
 MQTT_PORT = 1883
 
 # Applied by the gateway agent in every session, overriding .env.
