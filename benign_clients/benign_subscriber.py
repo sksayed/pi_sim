@@ -39,6 +39,11 @@ from pathlib import Path
 import paho.mqtt.client as mqtt
 from dotenv import load_dotenv
 
+try:
+    from benign_clients.send_log import log_connect
+except ImportError:
+    from send_log import log_connect
+
 load_dotenv(dotenv_path=Path(__file__).resolve().parents[1] / ".env")
 
 GATEWAY_IP  = os.getenv("GATEWAY_IP", "127.0.0.1")
@@ -56,6 +61,7 @@ def run() -> None:
 
     def on_connect(client, userdata, flags, rc):
         if rc == 0:
+            log_connect("subscriber", CLIENT_ID, client)
             for topic in TOPICS:
                 client.subscribe(topic, qos=QOS)
             print(f"[BENIGN-SUB] Connected. Subscribed to: {TOPICS}  QoS={QOS}")

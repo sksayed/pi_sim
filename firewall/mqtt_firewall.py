@@ -52,6 +52,8 @@ CLASS_NAMES: list[str] = (
 BENIGN_LABEL = os.getenv("FW_BENIGN_LABEL", "Benign")  # exact name of the benign class
 BLOCK_VERDICT = _env_bool("FW_BLOCK_VERDICT", True)   # False = IDS mode (log only)
 BLOCK_TTL_S = float(os.getenv("FW_BLOCK_TTL_S", "0")) # <=0 means no auto-unblock
+# Comma-separated client IPs that are classified and logged but never blocked.
+ALLOW_IPS = {ip.strip() for ip in os.getenv("FW_ALLOW_IPS", "").split(",") if ip.strip()}
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_LOG_DIR = REPO_ROOT / "Firewall_logs"
 DEFAULT_LOG_FILE = DEFAULT_LOG_DIR / "mqtt_firewall.log"
@@ -360,6 +362,23 @@ class FlowTable:
                     result.append((key, flow))
         return result
 
+    def pop_idle_unclassifiable(self, timeout: float):
+        """Remove and return idle flows that never reached MIN_PKTS_CLASSIFY."""
+        now = time.time()
+        result = []
+        with self._lock:
+            for key, flow in list(self._flows.items()):
+                idle = (now - flow.last_ts) > timeout
+                too_small = (flow.fwd_pkts + flow.bwd_pkts) < MIN_PKTS_CLASSIFY
+                if not flow.classified and idle and too_small:
+                    result.append(flow)
+                    del self._flows[key]
+        return result
+
+    def snapshot(self):
+        with self._lock:
+            return [f for f in self._flows.values() if not f.classified]
+
     def remove(self, key: FlowKey):
         with self._lock:
             self._flows.pop(key, None)
@@ -509,6 +528,8 @@ class MQTTFirewall:
             block_verdict=BLOCK_VERDICT,
             block_ttl_s=BLOCK_TTL_S,
             scaler_path=SCALER_PATH or "",
+            classify_every_n_pkts=CLASSIFY_EVERY_N_PKTS,
+            allow_ips=sorted(ALLOW_IPS),
         )
 
         # Verify feature count
@@ -703,6 +724,8 @@ class MQTTFirewall:
                            self._class_names[1] if self._n_classes >= 2 else "attack": round(attack_prob, 4)}
 
         label = "ATTACK" if is_attack else "benign"
+        client_ip, _, client_port, _ = self._client_side_block_tuple(flow)
+        allowlisted = client_ip in ALLOW_IPS
 
         t_verdict_ns    = time.perf_counter_ns()
         t_inspection_ns = (t_verdict_ns - t_arrival_ns) if t_arrival_ns > 0 else 0
@@ -728,6 +751,10 @@ class MQTTFirewall:
             flow_src_port=flow.src_port,
             flow_dst_ip=flow.dst_ip,
             flow_dst_port=flow.dst_port,
+            flow_proto=flow.proto,
+            client_ip=client_ip,
+            client_port=client_port,
+            allowlisted=allowlisted,
             flow_pkts=pkts,
             flow_bytes=flow.fwd_bytes + flow.bwd_bytes,
             flow_duration_s=dur,
@@ -739,7 +766,11 @@ class MQTTFirewall:
         )
 
         if label == "ATTACK" and BLOCK_VERDICT:
-            self.blocklist.block(*self._client_side_block_tuple(flow))
+            if allowlisted:
+                log_event("block_skipped_allowlist", ip=client_ip, proto=flow.proto,
+                          src_port=client_port, attack_type=attack_type)
+            else:
+                self.blocklist.block(*self._client_side_block_tuple(flow))
 
         self.flow_table.mark_classified(key)
         self.flow_table.remove(key)
@@ -755,7 +786,21 @@ class MQTTFirewall:
                     self._classify(key, flow)
                 except Exception as e:
                     log.error(f"Classification error: {e}")
+            for flow in self.flow_table.pop_idle_unclassifiable(FLOW_TIMEOUT_S):
+                self._log_unclassified("flow_unclassified", flow)
             time.sleep(1.0)
+
+    def _log_unclassified(self, event: str, flow: Flow):
+        client_ip, _, client_port, _ = self._client_side_block_tuple(flow)
+        log_event(
+            event,
+            client_ip=client_ip,
+            client_port=client_port,
+            flow_proto=flow.proto,
+            flow_pkts=flow.fwd_pkts + flow.bwd_pkts,
+            flow_duration_s=flow.last_ts - flow.start_ts,
+            nfqueue_first_wall_ns=flow.nfqueue_first_wall_ns,
+        )
 
     # ── NFQUEUE callback ───────────────────────────────────────────────────────
     def handle_packet(self, pkt):
@@ -793,6 +838,7 @@ class MQTTFirewall:
         # In IDS mode (BLOCK_VERDICT=False): never skip analysis — every packet is inspected.
         if BLOCK_VERDICT and self.blocklist.is_blocked(src_ip, proto, sport, dport):
             pkt.drop()
+            log_event("packet_dropped", src_ip=src_ip, sport=sport, dport=dport, proto=proto)
             return
 
         # Update flow table
@@ -843,6 +889,9 @@ class MQTTFirewall:
         finally:
             self._stop.set()
             nfq.unbind()
+            for flow in self.flow_table.snapshot():
+                self._log_unclassified("flow_open_at_shutdown", flow)
+            log_event("firewall_shutdown")
             log.info(f"Blocked IPs at shutdown: {self.blocklist.list_blocked()}")
 
 
@@ -852,5 +901,11 @@ if __name__ == "__main__":
         print("Error: must run as root  →  sudo python3 mqtt_firewall.py")
         raise SystemExit(1)
 
+    import signal
+
+    def _sigterm(signum, frame):
+        raise KeyboardInterrupt
+
+    signal.signal(signal.SIGTERM, _sigterm)
     fw = MQTTFirewall()
     fw.run()

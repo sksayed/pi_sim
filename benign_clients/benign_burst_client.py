@@ -46,6 +46,11 @@ from pathlib import Path
 import paho.mqtt.client as mqtt
 from dotenv import load_dotenv
 
+try:
+    from benign_clients.send_log import log_connect, log_send
+except ImportError:
+    from send_log import log_connect, log_send
+
 load_dotenv(dotenv_path=Path(__file__).resolve().parents[1] / ".env")
 
 GATEWAY_IP    = os.getenv("GATEWAY_IP", "127.0.0.1")
@@ -92,6 +97,7 @@ def run() -> None:
         nonlocal connected
         connected = rc == 0
         if rc == 0:
+            log_connect("burst", DEVICE_ID, client)
             print(f"[BENIGN-BURST] Connected to {GATEWAY_IP}:{GATEWAY_PORT}  "
                   f"topic={PUB_TOPIC}")
         else:
@@ -130,6 +136,7 @@ def run() -> None:
             for _ in range(burst_size):
                 payload = _reading_payload(seq, burst_num, event)
                 res = c.publish(PUB_TOPIC, payload=payload, qos=0)
+                log_send("burst", DEVICE_ID, seq, 0, res.rc)
                 if res.rc == mqtt.MQTT_ERR_SUCCESS:
                     total_sent += 1
                 seq += 1

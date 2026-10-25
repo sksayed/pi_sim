@@ -38,6 +38,11 @@ from pathlib import Path
 import paho.mqtt.client as mqtt
 from dotenv import load_dotenv
 
+try:
+    from benign_clients.send_log import log_connect, log_send
+except ImportError:
+    from send_log import log_connect, log_send
+
 load_dotenv(dotenv_path=Path(__file__).resolve().parents[1] / ".env")
 
 GATEWAY_IP   = os.getenv("GATEWAY_IP", "127.0.0.1")
@@ -71,6 +76,7 @@ def run() -> None:
         nonlocal connected
         connected = rc == 0
         if rc == 0:
+            log_connect("steady", DEVICE_ID, client)
             print(f"[BENIGN-STEADY] Connected to {GATEWAY_IP}:{GATEWAY_PORT}  "
                   f"topic={PUB_TOPIC}  interval={INTERVAL_S}s")
         else:
@@ -104,6 +110,7 @@ def run() -> None:
         while True:
             payload = _sensor_payload(seq)
             res = c.publish(PUB_TOPIC, payload=payload, qos=0)
+            log_send("steady", DEVICE_ID, seq, 0, res.rc)
             if res.rc == mqtt.MQTT_ERR_SUCCESS:
                 sent += 1
                 print(f"[BENIGN-STEADY] Published #{sent}  seq={seq}  size={len(payload)}B")

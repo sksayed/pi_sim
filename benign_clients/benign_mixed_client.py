@@ -46,6 +46,11 @@ from pathlib import Path
 import paho.mqtt.client as mqtt
 from dotenv import load_dotenv
 
+try:
+    from benign_clients.send_log import log_connect, log_send
+except ImportError:
+    from send_log import log_connect, log_send
+
 load_dotenv(dotenv_path=Path(__file__).resolve().parents[1] / ".env")
 
 GATEWAY_IP   = os.getenv("GATEWAY_IP", "127.0.0.1")
@@ -80,6 +85,7 @@ def run() -> None:
 
     def on_connect(client, userdata, flags, rc):
         if rc == 0:
+            log_connect("mixed", DEVICE_ID, client)
             client.subscribe(SUB_TOPIC, qos=1)
             print(f"[BENIGN-MIXED] Connected. pub={PUB_TOPIC}  sub={SUB_TOPIC}")
         else:
@@ -109,6 +115,7 @@ def run() -> None:
         while True:
             payload = _sensor_payload(seq)
             res = c.publish(PUB_TOPIC, payload=payload, qos=1)
+            log_send("mixed", DEVICE_ID, seq, 1, res.rc)
             if res.rc == mqtt.MQTT_ERR_SUCCESS:
                 sent += 1
                 print(f"[BENIGN-MIXED] Published #{sent}  seq={seq}  "
