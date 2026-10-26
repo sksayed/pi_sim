@@ -1,0 +1,33 @@
+{
+  "session": "R1_rep3",
+  "run": "R1",
+  "rep": 3,
+  "run_config": {
+    "benign": true,
+    "attacks": false,
+    "block": false,
+    "allow_list": false
+  },
+  "fw_settings": {
+    "FW_ALLOW_IPS": "",
+    "FW_ATTACK_THRESHOLD": "0.5",
+    "FW_BENIGN_LABEL": "Benign",
+    "FW_BLOCK_TTL_S": "0",
+    "FW_BLOCK_VERDICT": "false",
+    "FW_CLASSIFY_EVERY_N_PKTS": "20",
+    "FW_CLASS_NAMES": "ARP_Spoofing,Benign,MQTT-DDoS-Connect_Flood,MQTT-DDoS-Publish_Flood,MQTT-DoS-Connect_Flood,MQTT-DoS-Publish_Flood,MQTT-Malformed_Data,Recon-OS_Scan,Recon-Ping_Sweep,Recon-Port_Scan,Recon-VulScan,TCP_IP-DDoS-ICMP1,TCP_IP-DDoS-ICMP2,TCP_IP-DDoS-SYN,TCP_IP-DDoS-TCP,TCP_IP-DDoS-UDP1,TCP_IP-DDoS-UDP2,TCP_IP-DoS-ICMP,TCP_IP-DoS-SYN,TCP_IP-DoS-TCP,TCP_IP-DoS-UDP",
+    "FW_FLOW_TIMEOUT_S": "10",
+    "FW_JSONL_FILE": "/home/sayed-gateway/Desktop/pi_project/pi_sim/results/gateway/R1_rep3/firewall.jsonl",
+    "FW_JSON_EVENT_LOGS": "true",
+    "FW_LOG_FILE": "/home/sayed-gateway/Desktop/pi_project/pi_sim/results/gateway/R1_rep3/firewall.log",
+    "FW_MIN_PKTS_CLASSIFY": "3",
+    "FW_QUEUE_NUM": "0",
+    "FW_VERBOSE_PACKET_LOGS": "false"
+  },
+  "gateway_host": "sayed-gateway-device-pi",
+  "gateway_lan_ip": "10.24.1.39",
+  "client_ip": "10.24.1.15",
+  "git_commit": "4abc1a0ea38309d0ad97791516e7b911f51537aa",
+  "start_wall_ns": 1792992692884069248,
+  "stop_wall_ns": 1792993330897036907
+}

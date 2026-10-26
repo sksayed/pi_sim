@@ -1,0 +1,616 @@
+liboqs-python faulthandler is disabled
+/home/sayed-gateway/Desktop/pi_project/pi_sim/.venv/lib/python3.13/site-packages/oqs/__init__.py:1: UserWarning: liboqs version (major, minor) 0.15.0 differs from liboqs-python version 0.14.0
+  from oqs.oqs import (
+[GATEWAY] Crypto mode : real PQC (pyoqs)
+[GATEWAY] Replay protection : enabled (per-device seq tracking)
+[GATEWAY] Connecting to broker at 127.0.0.1:1883 …
+[GATEWAY] Connected to broker at 127.0.0.1:1883
+[GATEWAY] Subscribed to: nodes/+/data
+[GATEWAY] Subscribed to: benchmark/rtt/request (MQTT RTT echo, no crypto)
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=1  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=5.80ms  on_device_gw=28.26ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=1  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=3.05ms  on_device_gw=5.63ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=1  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.42ms  on_device_gw=4.69ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=2  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=4.24ms  on_device_gw=6.76ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=3  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.77ms  on_device_gw=3.95ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=2  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.82ms  on_device_gw=4.07ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=2  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=3.58ms  on_device_gw=6.16ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=3  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.10ms  on_device_gw=4.61ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=3  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=3.11ms  on_device_gw=5.89ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=4  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.77ms  on_device_gw=4.07ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=4  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=4.00ms  on_device_gw=6.43ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=5  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=4.37ms  on_device_gw=6.61ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=4  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=3.64ms  on_device_gw=6.49ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=5  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=3.60ms  on_device_gw=6.09ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=6  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.72ms  on_device_gw=5.11ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=6  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.13ms  on_device_gw=4.77ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=7  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.28ms  on_device_gw=4.87ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=8  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.06ms  on_device_gw=4.47ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=9  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.62ms  on_device_gw=4.92ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=10  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=3.27ms  on_device_gw=5.64ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=11  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=3.00ms  on_device_gw=6.12ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=7  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.83ms  on_device_gw=2.10ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=8  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.99ms  on_device_gw=2.20ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=9  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.06ms  on_device_gw=2.24ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=10  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.61ms  on_device_gw=4.99ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=11  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=4.98ms  on_device_gw=7.71ms
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10772901  crypto_type=aes_gcm  transit=16.88ms  — model failed to block this flow
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=12  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.57ms  on_device_gw=3.74ms
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10772902  crypto_type=aes_gcm  transit=16.54ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10772903  crypto_type=aes_gcm  transit=16.99ms  — model failed to block this flow
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=13  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.09ms  on_device_gw=4.59ms
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10772904  crypto_type=aes_gcm  transit=20.55ms  — model failed to block this flow
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=12  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.89ms  on_device_gw=4.29ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=13  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=4.11ms  on_device_gw=6.51ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=14  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.73ms  on_device_gw=5.04ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=15  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=4.68ms  on_device_gw=7.34ms
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10772905  crypto_type=aes_gcm  transit=13.09ms  — model failed to block this flow
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=14  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.20ms  on_device_gw=2.49ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=16  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.81ms  on_device_gw=2.03ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=17  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.63ms  on_device_gw=2.86ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=18  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.16ms  on_device_gw=2.38ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=19  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.24ms  on_device_gw=2.46ms
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10772906  crypto_type=aes_gcm  transit=15.49ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10772907  crypto_type=aes_gcm  transit=19.60ms  — model failed to block this flow
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=15  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.49ms  on_device_gw=2.74ms
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10772908  crypto_type=aes_gcm  transit=14.55ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10772909  crypto_type=aes_gcm  transit=15.10ms  — model failed to block this flow
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=16  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.19ms  on_device_gw=2.38ms
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10772910  crypto_type=aes_gcm  transit=25.52ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10772911  crypto_type=aes_gcm  transit=20.02ms  — model failed to block this flow
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=17  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.94ms  on_device_gw=4.71ms
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10772912  crypto_type=aes_gcm  transit=10.40ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10772913  crypto_type=aes_gcm  transit=24.36ms  — model failed to block this flow
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=18  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.61ms  on_device_gw=2.81ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=20  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.94ms  on_device_gw=3.18ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=21  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.18ms  on_device_gw=2.38ms
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10772914  crypto_type=aes_gcm  transit=7.63ms  — model failed to block this flow
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=22  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.91ms  on_device_gw=2.14ms
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10772915  crypto_type=aes_gcm  transit=22.22ms  — model failed to block this flow
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=19  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.51ms  on_device_gw=2.80ms
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10772916  crypto_type=aes_gcm  transit=24.68ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10772917  crypto_type=aes_gcm  transit=23.60ms  — model failed to block this flow
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=20  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.79ms  on_device_gw=2.02ms
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10772918  crypto_type=aes_gcm  transit=25.65ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10772919  crypto_type=aes_gcm  transit=13.74ms  — model failed to block this flow
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=21  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=5.12ms  on_device_gw=7.49ms
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10772920  crypto_type=aes_gcm  transit=24.04ms  — model failed to block this flow
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=23  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.92ms  on_device_gw=4.31ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=24  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.31ms  on_device_gw=4.62ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=25  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.42ms  on_device_gw=4.76ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=26  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=3.37ms  on_device_gw=5.43ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=27  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.42ms  on_device_gw=4.76ms
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10772921  crypto_type=aes_gcm  transit=17.65ms  — model failed to block this flow
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=22  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.83ms  on_device_gw=4.62ms
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10772922  crypto_type=aes_gcm  transit=21.06ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10772923  crypto_type=aes_gcm  transit=23.26ms  — model failed to block this flow
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=23  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.37ms  on_device_gw=4.79ms
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10772924  crypto_type=aes_gcm  transit=25.69ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10772925  crypto_type=aes_gcm  transit=20.85ms  — model failed to block this flow
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=24  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.18ms  on_device_gw=3.97ms
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10772926  crypto_type=aes_gcm  transit=18.59ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10772927  crypto_type=aes_gcm  transit=18.10ms  — model failed to block this flow
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=25  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.37ms  on_device_gw=2.57ms
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10772928  crypto_type=aes_gcm  transit=14.94ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10772929  crypto_type=aes_gcm  transit=25.70ms  — model failed to block this flow
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=26  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=3.08ms  on_device_gw=5.48ms
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10772930  crypto_type=aes_gcm  transit=15.32ms  — model failed to block this flow
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=28  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=3.69ms  on_device_gw=6.07ms
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10772931  crypto_type=aes_gcm  transit=9.55ms  — model failed to block this flow
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=27  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.37ms  on_device_gw=4.63ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=29  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.82ms  on_device_gw=3.99ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=30  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.70ms  on_device_gw=4.08ms
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10772932  crypto_type=aes_gcm  transit=27.05ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10772933  crypto_type=aes_gcm  transit=17.59ms  — model failed to block this flow
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=28  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.00ms  on_device_gw=4.27ms
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10772934  crypto_type=aes_gcm  transit=27.97ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10772935  crypto_type=aes_gcm  transit=25.46ms  — model failed to block this flow
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=29  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.20ms  on_device_gw=2.43ms
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10772936  crypto_type=aes_gcm  transit=27.73ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10772937  crypto_type=aes_gcm  transit=25.07ms  — model failed to block this flow
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=30  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.04ms  on_device_gw=3.40ms
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10772938  crypto_type=aes_gcm  transit=23.52ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10772939  crypto_type=aes_gcm  transit=19.13ms  — model failed to block this flow
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=31  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.18ms  on_device_gw=2.34ms
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10772940  crypto_type=aes_gcm  transit=24.36ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10772941  crypto_type=aes_gcm  transit=30.74ms  — model failed to block this flow
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=32  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.45ms  on_device_gw=5.44ms
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10772942  crypto_type=aes_gcm  transit=20.73ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10772943  crypto_type=aes_gcm  transit=23.94ms  — model failed to block this flow
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=33  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.98ms  on_device_gw=4.26ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=31  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.20ms  on_device_gw=4.58ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=32  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.73ms  on_device_gw=5.11ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=33  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=4.80ms  on_device_gw=7.24ms
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10772944  crypto_type=aes_gcm  transit=22.53ms  — model failed to block this flow
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=34  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.69ms  on_device_gw=4.97ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=35  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=4.65ms  on_device_gw=7.25ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=36  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=3.58ms  on_device_gw=5.93ms
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10772945  crypto_type=aes_gcm  transit=20.52ms  — model failed to block this flow
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=34  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.84ms  on_device_gw=5.51ms
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10772946  crypto_type=aes_gcm  transit=15.47ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10772947  crypto_type=aes_gcm  transit=28.79ms  — model failed to block this flow
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=35  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=4.50ms  on_device_gw=6.66ms
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10772948  crypto_type=aes_gcm  transit=15.62ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10772949  crypto_type=aes_gcm  transit=16.50ms  — model failed to block this flow
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=36  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=5.94ms  on_device_gw=8.88ms
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10772950  crypto_type=aes_gcm  transit=19.54ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10772951  crypto_type=aes_gcm  transit=14.99ms  — model failed to block this flow
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=37  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.63ms  on_device_gw=3.45ms
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10772952  crypto_type=aes_gcm  transit=17.22ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10772953  crypto_type=aes_gcm  transit=19.84ms  — model failed to block this flow
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=38  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.18ms  on_device_gw=4.55ms
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10772954  crypto_type=aes_gcm  transit=33.78ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10772955  crypto_type=aes_gcm  transit=19.80ms  — model failed to block this flow
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=39  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=4.33ms  on_device_gw=6.41ms
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10772956  crypto_type=aes_gcm  transit=24.38ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10772957  crypto_type=aes_gcm  transit=21.47ms  — model failed to block this flow
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=40  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.42ms  on_device_gw=4.64ms
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10772958  crypto_type=aes_gcm  transit=17.39ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10772959  crypto_type=aes_gcm  transit=19.64ms  — model failed to block this flow
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=41  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=3.46ms  on_device_gw=6.18ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=37  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.78ms  on_device_gw=5.78ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=38  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=5.66ms  on_device_gw=7.35ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=39  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.28ms  on_device_gw=2.66ms
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10772960  crypto_type=aes_gcm  transit=16.33ms  — model failed to block this flow
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=40  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.79ms  on_device_gw=4.48ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=42  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.29ms  on_device_gw=2.76ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=43  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.23ms  on_device_gw=2.46ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=44  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=4.64ms  on_device_gw=7.68ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=45  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=3.48ms  on_device_gw=5.92ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=46  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.75ms  on_device_gw=4.32ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=47  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=4.08ms  on_device_gw=6.53ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=48  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.23ms  on_device_gw=4.64ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=41  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.26ms  on_device_gw=4.55ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=42  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.67ms  on_device_gw=4.00ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=43  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.93ms  on_device_gw=4.43ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=49  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=4.37ms  on_device_gw=6.78ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=44  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.38ms  on_device_gw=3.12ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=45  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.96ms  on_device_gw=2.21ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=46  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.35ms  on_device_gw=2.60ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=50  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.08ms  on_device_gw=2.25ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=51  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.42ms  on_device_gw=2.64ms
+[GATEWAY] Non-JSON/malformed message on nodes/malformed-attacker/data — ignored
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=52  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.70ms  on_device_gw=3.80ms
+[GATEWAY] Unknown crypto_type='None' — ignored
+[GATEWAY] Unknown crypto_type='aes_gcm' — ignored
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=53  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.46ms  on_device_gw=5.16ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=54  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.22ms  on_device_gw=4.56ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=55  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.04ms  on_device_gw=4.76ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=47  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=3.03ms  on_device_gw=5.40ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=48  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.74ms  on_device_gw=4.11ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=49  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=3.68ms  on_device_gw=5.94ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=50  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.54ms  on_device_gw=3.59ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=51  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=3.13ms  on_device_gw=5.48ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=52  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.93ms  on_device_gw=4.30ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=53  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.73ms  on_device_gw=5.21ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=56  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.80ms  on_device_gw=4.31ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=54  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.86ms  on_device_gw=4.06ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=57  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=6.00ms  on_device_gw=8.82ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=58  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=3.12ms  on_device_gw=5.90ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=59  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.81ms  on_device_gw=4.03ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=55  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.74ms  on_device_gw=3.46ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=56  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.00ms  on_device_gw=4.40ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=57  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=3.12ms  on_device_gw=5.60ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=58  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.78ms  on_device_gw=5.23ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=59  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.03ms  on_device_gw=4.32ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=60  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=5.43ms  on_device_gw=7.12ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=60  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.46ms  on_device_gw=4.91ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=61  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.93ms  on_device_gw=2.09ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=62  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.23ms  on_device_gw=2.42ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=5  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.47ms  on_device_gw=2.81ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=6  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.13ms  on_device_gw=2.29ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=7  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.52ms  on_device_gw=2.82ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=8  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.76ms  on_device_gw=3.10ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=9  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.30ms  on_device_gw=2.52ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=10  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.06ms  on_device_gw=3.20ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=11  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.02ms  on_device_gw=2.16ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=12  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.72ms  on_device_gw=2.88ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=13  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.16ms  on_device_gw=2.31ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=14  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.15ms  on_device_gw=2.51ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=15  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.14ms  on_device_gw=2.36ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=16  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.03ms  on_device_gw=2.16ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=17  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.03ms  on_device_gw=2.32ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=18  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.94ms  on_device_gw=2.12ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=19  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.44ms  on_device_gw=2.67ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=20  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.79ms  on_device_gw=4.09ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=21  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.40ms  on_device_gw=2.69ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=22  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.59ms  on_device_gw=3.01ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=23  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.76ms  on_device_gw=4.37ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=24  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.42ms  on_device_gw=3.39ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=25  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.09ms  on_device_gw=3.84ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=26  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.34ms  on_device_gw=2.94ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=27  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.24ms  on_device_gw=2.53ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=28  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=3.29ms  on_device_gw=5.23ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=29  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.94ms  on_device_gw=5.34ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=30  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.44ms  on_device_gw=4.82ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=31  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.64ms  on_device_gw=3.20ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=32  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.42ms  on_device_gw=4.38ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=33  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.70ms  on_device_gw=4.62ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=34  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.52ms  on_device_gw=3.06ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=35  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.49ms  on_device_gw=2.81ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=36  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.48ms  on_device_gw=3.71ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=37  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.22ms  on_device_gw=2.40ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=38  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.10ms  on_device_gw=2.91ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=39  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.74ms  on_device_gw=2.93ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=40  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.86ms  on_device_gw=2.22ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=41  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.61ms  on_device_gw=2.89ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=42  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.21ms  on_device_gw=2.29ms
+[GATEWAY] Unexpected disconnect (rc=16)
+[GATEWAY] Unexpected disconnect (rc=16)
+[GATEWAY] Connected to broker at 127.0.0.1:1883
+[GATEWAY] Subscribed to: nodes/+/data
+[GATEWAY] Subscribed to: benchmark/rtt/request (MQTT RTT echo, no crypto)
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=120  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.11ms  on_device_gw=2.21ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=109  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.97ms  on_device_gw=2.02ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=110  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.98ms  on_device_gw=2.06ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=111  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.51ms  on_device_gw=2.79ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=112  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.32ms  on_device_gw=2.79ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=113  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.95ms  on_device_gw=2.02ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=114  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.10ms  on_device_gw=4.38ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=115  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.89ms  on_device_gw=3.10ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=121  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.02ms  on_device_gw=3.32ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=116  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.85ms  on_device_gw=3.56ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=122  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.89ms  on_device_gw=2.00ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=123  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.89ms  on_device_gw=1.98ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=55  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.75ms  on_device_gw=3.02ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=56  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.12ms  on_device_gw=2.46ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=57  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.58ms  on_device_gw=2.76ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=58  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.47ms  on_device_gw=2.64ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=59  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.66ms  on_device_gw=3.62ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=60  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.54ms  on_device_gw=2.80ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=61  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.16ms  on_device_gw=2.19ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=62  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.95ms  on_device_gw=2.28ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=63  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.10ms  on_device_gw=2.15ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=64  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.57ms  on_device_gw=3.93ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=65  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.16ms  on_device_gw=2.19ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=66  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.73ms  on_device_gw=1.70ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=67  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.16ms  on_device_gw=2.41ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=68  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.14ms  on_device_gw=2.39ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=69  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=3.38ms  on_device_gw=4.73ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=70  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.81ms  on_device_gw=2.05ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=71  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.50ms  on_device_gw=2.94ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=72  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.18ms  on_device_gw=3.04ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=73  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.78ms  on_device_gw=3.27ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=74  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.94ms  on_device_gw=2.19ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=75  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.40ms  on_device_gw=2.65ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=76  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.11ms  on_device_gw=2.25ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=77  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.65ms  on_device_gw=2.92ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=78  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.05ms  on_device_gw=2.54ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=79  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.37ms  on_device_gw=2.61ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=80  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.10ms  on_device_gw=2.47ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=81  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.89ms  on_device_gw=1.93ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=82  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.88ms  on_device_gw=1.88ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=83  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.91ms  on_device_gw=1.92ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=84  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.79ms  on_device_gw=1.75ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=85  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.26ms  on_device_gw=2.25ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=86  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.01ms  on_device_gw=1.99ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=87  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.76ms  on_device_gw=3.43ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=88  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.90ms  on_device_gw=1.91ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=89  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.80ms  on_device_gw=1.85ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=90  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.95ms  on_device_gw=1.94ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=91  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.84ms  on_device_gw=1.93ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=92  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.47ms  on_device_gw=2.44ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=93  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.54ms  on_device_gw=2.64ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=94  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.56ms  on_device_gw=2.60ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=95  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.90ms  on_device_gw=2.03ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=96  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.81ms  on_device_gw=1.93ms
+[GATEWAY] Unexpected disconnect (rc=16)
+[GATEWAY] Unexpected disconnect (rc=16)
+[GATEWAY] Connected to broker at 127.0.0.1:1883
+[GATEWAY] Subscribed to: nodes/+/data
+[GATEWAY] Subscribed to: benchmark/rtt/request (MQTT RTT echo, no crypto)
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=180  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.77ms  on_device_gw=1.88ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=167  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.15ms  on_device_gw=2.21ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=168  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=3.38ms  on_device_gw=4.47ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=169  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.35ms  on_device_gw=2.51ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=170  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.32ms  on_device_gw=3.59ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=171  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.02ms  on_device_gw=2.37ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=181  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.31ms  on_device_gw=2.38ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=182  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.99ms  on_device_gw=2.24ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=183  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.23ms  on_device_gw=2.30ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=184  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.48ms  on_device_gw=2.57ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=100  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.19ms  on_device_gw=2.61ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=101  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.10ms  on_device_gw=2.40ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=102  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.26ms  on_device_gw=2.29ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=103  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.02ms  on_device_gw=2.01ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=104  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.96ms  on_device_gw=2.03ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=105  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.65ms  on_device_gw=2.84ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=106  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.17ms  on_device_gw=2.46ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=107  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.02ms  on_device_gw=2.18ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=108  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.25ms  on_device_gw=2.97ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=109  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.41ms  on_device_gw=3.61ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=110  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.96ms  on_device_gw=2.11ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=111  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.00ms  on_device_gw=2.05ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=112  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.95ms  on_device_gw=1.94ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=113  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.78ms  on_device_gw=1.78ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=114  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.72ms  on_device_gw=1.69ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=115  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.30ms  on_device_gw=2.37ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=116  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.30ms  on_device_gw=2.53ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=117  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.76ms  on_device_gw=3.14ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=118  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.42ms  on_device_gw=2.67ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=119  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.71ms  on_device_gw=2.89ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=120  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.12ms  on_device_gw=3.13ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=121  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.06ms  on_device_gw=2.16ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=122  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.94ms  on_device_gw=1.95ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=123  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.79ms  on_device_gw=1.82ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=124  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.82ms  on_device_gw=1.81ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=125  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.32ms  on_device_gw=2.40ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=126  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.01ms  on_device_gw=2.22ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=127  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.04ms  on_device_gw=2.02ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=128  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.50ms  on_device_gw=2.48ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=129  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.39ms  on_device_gw=2.97ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=130  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.21ms  on_device_gw=2.47ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=131  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.24ms  on_device_gw=3.34ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=132  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.71ms  on_device_gw=3.30ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=133  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.05ms  on_device_gw=2.27ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=134  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.47ms  on_device_gw=2.66ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=135  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.37ms  on_device_gw=2.70ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=136  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.17ms  on_device_gw=2.27ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=137  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.47ms  on_device_gw=2.46ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=138  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.79ms  on_device_gw=1.76ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=172  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.78ms  on_device_gw=1.86ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=173  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.18ms  on_device_gw=2.38ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=185  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.14ms  on_device_gw=2.23ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=174  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.81ms  on_device_gw=1.92ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=175  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.83ms  on_device_gw=2.10ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=176  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.74ms  on_device_gw=2.01ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=177  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.37ms  on_device_gw=2.92ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=178  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.45ms  on_device_gw=4.51ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=179  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=3.20ms  on_device_gw=5.51ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=186  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.97ms  on_device_gw=4.07ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=187  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.11ms  on_device_gw=2.43ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=188  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.54ms  on_device_gw=2.76ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=189  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.90ms  on_device_gw=1.97ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=190  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.82ms  on_device_gw=3.94ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=180  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=4.02ms  on_device_gw=6.27ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=181  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.88ms  on_device_gw=4.12ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=182  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.97ms  on_device_gw=4.27ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=191  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.76ms  on_device_gw=3.41ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=192  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.01ms  on_device_gw=3.99ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=193  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.89ms  on_device_gw=4.28ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=194  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=5.56ms  on_device_gw=9.35ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=195  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.66ms  on_device_gw=2.87ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=196  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.80ms  on_device_gw=1.87ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=183  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.79ms  on_device_gw=1.87ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=184  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.01ms  on_device_gw=4.11ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=185  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.35ms  on_device_gw=3.22ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=186  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.10ms  on_device_gw=4.44ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=187  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.52ms  on_device_gw=4.69ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=197  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.93ms  on_device_gw=3.90ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=198  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.58ms  on_device_gw=3.88ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=199  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.15ms  on_device_gw=6.42ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=188  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=3.83ms  on_device_gw=7.35ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=189  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.77ms  on_device_gw=2.17ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=190  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.93ms  on_device_gw=2.10ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=200  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.85ms  on_device_gw=1.98ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=191  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.70ms  on_device_gw=2.92ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=192  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.37ms  on_device_gw=2.46ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=193  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.75ms  on_device_gw=1.84ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=194  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.79ms  on_device_gw=1.84ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=195  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.01ms  on_device_gw=2.38ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=201  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.34ms  on_device_gw=2.96ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=202  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.45ms  on_device_gw=2.68ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=203  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.85ms  on_device_gw=2.21ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=204  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.15ms  on_device_gw=2.30ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=205  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.88ms  on_device_gw=4.33ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=206  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.04ms  on_device_gw=4.39ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=196  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.55ms  on_device_gw=3.62ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=197  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.57ms  on_device_gw=5.13ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=207  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.44ms  on_device_gw=4.40ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=198  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=3.38ms  on_device_gw=5.36ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=199  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.71ms  on_device_gw=3.98ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=200  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=3.55ms  on_device_gw=6.06ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=201  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.69ms  on_device_gw=4.93ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=208  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=3.82ms  on_device_gw=6.44ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=209  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.82ms  on_device_gw=1.97ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=210  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.39ms  on_device_gw=2.50ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=211  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=4.21ms  on_device_gw=6.24ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=202  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=3.69ms  on_device_gw=5.87ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=203  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.19ms  on_device_gw=4.60ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=204  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=3.10ms  on_device_gw=5.39ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=205  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=3.34ms  on_device_gw=5.51ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=206  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=3.96ms  on_device_gw=6.20ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=207  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.77ms  on_device_gw=5.00ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=208  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.72ms  on_device_gw=3.96ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=209  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.04ms  on_device_gw=4.29ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=212  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.42ms  on_device_gw=3.25ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=213  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.90ms  on_device_gw=4.94ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=214  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.76ms  on_device_gw=6.27ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=215  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.86ms  on_device_gw=1.90ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=216  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.51ms  on_device_gw=2.67ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=217  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.77ms  on_device_gw=3.45ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=218  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.74ms  on_device_gw=1.90ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=210  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.95ms  on_device_gw=2.06ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=211  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.93ms  on_device_gw=2.00ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=212  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.74ms  on_device_gw=1.83ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=213  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.57ms  on_device_gw=2.84ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=214  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.12ms  on_device_gw=2.31ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=215  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.06ms  on_device_gw=2.21ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=219  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.09ms  on_device_gw=2.21ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=220  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.45ms  on_device_gw=4.83ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=221  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.70ms  on_device_gw=5.78ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=222  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=4.71ms  on_device_gw=7.39ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=223  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.25ms  on_device_gw=4.59ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=224  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.43ms  on_device_gw=2.52ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=225  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.46ms  on_device_gw=5.28ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=216  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.58ms  on_device_gw=5.19ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=217  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.09ms  on_device_gw=4.21ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=218  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.15ms  on_device_gw=4.34ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=219  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.39ms  on_device_gw=4.69ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=220  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.83ms  on_device_gw=5.24ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=221  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.06ms  on_device_gw=4.31ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=222  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=3.83ms  on_device_gw=6.17ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=223  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.81ms  on_device_gw=5.10ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=226  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.01ms  on_device_gw=4.05ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=227  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.10ms  on_device_gw=4.81ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=228  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.60ms  on_device_gw=4.85ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=229  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.86ms  on_device_gw=5.70ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=230  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=4.59ms  on_device_gw=7.19ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=224  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.89ms  on_device_gw=5.44ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=225  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.29ms  on_device_gw=4.63ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=226  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=3.10ms  on_device_gw=5.47ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=227  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.32ms  on_device_gw=4.60ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=228  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.80ms  on_device_gw=3.97ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=231  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.22ms  on_device_gw=4.82ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=232  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.25ms  on_device_gw=2.63ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=233  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.43ms  on_device_gw=2.58ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=234  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.20ms  on_device_gw=4.56ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=235  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.46ms  on_device_gw=2.62ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=236  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.06ms  on_device_gw=2.13ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=237  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.38ms  on_device_gw=3.60ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=229  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.13ms  on_device_gw=2.30ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=230  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=3.03ms  on_device_gw=5.49ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=231  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.65ms  on_device_gw=3.71ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=232  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.10ms  on_device_gw=4.33ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=233  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=4.22ms  on_device_gw=6.43ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=234  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.71ms  on_device_gw=4.21ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=235  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.34ms  on_device_gw=4.70ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=238  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.54ms  on_device_gw=4.99ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=239  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=3.40ms  on_device_gw=5.98ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=240  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=3.36ms  on_device_gw=6.16ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=236  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.38ms  on_device_gw=4.68ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=237  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.94ms  on_device_gw=4.30ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=238  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.92ms  on_device_gw=4.51ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=239  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.15ms  on_device_gw=4.43ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=240  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=5.03ms  on_device_gw=7.56ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=241  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.98ms  on_device_gw=4.18ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=241  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.35ms  on_device_gw=4.58ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=242  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.94ms  on_device_gw=3.71ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=243  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.39ms  on_device_gw=4.85ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=242  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.78ms  on_device_gw=4.34ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=243  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=3.05ms  on_device_gw=5.74ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=244  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.51ms  on_device_gw=5.84ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=244  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.04ms  on_device_gw=4.51ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=245  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.70ms  on_device_gw=5.04ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=246  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=4.70ms  on_device_gw=7.21ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=247  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=4.26ms  on_device_gw=6.42ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=139  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=3.14ms  on_device_gw=5.33ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=140  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=3.50ms  on_device_gw=5.79ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=141  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=3.70ms  on_device_gw=6.58ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=142  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.67ms  on_device_gw=5.84ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=143  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.37ms  on_device_gw=5.45ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=144  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.81ms  on_device_gw=4.69ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=145  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=3.01ms  on_device_gw=6.07ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=146  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=3.08ms  on_device_gw=5.74ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=147  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.54ms  on_device_gw=5.13ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=148  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.93ms  on_device_gw=2.32ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=149  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.76ms  on_device_gw=3.08ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=150  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.93ms  on_device_gw=2.24ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=151  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.49ms  on_device_gw=2.84ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=152  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.58ms  on_device_gw=2.86ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=153  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.69ms  on_device_gw=3.09ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=154  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.28ms  on_device_gw=2.42ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=155  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.84ms  on_device_gw=2.11ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=156  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.90ms  on_device_gw=1.97ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=157  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.44ms  on_device_gw=2.78ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=158  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.23ms  on_device_gw=2.24ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=159  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.81ms  on_device_gw=2.91ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=160  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.64ms  on_device_gw=2.72ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=161  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.94ms  on_device_gw=2.02ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=162  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.98ms  on_device_gw=2.12ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=163  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.97ms  on_device_gw=2.07ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=164  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.08ms  on_device_gw=2.13ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=165  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.81ms  on_device_gw=1.85ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=166  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.77ms  on_device_gw=1.78ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=167  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.06ms  on_device_gw=2.89ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=168  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.53ms  on_device_gw=2.65ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=169  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.82ms  on_device_gw=1.90ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=170  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.23ms  on_device_gw=3.48ms
+[GATEWAY] Unexpected disconnect (rc=16)
+[GATEWAY] Unexpected disconnect (rc=16)
+[GATEWAY] Connected to broker at 127.0.0.1:1883
+[GATEWAY] Subscribed to: nodes/+/data
+[GATEWAY] Subscribed to: benchmark/rtt/request (MQTT RTT echo, no crypto)
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=301  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.82ms  on_device_gw=1.99ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=290  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.82ms  on_device_gw=1.94ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=291  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.44ms  on_device_gw=2.50ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=292  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.67ms  on_device_gw=2.83ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=293  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.05ms  on_device_gw=2.14ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=294  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.82ms  on_device_gw=1.89ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=295  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.06ms  on_device_gw=2.25ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=302  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.75ms  on_device_gw=1.82ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=303  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.17ms  on_device_gw=4.35ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=304  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=3.00ms  on_device_gw=5.38ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=305  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.82ms  on_device_gw=5.32ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=189  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.66ms  on_device_gw=4.80ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=190  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.00ms  on_device_gw=4.17ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=191  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.93ms  on_device_gw=4.60ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=192  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=5.50ms  on_device_gw=8.01ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=193  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.34ms  on_device_gw=4.46ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=194  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.19ms  on_device_gw=5.15ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=195  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.71ms  on_device_gw=3.87ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=196  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.29ms  on_device_gw=4.46ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=197  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.87ms  on_device_gw=4.97ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=198  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.88ms  on_device_gw=5.11ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=199  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.02ms  on_device_gw=4.32ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=200  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.25ms  on_device_gw=3.93ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=201  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.10ms  on_device_gw=3.58ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=202  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.91ms  on_device_gw=2.18ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=203  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.60ms  on_device_gw=3.79ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=204  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.91ms  on_device_gw=1.92ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=205  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.15ms  on_device_gw=2.50ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=206  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.77ms  on_device_gw=1.79ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=207  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.81ms  on_device_gw=1.78ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=208  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.07ms  on_device_gw=2.08ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=209  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.04ms  on_device_gw=2.05ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=210  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.84ms  on_device_gw=1.80ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=211  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.94ms  on_device_gw=2.00ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=212  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.34ms  on_device_gw=2.94ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=213  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.00ms  on_device_gw=2.31ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=214  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.56ms  on_device_gw=2.79ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=215  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.89ms  on_device_gw=1.99ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=216  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.74ms  on_device_gw=1.77ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=217  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.79ms  on_device_gw=1.85ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=218  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.07ms  on_device_gw=2.36ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=219  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.02ms  on_device_gw=2.03ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=220  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.65ms  on_device_gw=2.69ms
+[GATEWAY] Unexpected disconnect (rc=16)
+[GATEWAY] Unexpected disconnect (rc=16)
+[GATEWAY] Connected to broker at 127.0.0.1:1883
+[GATEWAY] Subscribed to: nodes/+/data
+[GATEWAY] Subscribed to: benchmark/rtt/request (MQTT RTT echo, no crypto)
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=351  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.90ms  on_device_gw=4.17ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=352  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.90ms  on_device_gw=4.24ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=362  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=6.42ms  on_device_gw=8.95ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=353  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=5.61ms  on_device_gw=8.36ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-78f697  seq=354  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.34ms  on_device_gw=4.59ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=363  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.53ms  on_device_gw=4.79ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=364  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.03ms  on_device_gw=2.35ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=365  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.70ms  on_device_gw=3.01ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=239  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=3.39ms  on_device_gw=5.90ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=240  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=3.85ms  on_device_gw=6.56ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=241  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=6.93ms  on_device_gw=9.64ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=242  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=3.16ms  on_device_gw=5.69ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=243  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=3.63ms  on_device_gw=6.00ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=244  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.11ms  on_device_gw=4.61ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=245  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=3.33ms  on_device_gw=5.67ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=246  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.48ms  on_device_gw=4.86ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=247  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.60ms  on_device_gw=5.03ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=248  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.92ms  on_device_gw=2.13ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=249  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.09ms  on_device_gw=2.22ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=250  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.67ms  on_device_gw=2.86ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=251  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.97ms  on_device_gw=2.48ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=252  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.17ms  on_device_gw=2.35ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=253  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.35ms  on_device_gw=2.52ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=254  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.49ms  on_device_gw=3.70ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=255  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.20ms  on_device_gw=2.77ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=256  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.13ms  on_device_gw=2.32ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=257  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.62ms  on_device_gw=2.78ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=258  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.74ms  on_device_gw=1.79ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=259  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.17ms  on_device_gw=2.23ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=260  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.20ms  on_device_gw=2.28ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=261  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.92ms  on_device_gw=2.05ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=262  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.24ms  on_device_gw=2.27ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=263  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.20ms  on_device_gw=2.55ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-39af23  seq=366  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.90ms  on_device_gw=1.89ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=264  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=0.78ms  on_device_gw=1.85ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=265  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.98ms  on_device_gw=2.98ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=266  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.14ms  on_device_gw=2.21ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=267  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.29ms  on_device_gw=2.56ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=268  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.30ms  on_device_gw=2.56ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=269  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.00ms  on_device_gw=3.38ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=270  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.62ms  on_device_gw=2.62ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=271  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.68ms  on_device_gw=2.70ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=272  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.14ms  on_device_gw=2.24ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-baad5f  seq=273  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.83ms  on_device_gw=3.22ms
+
+[GATEWAY] Shutting down.

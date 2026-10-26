@@ -7,82 +7,66 @@ liboqs-python faulthandler is disabled
 [GATEWAY] Connected to broker at 127.0.0.1:1883
 [GATEWAY] Subscribed to: nodes/+/data
 [GATEWAY] Subscribed to: benchmark/rtt/request (MQTT RTT echo, no crypto)
-[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=15601619  crypto_type=aes_gcm  transit=-13.27ms  — model failed to block this flow
-[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=15601620  crypto_type=aes_gcm  transit=-11.55ms  — model failed to block this flow
-[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=15601621  crypto_type=aes_gcm  transit=-12.15ms  — model failed to block this flow
-[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=15601622  crypto_type=aes_gcm  transit=-9.67ms  — model failed to block this flow
-[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=15601623  crypto_type=aes_gcm  transit=-13.27ms  — model failed to block this flow
-[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=15601624  crypto_type=aes_gcm  transit=-9.21ms  — model failed to block this flow
-[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=15601625  crypto_type=aes_gcm  transit=-3.92ms  — model failed to block this flow
-[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=15601626  crypto_type=aes_gcm  transit=-6.24ms  — model failed to block this flow
-[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=15601627  crypto_type=aes_gcm  transit=-9.20ms  — model failed to block this flow
-[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=15601628  crypto_type=aes_gcm  transit=-12.74ms  — model failed to block this flow
-[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=15601629  crypto_type=aes_gcm  transit=-5.09ms  — model failed to block this flow
-[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=15601630  crypto_type=aes_gcm  transit=-5.03ms  — model failed to block this flow
-[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=15601631  crypto_type=aes_gcm  transit=-10.64ms  — model failed to block this flow
-[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=15601632  crypto_type=aes_gcm  transit=-10.83ms  — model failed to block this flow
-[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=15601633  crypto_type=aes_gcm  transit=-14.60ms  — model failed to block this flow
-[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=15601634  crypto_type=aes_gcm  transit=-7.11ms  — model failed to block this flow
-[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=15601635  crypto_type=aes_gcm  transit=-8.39ms  — model failed to block this flow
-[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=15601636  crypto_type=aes_gcm  transit=-10.12ms  — model failed to block this flow
-[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=15601637  crypto_type=aes_gcm  transit=-13.23ms  — model failed to block this flow
-[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=15601638  crypto_type=aes_gcm  transit=-5.71ms  — model failed to block this flow
-[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=15601639  crypto_type=aes_gcm  transit=-11.27ms  — model failed to block this flow
-[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=15601640  crypto_type=aes_gcm  transit=-10.88ms  — model failed to block this flow
-[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=15601641  crypto_type=aes_gcm  transit=-11.04ms  — model failed to block this flow
-[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=15601642  crypto_type=aes_gcm  transit=-11.38ms  — model failed to block this flow
-[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=15601643  crypto_type=aes_gcm  transit=-10.62ms  — model failed to block this flow
-[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=15601644  crypto_type=aes_gcm  transit=-7.19ms  — model failed to block this flow
-[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=15601645  crypto_type=aes_gcm  transit=-10.36ms  — model failed to block this flow
-[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=15601646  crypto_type=aes_gcm  transit=-11.36ms  — model failed to block this flow
-[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=15601647  crypto_type=aes_gcm  transit=-15.00ms  — model failed to block this flow
-[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=15601648  crypto_type=aes_gcm  transit=-7.01ms  — model failed to block this flow
-[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=15601649  crypto_type=aes_gcm  transit=-11.54ms  — model failed to block this flow
-[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=15601650  crypto_type=aes_gcm  transit=-7.21ms  — model failed to block this flow
-[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=15601651  crypto_type=aes_gcm  transit=-6.81ms  — model failed to block this flow
-[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=15601652  crypto_type=aes_gcm  transit=-3.53ms  — model failed to block this flow
-[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=15601653  crypto_type=aes_gcm  transit=-11.29ms  — model failed to block this flow
-[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=15601654  crypto_type=aes_gcm  transit=-11.74ms  — model failed to block this flow
-[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=15601655  crypto_type=aes_gcm  transit=-8.74ms  — model failed to block this flow
-[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=15601656  crypto_type=aes_gcm  transit=-11.84ms  — model failed to block this flow
-[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=15601657  crypto_type=aes_gcm  transit=-15.41ms  — model failed to block this flow
-[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=15601658  crypto_type=aes_gcm  transit=-11.45ms  — model failed to block this flow
-[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=15601659  crypto_type=aes_gcm  transit=-5.16ms  — model failed to block this flow
-[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=15601660  crypto_type=aes_gcm  transit=-7.67ms  — model failed to block this flow
-[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=15601661  crypto_type=aes_gcm  transit=-12.19ms  — model failed to block this flow
-[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=15601662  crypto_type=aes_gcm  transit=-13.00ms  — model failed to block this flow
-[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=15601663  crypto_type=aes_gcm  transit=-12.37ms  — model failed to block this flow
-[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=15601664  crypto_type=aes_gcm  transit=-11.96ms  — model failed to block this flow
-[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=15601665  crypto_type=aes_gcm  transit=-8.89ms  — model failed to block this flow
-[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=15601666  crypto_type=aes_gcm  transit=-14.40ms  — model failed to block this flow
-[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=15601667  crypto_type=aes_gcm  transit=-12.41ms  — model failed to block this flow
-[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=15601668  crypto_type=aes_gcm  transit=-10.57ms  — model failed to block this flow
-[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=15601669  crypto_type=aes_gcm  transit=-11.41ms  — model failed to block this flow
-[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=15601670  crypto_type=aes_gcm  transit=-11.76ms  — model failed to block this flow
-[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=15601671  crypto_type=aes_gcm  transit=-16.46ms  — model failed to block this flow
-[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=15601672  crypto_type=aes_gcm  transit=-15.45ms  — model failed to block this flow
-[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=15601673  crypto_type=aes_gcm  transit=-12.26ms  — model failed to block this flow
-[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=15601674  crypto_type=aes_gcm  transit=-10.26ms  — model failed to block this flow
-[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=15601675  crypto_type=aes_gcm  transit=-6.45ms  — model failed to block this flow
-[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=15601676  crypto_type=aes_gcm  transit=-13.91ms  — model failed to block this flow
-[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=15601677  crypto_type=aes_gcm  transit=-17.86ms  — model failed to block this flow
-[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=15601678  crypto_type=aes_gcm  transit=-8.92ms  — model failed to block this flow
-[GATEWAY] Non-JSON/malformed message on nodes/malformed-attacker/data — ignored
-[GATEWAY] Unknown crypto_type='None' — ignored
-[GATEWAY] Unknown crypto_type='' — ignored
-[GATEWAY] Unknown crypto_type='' — ignored
-[GATEWAY] Unknown crypto_type='aes_gcm' — ignored
-[GATEWAY] Unknown crypto_type='aes_gcm￿' — ignored
-[GATEWAY] Unknown crypto_type='' — ignored
-[GATEWAY] Non-JSON/malformed message on nodes/malformed-attacker/data — ignored
-[GATEWAY] Non-JSON/malformed message on nodes/malformed-attacker/data — ignored
-[GATEWAY] Unknown crypto_type='None' — ignored
-[GATEWAY] Unknown crypto_type='aes_gcm' — ignored
-[GATEWAY] Unknown crypto_type='' — ignored
-[GATEWAY] Unknown crypto_type='aes_gcm' — ignored
-[GATEWAY] Unknown crypto_type='aes_gcm￿' — ignored
-[GATEWAY] Unknown crypto_type='' — ignored
-[GATEWAY] Non-JSON/malformed message on nodes/malformed-attacker/data — ignored
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=4131569  crypto_type=aes_gcm  transit=-3.16ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=4131570  crypto_type=aes_gcm  transit=-3.42ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=4131571  crypto_type=aes_gcm  transit=-2.24ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=4131572  crypto_type=aes_gcm  transit=-3.82ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=4131573  crypto_type=aes_gcm  transit=-2.97ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=4131574  crypto_type=aes_gcm  transit=-2.24ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=4131575  crypto_type=aes_gcm  transit=7.04ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=4131576  crypto_type=aes_gcm  transit=-3.73ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=4131577  crypto_type=aes_gcm  transit=12.06ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=4131578  crypto_type=aes_gcm  transit=-0.66ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=4131579  crypto_type=aes_gcm  transit=-1.89ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=4131580  crypto_type=aes_gcm  transit=-2.50ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=4131581  crypto_type=aes_gcm  transit=-7.00ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=4131582  crypto_type=aes_gcm  transit=-2.61ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=4131583  crypto_type=aes_gcm  transit=-2.16ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=4131584  crypto_type=aes_gcm  transit=-9.41ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=4131585  crypto_type=aes_gcm  transit=-2.94ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=4131586  crypto_type=aes_gcm  transit=-1.17ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=4131587  crypto_type=aes_gcm  transit=3.58ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=4131588  crypto_type=aes_gcm  transit=6.94ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=4131589  crypto_type=aes_gcm  transit=5.37ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=4131590  crypto_type=aes_gcm  transit=2.46ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=4131591  crypto_type=aes_gcm  transit=-1.36ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=4131592  crypto_type=aes_gcm  transit=-2.91ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=4131593  crypto_type=aes_gcm  transit=-0.16ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=4131594  crypto_type=aes_gcm  transit=-0.18ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=4131595  crypto_type=aes_gcm  transit=2.94ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=4131596  crypto_type=aes_gcm  transit=3.10ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=4131597  crypto_type=aes_gcm  transit=-0.24ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=4131598  crypto_type=aes_gcm  transit=2.69ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=4131599  crypto_type=aes_gcm  transit=-2.57ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=4131600  crypto_type=aes_gcm  transit=-1.00ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=4131601  crypto_type=aes_gcm  transit=-0.82ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=4131602  crypto_type=aes_gcm  transit=3.11ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=4131603  crypto_type=aes_gcm  transit=9.72ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=4131604  crypto_type=aes_gcm  transit=9.67ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=4131605  crypto_type=aes_gcm  transit=5.08ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=4131606  crypto_type=aes_gcm  transit=3.29ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=4131607  crypto_type=aes_gcm  transit=-0.72ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=4131608  crypto_type=aes_gcm  transit=2.80ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=4131609  crypto_type=aes_gcm  transit=-0.97ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=4131610  crypto_type=aes_gcm  transit=0.65ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=4131611  crypto_type=aes_gcm  transit=-1.77ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=4131612  crypto_type=aes_gcm  transit=-1.23ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=4131613  crypto_type=aes_gcm  transit=1.71ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=4131614  crypto_type=aes_gcm  transit=-1.43ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=4131615  crypto_type=aes_gcm  transit=9.52ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=4131616  crypto_type=aes_gcm  transit=4.92ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=4131617  crypto_type=aes_gcm  transit=-3.66ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=4131618  crypto_type=aes_gcm  transit=-0.05ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=4131619  crypto_type=aes_gcm  transit=5.02ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=4131620  crypto_type=aes_gcm  transit=1.42ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=4131621  crypto_type=aes_gcm  transit=4.48ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=4131622  crypto_type=aes_gcm  transit=1.34ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=4131623  crypto_type=aes_gcm  transit=-1.05ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=4131624  crypto_type=aes_gcm  transit=10.57ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=4131625  crypto_type=aes_gcm  transit=-4.33ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=4131626  crypto_type=aes_gcm  transit=1.14ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=4131627  crypto_type=aes_gcm  transit=8.21ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=4131628  crypto_type=aes_gcm  transit=7.21ms  — model failed to block this flow
 [GATEWAY] Non-JSON/malformed message on nodes/malformed-attacker/data — ignored
 [GATEWAY] Unknown crypto_type='None' — ignored
 [GATEWAY] Unknown crypto_type='aes_gcm' — ignored
@@ -110,6 +94,22 @@ liboqs-python faulthandler is disabled
 [GATEWAY] Non-JSON/malformed message on nodes/malformed-attacker/data — ignored
 [GATEWAY] Unknown crypto_type='None' — ignored
 [GATEWAY] Unknown crypto_type='aes_gcm' — ignored
+[GATEWAY] Unknown crypto_type='' — ignored
+[GATEWAY] Unknown crypto_type='aes_gcm' — ignored
+[GATEWAY] Unknown crypto_type='aes_gcm￿' — ignored
+[GATEWAY] Unknown crypto_type='' — ignored
+[GATEWAY] Non-JSON/malformed message on nodes/malformed-attacker/data — ignored
+[GATEWAY] Non-JSON/malformed message on nodes/malformed-attacker/data — ignored
+[GATEWAY] Unknown crypto_type='None' — ignored
+[GATEWAY] Unknown crypto_type='aes_gcm' — ignored
+[GATEWAY] Unknown crypto_type='' — ignored
+[GATEWAY] Unknown crypto_type='aes_gcm' — ignored
+[GATEWAY] Unknown crypto_type='aes_gcm￿' — ignored
+[GATEWAY] Unknown crypto_type='' — ignored
+[GATEWAY] Non-JSON/malformed message on nodes/malformed-attacker/data — ignored
+[GATEWAY] Non-JSON/malformed message on nodes/malformed-attacker/data — ignored
+[GATEWAY] Unknown crypto_type='None' — ignored
+[GATEWAY] Unknown crypto_type='' — ignored
 [GATEWAY] Unknown crypto_type='' — ignored
 [GATEWAY] Unknown crypto_type='aes_gcm' — ignored
 [GATEWAY] Unknown crypto_type='aes_gcm￿' — ignored
