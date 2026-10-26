@@ -263,6 +263,9 @@ def main() -> int:
           f"{_estimate_minutes(runs, len(attacks), args.reps):.0f} min")
 
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
+    if os.getenv("SUDO_USER"):
+        subprocess.run(["chown", "-R", f"{os.environ['SUDO_USER']}:{os.environ['SUDO_USER']}",
+                        str(RESULTS_DIR.parent)], check=False)
     try:
         for rep in range(args.first_rep, args.first_rep + args.reps):
             for run_id in runs:

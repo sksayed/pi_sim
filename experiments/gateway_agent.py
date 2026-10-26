@@ -197,7 +197,7 @@ class Agent:
 
         self.meta["stop_wall_ns"] = time.time_ns()
         (out / "meta.json").write_text(json.dumps(self.meta, indent=2))
-        _chown_to_user(out.parent)
+        _chown_to_user(REPO_ROOT / "results")
         print(f"[AGENT] ===== stop {self.session} — saved to {out} =====")
         self.session, self.session_dir = None, None
         return {"ok": True}
@@ -255,6 +255,7 @@ def main() -> int:
         return 1
 
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
+    _chown_to_user(REPO_ROOT / "results")
     agent = Agent()
     stop_beacon = threading.Event()
     threading.Thread(target=_beacon, args=(stop_beacon,), daemon=True).start()
