@@ -22,6 +22,8 @@ import lightgbm as lgb
 import dpkt
 import netfilterqueue
 
+import cic_features
+
 # ─── Configuration ────────────────────────────────────────────────────────────
 def _env_bool(name: str, default: bool) -> bool:
     v = os.getenv(name)
@@ -52,6 +54,13 @@ CLASS_NAMES: list[str] = (
 BENIGN_LABEL = os.getenv("FW_BENIGN_LABEL", "Benign")  # exact name of the benign class
 BLOCK_VERDICT = _env_bool("FW_BLOCK_VERDICT", True)   # False = IDS mode (log only)
 BLOCK_TTL_S = float(os.getenv("FW_BLOCK_TTL_S", "0")) # <=0 means no auto-unblock
+# Ordered model inputs written by ml/train_lgbm.py; without it, all 45 CIC columns.
+FEATURES_PATH = os.getenv(
+    "FW_FEATURES_PATH", str(Path(__file__).resolve().parent / "feature_columns.json"))
+FEATURE_COLUMNS: list[str] = (
+    json.loads(Path(FEATURES_PATH).read_text()) if Path(FEATURES_PATH).exists()
+    else list(cic_features.CIC_COLUMNS)
+)
 # Comma-separated client IPs that are classified and logged but never blocked.
 ALLOW_IPS = {ip.strip() for ip in os.getenv("FW_ALLOW_IPS", "").split(",") if ip.strip()}
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -135,6 +144,12 @@ class Flow:
     # Header lengths
     hdr_lens: list = field(default_factory=list)
 
+    # Per-packet series used by cic_features.compute
+    frame_lens: list = field(default_factory=list)
+    ttls: list = field(default_factory=list)
+    flag_list: list = field(default_factory=list)
+    times: list = field(default_factory=list)
+
     classified: bool = False
     # Wall time (time.time_ns) when this flow’s first packet was seen in NFQUEUE — on-host only.
     nfqueue_first_wall_ns: int = 0
@@ -143,8 +158,12 @@ class Flow:
         return src_ip == self.src_ip and src_port == self.src_port
 
     def add_packet(self, pkt_len: int, tcp_flags: int, ts: float,
-                   is_fwd: bool, hdr_len: int = 0) -> None:
+                   is_fwd: bool, hdr_len: int = 0, ttl: int = 64) -> None:
         self.last_ts = ts
+        self.frame_lens.append(pkt_len + hdr_len + cic_features.ETH_HEADER_BYTES)
+        self.ttls.append(ttl)
+        self.flag_list.append(tcp_flags)
+        self.times.append(ts)
 
         # TCP flags — full 8-bit field
         if tcp_flags & 0x01: self.fin_count += 1
@@ -173,147 +192,12 @@ class Flow:
             self.bwd_pkt_lens.append(pkt_len)
 
     def extract_features(self) -> np.ndarray:
-        """
-        Extract exactly 45 features matching CIC IoMT 2024 column order:
-
-        [00] Header_Length     [01] Protocol Type     [02] Duration
-        [03] Rate              [04] Srate              [05] Drate
-        [06] fin_flag_number   [07] syn_flag_number    [08] rst_flag_number
-        [09] psh_flag_number   [10] ack_flag_number    [11] ece_flag_number
-        [12] cwr_flag_number   [13] ack_count          [14] syn_count
-        [15] fin_count         [16] rst_count          [17] HTTP
-        [18] HTTPS             [19] DNS                [20] Telnet
-        [21] SMTP              [22] SSH                [23] IRC
-        [24] TCP               [25] UDP                [26] DHCP
-        [27] ARP               [28] ICMP               [29] IGMP
-        [30] IPv               [31] LLC                [32] Tot sum
-        [33] Min               [34] Max                [35] AVG
-        [36] Std               [37] Tot size           [38] IAT
-        [39] Number            [40] Magnitue           [41] Radius
-        [42] Covariance        [43] Variance           [44] Weight
-        """
-        duration   = max(self.last_ts - self.start_ts, 1e-9)
-        total_pkts = self.fwd_pkts + self.bwd_pkts
-        all_lens   = self.fwd_pkt_lens + self.bwd_pkt_lens
-        all_iats   = self.fwd_iats + self.bwd_iats
-
-        # ── Helper functions ──────────────────────────────────────────────────
-        def safe_mean(lst): return float(np.mean(lst)) if lst        else 0.0
-        def safe_std(lst):  return float(np.std(lst))  if len(lst)>1 else 0.0
-        def safe_var(lst):  return float(np.var(lst))  if len(lst)>1 else 0.0
-        def safe_min(lst):  return float(min(lst))     if lst        else 0.0
-        def safe_max(lst):  return float(max(lst))     if lst        else 0.0
-
-        # ── Flow-level packet size stats ──────────────────────────────────────
-        avg = safe_mean(all_lens)
-        std = safe_std(all_lens)
-        mn  = safe_min(all_lens)
-        mx  = safe_max(all_lens)
-        hdr = safe_mean(self.hdr_lens)
-
-        # ── Directional packet size stats ─────────────────────────────────────
-        mean_fwd = safe_mean(self.fwd_pkt_lens)
-        mean_bwd = safe_mean(self.bwd_pkt_lens)
-        var_fwd  = safe_var(self.fwd_pkt_lens)
-        var_bwd  = safe_var(self.bwd_pkt_lens)
-
-        # ── CIC IoMT 2024 derived statistical features ────────────────────────
-
-        # Magnitude: Root mean square of directional means
-        magnitude = math.sqrt((mean_fwd**2 + mean_bwd**2) / 2)
-
-        # Radius: Root mean square of directional variances
-        radius = math.sqrt((var_fwd**2 + var_bwd**2) / 2)
-
-        # Covariance: statistical covariance between fwd and bwd packet lengths
-        # np.cov returns a 2x2 matrix — [0,1] is the off-diagonal cross-covariance
-        min_len = min(len(self.fwd_pkt_lens), len(self.bwd_pkt_lens))
-        if min_len > 1:
-            cov_matrix = np.cov(
-                self.fwd_pkt_lens[:min_len],
-                self.bwd_pkt_lens[:min_len]
-            )
-            covariance = float(cov_matrix[0, 1])
-        else:
-            covariance = 0.0
-
-        # Variance: ratio of fwd variance to bwd variance
-        # Zero bwd variance (e.g. SYN flood with no responses) → near-zero weight
-        variance = var_fwd / (var_bwd + 1e-6)
-
-        # Weight: product of directional packet counts
-        # Unidirectional flows (attacks) → 0; bidirectional (benign) → large
-        weight = float(self.fwd_pkts * self.bwd_pkts)
-
-        # ── Port shortcuts ─────────────────────────────────────────────────────
-        sp, dp = self.src_port, self.dst_port
-
-        # ── Feature vector (45 elements, CIC IoMT 2024 column order) ──────────
-        feats = [
-            # [00-01] Header & protocol
-            hdr,                               # Header_Length (mean across flow)
-            float(self.proto),                 # Protocol Type (6=TCP, 17=UDP)
-
-            # [02-05] Timing & rates
-            duration,                          # Duration (seconds)
-            total_pkts / duration,             # Rate     (pkts/sec, all directions)
-            self.fwd_pkts / duration,          # Srate    (pkts/sec, src→dst)
-            self.bwd_pkts / duration,          # Drate    (pkts/sec, dst→src)
-
-            # [06-12] TCP flag counts (per-flow cumulative)
-            float(self.fin_count),             # fin_flag_number
-            float(self.syn_count),             # syn_flag_number
-            float(self.rst_count),             # rst_flag_number
-            float(self.psh_count),             # psh_flag_number
-            float(self.ack_count),             # ack_flag_number
-            float(self.ece_count),             # ece_flag_number
-            float(self.cwr_count),             # cwr_flag_number
-
-            # [13-16] Redundant flag columns (CIC dataset has both sets)
-            float(self.ack_count),             # ack_count
-            float(self.syn_count),             # syn_count
-            float(self.fin_count),             # fin_count
-            float(self.rst_count),             # rst_count
-
-            # [17-31] Application/protocol binary indicators (1 or 0)
-            float(sp == 80   or dp == 80),     # HTTP
-            float(sp == 443  or dp == 443),    # HTTPS
-            float(sp == 53   or dp == 53),     # DNS
-            float(sp == 23   or dp == 23),     # Telnet
-            float(sp == 25   or dp == 25),     # SMTP
-            float(sp == 22   or dp == 22),     # SSH
-            float(sp == 6667 or dp == 6667),   # IRC
-            float(self.proto == 6),            # TCP
-            float(self.proto == 17),           # UDP
-            float(dp in (67, 68)),             # DHCP
-            0.0,                               # ARP  — not in raw IP, always 0
-            float(self.proto == 1),            # ICMP
-            float(self.proto == 2),            # IGMP
-            1.0,                               # IPv  — always IPv4 here
-            0.0,                               # LLC  — not in raw IP, always 0
-
-            # [32-37] Packet size statistics (all packets combined)
-            float(sum(all_lens)),              # Tot sum  (total bytes)
-            mn,                                # Min      (smallest packet)
-            mx,                                # Max      (largest packet)
-            avg,                               # AVG      (mean packet size)
-            std,                               # Std      (std dev packet size)
-            float(self.fwd_bytes + self.bwd_bytes),  # Tot size
-
-            # [38-39] Inter-arrival time & count
-            safe_mean(all_iats),               # IAT    (mean inter-arrival time)
-            float(total_pkts),                 # Number (total packet count)
-
-            # [40-44] CIC-specific derived statistical features
-            magnitude,                         # Magnitue   (RMS of directional means)
-            radius,                            # Radius     (RMS of directional variances)
-            covariance,                        # Covariance (fwd↔bwd cross-covariance)
-            variance,                          # Variance   (var_fwd / var_bwd ratio)
-            weight,                            # Weight     (fwd_pkts × bwd_pkts)
-        ]
-
-        assert len(feats) == 45, f"Feature count mismatch: {len(feats)}"
-        return np.array(feats, dtype=np.float32).reshape(1, -1)
+        """Feature vector in FEATURE_COLUMNS order (see cic_features.py)."""
+        feats = cic_features.compute(
+            self.proto, self.src_port, self.dst_port, self.frame_lens, self.ttls,
+            self.flag_list, self.times, self.hdr_lens, self.fwd_pkts, self.bwd_pkts,
+        )
+        return np.array([feats[c] for c in FEATURE_COLUMNS], dtype=np.float32).reshape(1, -1)
 
 
 # ─── Flow Table ───────────────────────────────────────────────────────────────
@@ -334,7 +218,7 @@ class FlowTable:
         return fwd, True   # new flow — treat as forward
 
     def update(self, src_ip, dst_ip, src_port, dst_port, proto,
-               pkt_len, tcp_flags, ts, hdr_len=0) -> Tuple[FlowKey, Flow]:
+               pkt_len, tcp_flags, ts, hdr_len=0, ttl=64) -> Tuple[FlowKey, Flow]:
         key, is_fwd = self._resolve_key(src_ip, dst_ip, src_port,
                                         dst_port, proto)
         with self._lock:
@@ -348,7 +232,7 @@ class FlowTable:
                     nfqueue_first_wall_ns=int(time.time_ns()),
                 )
             flow = self._flows[key]
-            flow.add_packet(pkt_len, tcp_flags, ts, is_fwd, hdr_len)
+            flow.add_packet(pkt_len, tcp_flags, ts, is_fwd, hdr_len, ttl)
         return key, flow
 
     def get_expired(self, timeout: float):
@@ -528,6 +412,7 @@ class MQTTFirewall:
             block_verdict=BLOCK_VERDICT,
             block_ttl_s=BLOCK_TTL_S,
             scaler_path=SCALER_PATH or "",
+            feature_columns=FEATURE_COLUMNS,
             classify_every_n_pkts=CLASSIFY_EVERY_N_PKTS,
             allow_ips=sorted(ALLOW_IPS),
         )
@@ -535,9 +420,9 @@ class MQTTFirewall:
         # Verify feature count
         n = self.model.num_feature()
         log.info(f"Model expects {n} features: {self.model.feature_name()}")
-        assert n == 45, (
-            f"Feature mismatch! Model expects {n} features but extract_features() "
-            f"produces 45. Update extract_features() to match model.feature_name()."
+        assert n == len(FEATURE_COLUMNS), (
+            f"Feature mismatch! Model expects {n} features but {FEATURES_PATH} lists "
+            f"{len(FEATURE_COLUMNS)}. Retrain with ml/train_lgbm.py or fix FW_FEATURES_PATH."
         )
 
         # Resolve class names for multiclass output.
@@ -643,7 +528,7 @@ class MQTTFirewall:
     def _parse(self, raw: bytes):
         """
         Parse raw IP bytes (NFQUEUE delivers raw IP, no Ethernet header).
-        Returns (src_ip, dst_ip, sport, dport, proto, payload_len, flags, hdr_len)
+        Returns (src_ip, dst_ip, sport, dport, proto, payload_len, flags, hdr_len, ttl)
         or None on failure.
         """
         try:
@@ -657,7 +542,7 @@ class MQTTFirewall:
             dst_ip  = dpkt.utils.inet_to_str(ip.dst)
             hdr_len = (ip.hl * 4) + (tcp.off * 4)   # IP header + TCP header bytes
             return (src_ip, dst_ip, tcp.sport, tcp.dport,
-                    ip.p, len(tcp.data), tcp.flags, hdr_len)
+                    ip.p, len(tcp.data), tcp.flags, hdr_len, ip.ttl)
 
         # UDP (e.g. udp_flood_client) — requires iptables NFQUEUE on UDP ports; flags unused (0).
         if isinstance(ip.data, dpkt.udp.UDP):
@@ -666,7 +551,7 @@ class MQTTFirewall:
             dst_ip  = dpkt.utils.inet_to_str(ip.dst)
             hdr_len = (ip.hl * 4) + 8   # IP + UDP header
             return (src_ip, dst_ip, udp.sport, udp.dport,
-                    ip.p, len(udp.data), 0, hdr_len)
+                    ip.p, len(udp.data), 0, hdr_len, ip.ttl)
 
         return None
 
@@ -813,7 +698,7 @@ class MQTTFirewall:
             pkt.accept()
             return
 
-        src_ip, dst_ip, sport, dport, proto, pkt_len, flags, hdr_len = parsed
+        src_ip, dst_ip, sport, dport, proto, pkt_len, flags, hdr_len, ttl = parsed
 
         # Per-packet line: concise, readable. Skipped when VERBOSE_PACKET_LOGS=false.
         if VERBOSE_PACKET_LOGS:
@@ -832,6 +717,7 @@ class MQTTFirewall:
             payload_len=pkt_len,
             flags=flags,
             hdr_len=hdr_len,
+            ttl=ttl,
         )
 
         # In IPS mode: drop packets from blocked source-port flows and skip analysis.
@@ -844,7 +730,7 @@ class MQTTFirewall:
         # Update flow table
         key, flow = self.flow_table.update(
             src_ip, dst_ip, sport, dport, proto,
-            pkt_len, flags, ts, hdr_len
+            pkt_len, flags, ts, hdr_len, ttl
         )
 
         # Accept all packets first (passive-classify model): this packet continues

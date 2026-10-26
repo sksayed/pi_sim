@@ -21,6 +21,27 @@ from sklearn.metrics import (
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 
+import numpy as np
+
+from live_segments import cic_features, replay
+
+# Not reproducible by the live firewall (see firewall/cic_features.py), plus TTL
+# and protocol type, whose dataset values come from mixed-packet windows.
+DEFAULT_DROP = cic_features.NOT_REPRODUCIBLE + ["Duration", "Protocol Type"]
+
+
+def _calibration_rows(session_dirs: list[Path], columns: list[str]) -> pd.DataFrame:
+    """Benign segments replayed from benign-only live sessions (calibration only)."""
+    frames = []
+    for d in session_dirs:
+        meta = json.loads((d / "meta.json").read_text())
+        if meta.get("run_config", {}).get("attacks"):
+            raise ValueError(f"{d} contains attack traffic; calibration needs a benign-only session")
+        seg = replay(d)
+        print(f"Calibration session {d.name}: {len(seg)} benign segments")
+        frames.append(seg[columns])
+    return pd.concat(frames, ignore_index=True)
+
 
 def _load_dataframe(data_path: Path) -> pd.DataFrame:
     """Load either CSV or parquet based on file extension."""
@@ -117,6 +138,19 @@ def main() -> None:
         default=None,
         help="Path to input CSV/parquet. Defaults to data/CIC_IoMT_2024_WiFi_MQTT_all.parquet.",
     )
+    parser.add_argument(
+        "--calibration-session",
+        type=Path,
+        action="append",
+        default=[],
+        help="Benign-only live session (results/gateway/<session>) added to training as Benign. Repeatable.",
+    )
+    parser.add_argument(
+        "--calibration-copies",
+        type=int,
+        default=20,
+        help="How many times each calibration segment is repeated in training (default: 20).",
+    )
     args = parser.parse_args()
 
     project_root = Path(__file__).resolve().parents[1]
@@ -135,7 +169,9 @@ def main() -> None:
     _print_label_diagnostics(df, stage="Loaded dataset")
 
     X_df, y_raw = _prepare_features(df.copy())
+    X_df = X_df[[c for c in cic_features.CIC_COLUMNS if c not in DEFAULT_DROP]]
     all_cols = list(X_df.columns)
+    print(f"Using {len(all_cols)} live-reproducible features; dropped {DEFAULT_DROP}")
 
     # Strip trailing _test / _train suffixes so class names match FW_BENIGN_LABEL.
     # e.g. "Benign_test" → "Benign", "MQTT-DoS-Publish_Flood_test" → "MQTT-DoS-Publish_Flood"
@@ -157,9 +193,18 @@ def main() -> None:
     print(f"Test  : {X_test_df.shape[0]} samples (30%)")
     _print_split_diagnostics(y_train, y_test, classes=label_enc.classes_.tolist())
 
+    n_calibration = 0
+    if args.calibration_session:
+        cal = _calibration_rows(args.calibration_session, all_cols)
+        n_calibration = len(cal)
+        benign_idx = int(np.where(label_enc.classes_ == "Benign")[0][0])
+        X_train_df = pd.concat([X_train_df] + [cal] * args.calibration_copies, ignore_index=True)
+        y_train = np.concatenate([y_train, np.full(len(cal) * args.calibration_copies, benign_idx)])
+        print(f"Added {n_calibration} calibration segments x{args.calibration_copies} to training only")
+
     scaler = StandardScaler()
-    X_train = scaler.fit_transform(X_train_df)
-    X_test = scaler.transform(X_test_df)
+    X_train = scaler.fit_transform(X_train_df.values)
+    X_test = scaler.transform(X_test_df.values)
 
     num_classes = len(label_enc.classes_)
     params = {
@@ -208,9 +253,11 @@ def main() -> None:
     model_path = models_dir / "lightgbm_model.txt"
     label_enc_path = models_dir / "label_encoder.pkl"
     scaler_path = models_dir / "standard_scaler.pkl"
+    features_path = models_dir / "feature_columns.json"
     model.save_model(str(model_path))
     joblib.dump(label_enc, label_enc_path)
     joblib.dump(scaler, scaler_path)
+    features_path.write_text(json.dumps(all_cols, indent=2))
 
     report_path = outputs_dir / "lightgbm_classification_report.txt"
     metrics_path = outputs_dir / "lightgbm_metrics.json"
@@ -230,6 +277,11 @@ def main() -> None:
         "n_features": int(X_train.shape[1]),
         "classes": label_enc.classes_.tolist(),
         "params": params,
+        "feature_columns": all_cols,
+        "dropped_features": DEFAULT_DROP,
+        "calibration_sessions": [str(p) for p in args.calibration_session],
+        "calibration_segments": n_calibration,
+        "calibration_copies": args.calibration_copies if args.calibration_session else 0,
     }
     metrics_path.write_text(json.dumps(metrics, indent=2), encoding="utf-8")
 
@@ -295,6 +347,7 @@ def main() -> None:
     shutil.copy2(model_path,     fw_model_dst)
     shutil.copy2(scaler_path,    fw_scaler_dst)
     shutil.copy2(label_enc_path, fw_encoder_dst)
+    shutil.copy2(features_path,  firewall_dir / "feature_columns.json")
     print(f"\nFirewall artifacts updated:")
     print(f"  model   → {fw_model_dst}")
     print(f"  scaler  → {fw_scaler_dst}")

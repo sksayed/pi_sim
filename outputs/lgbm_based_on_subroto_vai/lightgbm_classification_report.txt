@@ -1,27 +1,27 @@
                          precision    recall  f1-score   support
 
-           ARP_Spoofing     0.8378    0.8298    0.8338       523
-                 Benign     0.9786    0.9789    0.9788     11282
-MQTT-DDoS-Connect_Flood     0.9982    0.9924    0.9953     12575
-MQTT-DDoS-Publish_Flood     0.9775    0.9786    0.9780      2525
- MQTT-DoS-Connect_Flood     0.9498    0.9872    0.9681       939
- MQTT-DoS-Publish_Flood     0.9809    0.9878    0.9844      2551
-    MQTT-Malformed_Data     0.7287    0.8149    0.7694       524
-          Recon-OS_Scan     0.8493    0.7791    0.8127      1150
-       Recon-Ping_Sweep     0.0980    0.1786    0.1266        56
-        Recon-Port_Scan     0.9714    0.9761    0.9738      6787
-          Recon-VulScan     0.6213    0.6774    0.6481       310
-      TCP_IP-DDoS-ICMP1     0.9463    0.9878    0.9666     46202
-      TCP_IP-DDoS-ICMP2     0.9902    0.9557    0.9727     58708
-        TCP_IP-DDoS-SYN     0.9997    0.9990    0.9994     51719
-        TCP_IP-DDoS-TCP     0.9997    0.9999    0.9998     54779
-       TCP_IP-DDoS-UDP1     0.9669    0.9358    0.9511     61696
-       TCP_IP-DDoS-UDP2     0.9192    0.9581    0.9382     46925
-        TCP_IP-DoS-ICMP     0.9995    0.9993    0.9994     29530
-         TCP_IP-DoS-SYN     0.9999    0.9994    0.9996     29579
-         TCP_IP-DoS-TCP     0.9999    0.9997    0.9998     24629
-         TCP_IP-DoS-UDP     0.9995    0.9995    0.9995     41266
+           ARP_Spoofing     0.7719    0.6730    0.7191       523
+                 Benign     0.9546    0.9718    0.9631     11282
+MQTT-DDoS-Connect_Flood     0.9919    0.9879    0.9899     12575
+MQTT-DDoS-Publish_Flood     0.8490    0.8063    0.8271      2525
+ MQTT-DoS-Connect_Flood     0.8570    0.8999    0.8779       939
+ MQTT-DoS-Publish_Flood     0.8256    0.8667    0.8457      2551
+    MQTT-Malformed_Data     0.7351    0.7042    0.7193       524
+          Recon-OS_Scan     0.5955    0.7296    0.6557      1150
+       Recon-Ping_Sweep     0.1294    0.6607    0.2164        56
+        Recon-Port_Scan     0.9709    0.9250    0.9474      6787
+          Recon-VulScan     0.2465    0.4032    0.3060       310
+      TCP_IP-DDoS-ICMP1     0.6375    0.5895    0.6126     46202
+      TCP_IP-DDoS-ICMP2     0.6290    0.7298    0.6757     58708
+        TCP_IP-DDoS-SYN     0.9681    0.9880    0.9780     51719
+        TCP_IP-DDoS-TCP     0.8328    0.9870    0.9034     54779
+       TCP_IP-DDoS-UDP1     0.5671    0.7311    0.6387     61696
+       TCP_IP-DDoS-UDP2     0.4895    0.5144    0.5017     46925
+        TCP_IP-DoS-ICMP     0.6166    0.4908    0.5466     29530
+         TCP_IP-DoS-SYN     0.9840    0.9387    0.9608     29579
+         TCP_IP-DoS-TCP     0.9535    0.5589    0.7047     24629
+         TCP_IP-DoS-UDP     0.4438    0.2261    0.2995     41266
 
-               accuracy                         0.9785    484255
-              macro avg     0.8958    0.9055    0.8998    484255
-           weighted avg     0.9790    0.9785    0.9786    484255
+               accuracy                         0.7152    484255
+              macro avg     0.7166    0.7325    0.7090    484255
+           weighted avg     0.7137    0.7152    0.7056    484255
