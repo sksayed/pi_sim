@@ -1,0 +1,2 @@
+[CONNECT-FLOOD] Mode: serial (MQTT-DoS-Connect_Flood)  target: 10.24.1.39:1883
+[CONNECT-FLOOD] Rate: 1.0 conn/s  Burst: unlimited
