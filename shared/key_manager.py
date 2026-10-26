@@ -15,6 +15,7 @@ import hashlib
 import hmac
 import os
 import sys
+import threading
 import warnings
 from pathlib import Path
 from typing import Callable, Dict, Optional, Tuple
@@ -48,6 +49,10 @@ if PQC_AVAILABLE:
 
 # C callback type: void (*)(uint8_t *buf, size_t n)
 _RandCallback = ctypes.CFUNCTYPE(None, ctypes.POINTER(ctypes.c_uint8), ctypes.c_size_t)
+
+# The liboqs RNG is process-wide: while a deterministic key generation has it
+# switched, no other liboqs call in this process may draw randomness.
+_RNG_LOCK = threading.RLock()
 
 # ── Simulation parameter table (best-effort sizes) ────────────────────────────
 # These are only used when PQC bindings are unavailable. When PQC is available,
@@ -225,26 +230,31 @@ class KeyManager:
 
     def _with_deterministic_rng(self, info: str, seed_len: int, fn):
         """
-        Temporarily replace liboqs's RNG with a deterministic stream derived
-        from HKDF, call `fn()`, then restore the system RNG.
+        Temporarily replace liboqs's RNG with a deterministic, non-repeating
+        stream (SHAKE-256 in counter mode, keyed by HKDF(info)), call `fn()`,
+        then restore the system RNG.
         """
-        seed_bytes = self._hkdf(info, seed_len)
-        buf = bytearray(seed_bytes * 64)  # large repeating buffer
-        pos = [0]
+        seed = self._hkdf(info, seed_len)
+        pending = bytearray()
+        counter = [0]
 
         @_RandCallback
         def _fill(ptr, n):
-            for i in range(n):
-                ptr[i] = buf[pos[0] % len(buf)]
-                pos[0] += 1
+            while len(pending) < n:
+                block = seed + counter[0].to_bytes(8, "big")
+                pending.extend(hashlib.shake_256(block).digest(1024))
+                counter[0] += 1
+            ctypes.memmove(ptr, bytes(pending[:n]), n)
+            del pending[:n]
 
-        if _liboqs:
-            _liboqs.OQS_randombytes_custom_algorithm(_fill)
-        try:
-            return fn()
-        finally:
+        with _RNG_LOCK:
             if _liboqs:
-                _liboqs.OQS_randombytes_switch_algorithm(b"system")
+                _liboqs.OQS_randombytes_custom_algorithm(_fill)
+            try:
+                return fn()
+            finally:
+                if _liboqs:
+                    _liboqs.OQS_randombytes_switch_algorithm(b"system")
 
     # ── Generic KEM (real + sim) ───────────────────────────────────────────────
 
@@ -271,7 +281,8 @@ class KeyManager:
         """
         if PQC_AVAILABLE:
             kem = oqs.KeyEncapsulation(self._resolve_kem_alg(alg))
-            ct, ss = kem.encap_secret(public_key)
+            with _RNG_LOCK:
+                ct, ss = kem.encap_secret(public_key)
             return ct, ss[:32]
 
         ct_len = _KEM_PARAMS.get(alg, {}).get("ct", 512)
@@ -335,7 +346,8 @@ class KeyManager:
         """Sign `message` with `alg`. Returns a signature."""
         if PQC_AVAILABLE:
             signer = oqs.Signature(self._resolve_sig_alg(alg), secret_key=secret_key)
-            return signer.sign(message)
+            with _RNG_LOCK:
+                return signer.sign(message)
 
         # Simulation: HMAC-SHA256 padded/truncated to approximate algorithm size.
         tag = hmac.new(secret_key[:32], message, hashlib.sha256).digest()
