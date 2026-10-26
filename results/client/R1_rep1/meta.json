@@ -1,0 +1,25 @@
+{
+  "session": "R1_rep1",
+  "run": "R1",
+  "rep": 1,
+  "run_config": {
+    "benign": true,
+    "attacks": false,
+    "block": false,
+    "allow_list": false
+  },
+  "gateway_ip": "10.24.1.39",
+  "client_ip": "10.24.1.15",
+  "client_host": "sayed-edge-device-pi",
+  "clock_offset_s": -0.0049822330474853516,
+  "attacks": [],
+  "timing": {
+    "benign_only_s": 600,
+    "attack_s": 60,
+    "gap_s": 20,
+    "warmup_s": 20,
+    "drain_s": 15
+  },
+  "start_wall_ns": 1792979245981549500,
+  "stop_wall_ns": 1792979883062860726
+}
