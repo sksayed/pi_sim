@@ -112,6 +112,7 @@ def analyze_session(session: str) -> dict | None:
     pkts_before_block: dict[tuple, int] = defaultdict(int)
     blocked_conns: dict[tuple, str] = {}
     first_attack_seen: set[tuple] = set()
+    verdict_conns: set[tuple] = set()
     cb_drops = 0
 
     for ev in _events(gw_dir):
@@ -120,6 +121,7 @@ def analyze_session(session: str) -> dict | None:
             conn = (ev["client_ip"], ev["client_port"], ev["flow_proto"])
             src = label(*conn, ev["nfqueue_first_wall_ns"])
             conn_label.setdefault(conn, src)
+            verdict_conns.add(conn)
             v = verdicts[src]
             v["verdicts"] += 1
             v["conns"].add(conn)
@@ -176,7 +178,7 @@ def analyze_session(session: str) -> dict | None:
             if any(c[0] == ip and c[1] == port and s in attack_names for c, s in blocked_conns.items()):
                 drops += pkts
         attack_conns = [c for c, s in conn_label.items() if s in attack_names]
-        never = sum(sources[s]["unclassified_flows"] for s in sources if s in attack_names)
+        never = sum(1 for c in attack_conns if c not in verdict_conns)
         result["ips"] = {
             "benign_sent": len(sent),
             "benign_received_by_stage2": len(sent & recv),
@@ -184,7 +186,7 @@ def analyze_session(session: str) -> dict | None:
             "attack_pkts_before_verdict_mean": (statistics.mean(pkts_before_block[c] for c in attack_blocked)
                                                 if attack_blocked else None),
             "attack_pkts_dropped": drops + cb_drops,
-            "attack_flows_never_classified": never,
+            "attack_connections_never_classified": never,
             "attack_connections": len(attack_conns),
             "benign_connections_blocked": sum(1 for s in blocked_conns.values() if s == "benign"),
             "infrastructure_connections_blocked": sum(1 for s in blocked_conns.values() if s == "infrastructure"),
