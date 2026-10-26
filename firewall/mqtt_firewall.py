@@ -57,6 +57,8 @@ BLOCK_TTL_S = float(os.getenv("FW_BLOCK_TTL_S", "0")) # <=0 means no auto-unbloc
 # An ATTACK prediction counts only if at least this share of the segment's packets
 # was sent by the client (not forwarded by the broker). 0 disables the rule.
 MIN_CLIENT_SHARE = float(os.getenv("FW_MIN_CLIENT_SHARE", "0"))
+# "pkts" or "bytes" (payload bytes; falls back to packets when the segment has no payload).
+CLIENT_SHARE_BY = os.getenv("FW_CLIENT_SHARE_BY", "pkts")
 # Block a connection only after this many consecutive ATTACK verdicts.
 BLOCK_AFTER_N = max(1, int(os.getenv("FW_BLOCK_AFTER_N", "1")))
 # Ordered model inputs written by ml/train_lgbm.py; without it, all 45 CIC columns.
@@ -421,6 +423,7 @@ class MQTTFirewall:
             classify_every_n_pkts=CLASSIFY_EVERY_N_PKTS,
             allow_ips=sorted(ALLOW_IPS),
             min_client_share=MIN_CLIENT_SHARE,
+            client_share_by=CLIENT_SHARE_BY,
             block_after_n=BLOCK_AFTER_N,
         )
 
@@ -621,6 +624,9 @@ class MQTTFirewall:
         from_broker = flow.src_port == 1883 and flow.dst_port != 1883
         client_pkts = flow.bwd_pkts if from_broker else flow.fwd_pkts
         client_share = client_pkts / pkts if pkts else 0.0
+        total_bytes = flow.fwd_bytes + flow.bwd_bytes
+        if CLIENT_SHARE_BY == "bytes" and total_bytes:
+            client_share = (flow.bwd_bytes if from_broker else flow.fwd_bytes) / total_bytes
         if is_attack and client_share < MIN_CLIENT_SHARE:
             is_attack = False
             attack_type = "benign"
@@ -755,6 +761,11 @@ class MQTTFirewall:
         if BLOCK_VERDICT and self.blocklist.is_blocked(src_ip, proto, sport, dport):
             pkt.drop()
             log_event("packet_dropped", src_ip=src_ip, sport=sport, dport=dport, proto=proto)
+            return
+        # Broker-to-client packets of a blocked connection: drop and do not re-classify.
+        if BLOCK_VERDICT and sport == 1883 and self.blocklist.is_blocked(dst_ip, proto, dport, sport):
+            pkt.drop()
+            log_event("packet_dropped_to_client", client_ip=dst_ip, client_port=dport, proto=proto)
             return
 
         # Update flow table

@@ -74,6 +74,8 @@ def segments(session_dir: Path, mode: str, min_pkts: int, every_n: int, idle_s: 
             "first_ts": f["pkts"][0]["ts"],
             "pkts": len(f["pkts"]),
             "client_pkts": sum(p["c2b"] for p in f["pkts"]),
+            "payload": sum(p["pl"] for p in f["pkts"]),
+            "client_payload": sum(p["pl"] for p in f["pkts"] if p["c2b"]),
             **feats,
         })
 
@@ -97,7 +99,7 @@ def segments(session_dir: Path, mode: str, min_pkts: int, every_n: int, idle_s: 
             f["pkts"].append({
                 "len": e["payload_len"] + e["hdr_len"] + cic_features.ETH_HEADER_BYTES,
                 "ttl": e.get("ttl", 64), "flags": e["flags"], "ts": ts, "hdr": e["hdr_len"],
-                "c2b": e["dport"] == BROKER_PORT,
+                "c2b": e["dport"] == BROKER_PORT, "pl": e["payload_len"],
             })
             n = len(f["pkts"])
             if e["flags"] & 0x05:

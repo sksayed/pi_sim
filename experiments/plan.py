@@ -29,6 +29,7 @@ FIXED_FW_SETTINGS = {
     "FW_VERBOSE_PACKET_LOGS": "false",
     "FW_JSON_EVENT_LOGS": "true",
     "FW_MIN_CLIENT_SHARE": "0.3",
+    "FW_CLIENT_SHARE_BY": "bytes",
     "FW_BLOCK_AFTER_N": "2",
 }
 
