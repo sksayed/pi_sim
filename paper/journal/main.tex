@@ -208,7 +208,7 @@ For every message received on a device topic, Stage~2 executes Algorithm~\ref{al
 
 \subsection{Implementation}
 
-Both stages run on a Raspberry Pi~4B (BCM2711, four Cortex-A72 cores at 1.8~GHz, 4~GB LPDDR4) under Python~3.11; in the live sessions, benign clients and attack generators run on a second Raspberry Pi \TODO{confirm the model of both live-testbed Pis}, and both Pis join the same Wi-Fi access point (a mobile hotspot). Stage~1 uses \texttt{NetfilterQueue}, \texttt{dpkt}, and LightGBM; Stage~2 uses \texttt{liboqs-python}~\cite{oqs2023}, the \texttt{cryptography} package for AES-GCM, and Paho-MQTT with Mosquitto. Timestamps come from \texttt{time.perf\_counter\_ns()}, and records are written by a background thread to avoid perturbing measurements.
+Both stages run on a Raspberry Pi~4B (BCM2711, four Cortex-A72 cores at 1.8~GHz, 4~GB LPDDR4) under Python~3.11; in the live sessions, benign clients and attack generators run on a second Raspberry Pi~4B, and both Pis join the same Wi-Fi access point (a mobile hotspot). Stage~1 uses \texttt{NetfilterQueue}, \texttt{dpkt}, and LightGBM; Stage~2 uses \texttt{liboqs-python}~\cite{oqs2023}, the \texttt{cryptography} package for AES-GCM, and Paho-MQTT with Mosquitto. Timestamps come from \texttt{time.perf\_counter\_ns()}, and records are written by a background thread to avoid perturbing measurements.
 
 % ═════════════════════════════════════════════════════════════════════════════
 \section{Evaluation Methodology}
