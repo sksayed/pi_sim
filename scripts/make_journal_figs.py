@@ -32,13 +32,16 @@ def feature_importance(top=15):
     fig, ax = plt.subplots(figsize=(3.5, 2.8))
     ax.barh(fi.feature, fi.share, color="#2b6cb0")
     ax.set_xlabel("Share of total split gain (%)")
+    ax.tick_params(axis="y", labelsize=7)
     fig.tight_layout()
     fig.savefig(OUT / "fig_feature_importance.png", dpi=300)
     print("top-5 gain share %:", fi[::-1].head(5)[["feature", "share"]].round(1).values.tolist())
 
 
 def stage2_latency():
-    d = pd.read_csv("benchmarks/gateway/reencrypt_metrics.csv")
+    files = sorted(Path("results/gateway").glob("R*_rep*/reencrypt_metrics.csv"))
+    d = pd.concat([pd.read_csv(f) for f in files])
+    d = d[d.pqc_available]
     cols = {"t_encap_ns": "ML-KEM-768\nencap", "t_aes_enc_ns": "AES-256-GCM\nencrypt",
             "t_sign_ns": "ML-DSA-65\nsign", "t_reencrypt_ns": "Total\nre-encrypt",
             "t_recv_to_done_ns": "Gateway\nhandler"}

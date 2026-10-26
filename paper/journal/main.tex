@@ -30,7 +30,7 @@
 \maketitle
 
 \begin{abstract}
-MQTT gateways face two threats at once: present-day network attacks that flood or probe the broker, and harvest-now-decrypt-later (HNDL) adversaries that record cloud-bound traffic for future quantum decryption. Recent work addresses these threats separately: intrusion detection systems are evaluated offline on datasets, while post-quantum cryptography (PQC) is benchmarked as isolated primitives, TLS handshakes, or hardware accelerators. We design, implement, and measure a two-stage gateway on a Raspberry Pi~4B. Stage~1 intercepts MQTT-bound flows with Linux NetfilterQueue, extracts 45 flow features, and classifies them with a LightGBM model trained on CICIoMT2024 (21 classes; 97.85\% offline accuracy, 0.900 macro-F1). Stage~2 re-encrypts messages that reach the gateway with ML-KEM-768, AES-256-GCM, and ML-DSA-65 (NIST Level~3) without device firmware changes; the protected envelope is constructed on the gateway and is not transmitted to a cloud receiver. Live, Stage~1 spends 0.944~ms of processing per flow classification on average (893 flows), and Stage~2 adds a median 0.156~ms of cryptographic work per message (P95 0.297~ms). Across ten KEM/signature configurations and 18,000 messages, ML-KEM pairings with ML-DSA or Falcon required about 36--53\% less measured cryptographic time than ECDH+ECDSA for 5~KB payloads in the evaluated implementations, while per-message key regeneration, not cryptography, dominates handler latency for Falcon and SLH-DSA. In an attack-only session all 893 classified flows were predicted as attacks (mean confidence 0.997). Packet-level logs of a combined session show that inline blocking also cut off benign publishers and the gateway's own subscriber connection, so infrastructure clients must be exempted from blocking.
+MQTT gateways face two threats at once: present-day network attacks that flood or probe the broker, and harvest-now-decrypt-later (HNDL) adversaries that record cloud-bound traffic for future quantum decryption. Recent work addresses these threats separately: intrusion detection systems are evaluated offline on datasets, while post-quantum cryptography (PQC) is benchmarked as isolated primitives, TLS handshakes, or hardware accelerators. We design, implement, and measure a two-stage gateway on Raspberry Pi hardware. Stage~1 intercepts MQTT-bound flows with Linux NetfilterQueue, extracts 32 flow features that can be reproduced from live packets, and classifies them with a LightGBM model trained on CICIoMT2024 and calibrated on local benign traffic (21 classes; 71.5\% offline accuracy, 0.709 macro-F1). Stage~2 re-encrypts messages that reach the gateway with ML-KEM-768, AES-256-GCM, and ML-DSA-65 (NIST Level~3) without device firmware changes; the envelope is constructed on the gateway and is not transmitted to a cloud receiver. In a labelled two-Pi testbed with five run types, each repeated three times, Stage~1 flagged 1.7\% of benign verdicts and reached precision 1.00 and recall 0.96 on attack traffic; connection, SYN, slow-connection, and scan attacks were flagged in every run, whereas low-rate UDP and publish floods were largely missed. Inline blocking dropped about 3,900 attack packets per run after a mean of 7.3 admitted packets per attack connection, but also cut off long-lived benign connections: 88.6\% of benign messages reached Stage~2 with the gateway's own clients allow-listed, against 59.2\% (34--100\% per run) without. Stage~1 needs a median 2.4~ms of processing per verdict and Stage~2 a median 1.9~ms of cryptographic work per message. Across ten KEM/signature configurations, ML-KEM pairings with ML-DSA or Falcon required 36--53\% less cryptographic time than ECDH+ECDSA for 5~KB payloads, while per-message key regeneration dominates handler latency for Falcon and SLH-DSA.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -45,12 +45,12 @@ Edge computing, intrusion prevention, IoT gateway, LightGBM, ML-DSA, ML-KEM, MQT
 
 Recent work treats these adversaries separately. Machine-learning intrusion detection systems (IDS) for IoT report accuracies above 99\% on public datasets such as CICIoMT2024~\cite{ciciomt2024,abid2025gwo,wang2025skd,soomro2025roche}, but they are evaluated offline, are not placed in the packet path of a broker, and leave the payload exposed to HNDL collection. Post-quantum cryptography (PQC) studies benchmark the NIST standards ML-KEM~\cite{nist_fips203} and ML-DSA~\cite{nist_fips204} inside TLS~1.3 on a Raspberry Pi~\cite{shahid2026pqtls} or in dedicated ASIC hardware~\cite{dimatteo2026kem22}, but they assume an attack-free network path and do not address MQTT broker admission. No published system classifies live MQTT-bound traffic inline at the broker \emph{and} upgrades the admitted traffic to post-quantum protection, measured jointly on commodity gateway hardware.
 
-This article closes that gap with a threat model, a full description of both stages, an offline and live evaluation of the IDS, a ten-scheme PQC comparison, and a joint analysis of how the two stages compose. All measurements cover the device-to-gateway path and gateway processing; the cloud receiver is assumed and not evaluated. The main contributions of this article are as follows.
+This article closes that gap with a threat model, a full description of both stages, an offline and labelled live evaluation of the IDS/IPS, a ten-scheme PQC comparison, and a joint analysis of how the two stages compose. All measurements cover the device-to-gateway path and gateway processing; the cloud receiver is assumed and not evaluated. The main contributions of this article are as follows.
 \begin{enumerate}
   \item \textit{Two-Stage Gateway Design:} A Raspberry Pi gateway that classifies MQTT-bound TCP flows in the kernel packet path (NetfilterQueue + LightGBM, Stage~1) and re-encrypts messages that reach Stage~2 with ML-KEM-768 + AES-256-GCM + ML-DSA-65, constructing a protected envelope for an assumed cloud receiver (Section~\ref{sec:design}).
-  \item \textit{Offline and Live IDS Evaluation:} Per-class results on 484,255 held-out CICIoMT2024 flows, per-class live inference latency on the Pi, live prediction behaviour, and the effect of inline blocking on benign and infrastructure connections, reconstructed from packet-level logs (Sections~\ref{sec:method}, \ref{sec:res-ids}, and~\ref{sec:res-e2e}).
-  \item \textit{PQC Cost on the Gateway:} Per-operation re-encryption latency on live traffic and a ten-configuration comparison (seven PQC pairings, three classical baselines, three payload sizes, 18,000 messages), including the hidden cost of per-message key regeneration (Sections~\ref{sec:res-pqc} and~\ref{sec:res-matrix}).
-  \item \textit{Composition and Deployment Lessons:} Measurements of both stages running together on one host, including the observed interruption of Stage~2 input when the IPS blocked the gateway's own subscriber, and guidance on scheme choice, key caching, and bandwidth (Sections~\ref{sec:res-e2e} and~\ref{sec:discussion}).
+  \item \textit{Offline and Labelled Live IDS/IPS Evaluation:} Per-class results on 484,255 held-out CICIoMT2024 flows with a feature set that is reproducible from live packets, and a labelled two-Pi evaluation (five run types, three repetitions each) that reports per-source flag rates, precision and recall, Stage~1 latency, attack packets admitted and dropped, and benign delivery with and without an infrastructure allow-list (Sections~\ref{sec:method}, \ref{sec:res-labelled}, \ref{sec:res-ids}, and~\ref{sec:res-e2e}).
+  \item \textit{PQC Cost on the Gateway:} Per-operation re-encryption latency on 11,661 live messages and a ten-configuration comparison (seven PQC pairings, three classical baselines, three payload sizes, 18,000 messages), including the hidden cost of per-message key regeneration (Sections~\ref{sec:res-pqc} and~\ref{sec:res-matrix}).
+  \item \textit{Composition and Deployment Lessons:} The live failure of a model that used all dataset features, the collateral blocking of long-lived benign connections by a per-verdict IPS, the loss of Stage~2 input when the IPS blocks the gateway's own subscriber, and guidance on scheme choice, key caching, and bandwidth (Sections~\ref{sec:method}, \ref{sec:res-e2e}, and~\ref{sec:discussion}).
 \end{enumerate}
 
 The rest of this article is organized as follows. Section~\ref{sec:related} reviews related work. Section~\ref{sec:threat} states the threat model. Section~\ref{sec:design} describes the system, Section~\ref{sec:method} the evaluation methodology, and Section~\ref{sec:results} the results. Section~\ref{sec:discussion} discusses implications and limitations, and Section~\ref{sec:conclusion} concludes the article.
@@ -87,7 +87,7 @@ Soomro et al.~\cite{soomro2025roche} & No & Federated & -- & Server & Acc., FL o
 Shahid et al.~\cite{shahid2026pqtls} & TLS only & -- & ML-KEM/ML-DSA in TLS & Raspberry Pi 4 & Handshake, bytes \\
 Di~Matteo et al.~\cite{dimatteo2026kem22} & No & -- & ML-KEM hardware & 22-nm ASIC & Area, power \\
 \midrule
-\textbf{This work} & \textbf{Yes} & \textbf{Inline IPS} & \textbf{10 configs, MQTT re-encrypt} & \textbf{Raspberry Pi 4B} & \textbf{Verdict ms, crypto ms, scheme matrix} \\
+\textbf{This work} & \textbf{Yes} & \textbf{Inline IPS} & \textbf{10 configs, MQTT re-encrypt} & \textbf{Raspberry Pi 4B} & \textbf{FPR, delivery, verdict ms, crypto ms} \\
 \bottomrule
 \end{tabular}
 \end{table*}
@@ -145,7 +145,7 @@ Fig.~\ref{fig:arch} shows the pipeline. All TCP traffic to the broker port enter
 \draw[arr] (broker) -- node[lbl]{subscribe} (gw);
 \draw[arr] (gw) -- node[lbl]{PQC} (cloud);
 \draw[->, red!70, thick] (fw.south) -- ++(0,-0.5) node[below, font=\scriptsize, red!80]{drop blocked flows};
-\node[innerbox, below=1.0cm of fw] (fwd) {\textbf{NFQUEUE}\\flow table (5-tuple)\\45 features $\to$ LightGBM\\blocklist client tuple};
+\node[innerbox, below=1.0cm of fw] (fwd) {\textbf{NFQUEUE}\\flow table (5-tuple)\\32 features $\to$ LightGBM\\blocklist client tuple};
 \node[innerbox, below=1.0cm of gw] (gwd) {\textbf{Re-encrypt}\\ML-KEM-768 encap\\AES-256-GCM encrypt\\ML-DSA-65 sign};
 \draw[darr] (gw.south) -- (gwd.north);
 \end{tikzpicture}
@@ -158,13 +158,13 @@ Fig.~\ref{fig:arch} shows the pipeline. All TCP traffic to the broker port enter
 
 \textit{Interception:} An \texttt{iptables} rule sends packets for the broker port to NFQUEUE. A user-space callback parses IP/TCP (and UDP) headers with \texttt{dpkt}. To keep classification off the critical path, each packet is \emph{accepted back to the kernel before} the classifier runs; inference time therefore delays only later packets waiting in the queue, not the current one.
 
-\textit{Flow State:} A bidirectional flow table keyed by the 5-tuple accumulates per-direction packet and byte counts, packet-length lists, inter-arrival times (IAT), TCP flag counts, and header lengths. A flow is classified 1)~when it terminates with FIN or RST after a configurable minimum number of packets (3 in the attack-only session and 20 in the combined session; shorter flows are never classified); 2)~every $N$ packets for long-lived connections such as publish floods ($N$ is configurable; logged flows reach at most 10 packets in the attack-only session and 50 in the combined session); and 3)~by a background reaper when idle for 10~s.
+\textit{Flow State:} A bidirectional flow table keyed by the 5-tuple stores, for every packet, its frame length, IP TTL, TCP flags, header length, direction, and arrival time. A flow is classified 1)~when it terminates with FIN or RST after at least 3 packets; 2)~every 20 packets, so that long-lived connections such as MQTT sessions and publish floods receive one verdict per 20 packets; and 3)~by a background reaper when idle for 10~s. Flows that end or expire with fewer than 3 packets are logged as unclassified.
 
-\textit{Features:} Each flow becomes the 45-dimensional CICIoMT2024 feature vector: duration and rate; per-direction SYN/ACK/PSH/FIN/RST/ECE/CWR counts; protocol indicators; packet-length total, minimum, maximum, mean, and standard deviation; mean IAT; derived Magnitude, Radius, Covariance, Variance, and Weight; and mean header length.
+\textit{Features:} Each verdict uses 32 CICIoMT2024 features computed over the packets collected so far: packet rate (three columns); the share of packets carrying each TCP flag (FIN, SYN, RST, PSH, ACK, ECE, CWR); 15 protocol indicators (application protocol by port, transport, and link layer); and the minimum, maximum, mean, standard deviation, and total of the frame lengths, with the derived Magnitude and Radius. We matched each column to the semantics of the released data, which differ from their names in places: lengths include the 14-byte Ethernet header, and flag columns are shares rather than counts. The other 13 dataset columns are not used because a live flow cannot reproduce them. Eleven depend on how the dataset was windowed during capture (header length, flag counts, total sum, IAT, Number, Covariance, Variance, and Weight), and two mix packets from different flows (Duration, which tracks the IP TTL in the released data, and Protocol Type).
 
 \textit{Classifier:} Features are standardized and passed to a 21-class LightGBM model~\cite{lightgbm2017} (benign plus 20 attack classes). A flow is labelled an attack when the arg-max class is not benign and the benign probability is below $1-\tau$, with $\tau = 0.5$.
 
-\textit{Prevention:} In IPS mode, an attack verdict adds the client side of the flow (client IP, protocol, client port, broker port) to a blocklist; later packets matching it are dropped in the callback, and an \texttt{iptables} drop rule for the same tuple is inserted. Normalizing to the client side avoids blocking the broker's own replies from port 1883. Because the key includes the client port, a new connection from the same host is not covered by an earlier block. In IDS mode, verdicts are logged and nothing is dropped.
+\textit{Prevention:} In IPS mode, an attack verdict adds the client side of the flow (client IP, protocol, client port, broker port) to a blocklist; later packets matching it are dropped in the callback, and an \texttt{iptables} drop rule for the same tuple is inserted. Normalizing to the client side avoids blocking the broker's own replies from port 1883. Because the key includes the client port, a new connection from the same host is not covered by an earlier block. Blocks do not expire. Source addresses on an optional allow-list are exempt: their attack verdicts are logged but never blocked. In IDS mode, verdicts are logged and nothing is dropped.
 
 \textit{Enforcement Timing:} Three intervals separate a flow's first packet from its first dropped packet: 1)~\emph{collection time}, until the flow reaches a classification trigger (minimum packet count with FIN/RST, every $N$ packets, or 10~s of idleness); 2)~\emph{classification processing time}, for feature extraction, inference, and decision; and 3)~\emph{enforcement delay}, from the verdict to the next packet of the blocked tuple. Every packet before the verdict is admitted to the broker. Stage~1 therefore cuts off the remainder of long-lived attack connections, such as publish floods, but cannot stop connections that finish before a verdict: flows shorter than the minimum packet count are never classified, and a flow classified on FIN/RST has already ended, so its block affects only that tuple. Short connect floods and scans can thus complete before any blocking decision.
 
@@ -187,7 +187,7 @@ For every message received on a device topic, Stage~2 executes Algorithm~\ref{al
 \end{algorithmic}
 \end{algorithm}
 
-\textit{Signed Encoding:} $\textsc{Encode}$ outputs a fixed domain tag followed by the five fields $id$ (UTF-8), $seq$ (unsigned 64-bit, big-endian), $c_\mathrm{kem}$, $\eta$, and $c_\mathrm{aes}$, each prefixed by its 4-byte big-endian length. Length prefixes make the encoding unambiguous: two different field tuples can never produce the same signed bytes. The Stage~2 timings in Section~\ref{sec:res-pqc} were recorded with an earlier revision that signed the plaintext $p$; the two revisions differ only in the input to ML-DSA-65, which hashes its message before signing, so the envelope adds about 1.1~KB of hashing input per message. We expect this to change signing time by microseconds but have not re-measured it.
+\textit{Signed Encoding:} $\textsc{Encode}$ outputs a fixed domain tag followed by the five fields $id$ (UTF-8), $seq$ (unsigned 64-bit, big-endian), $c_\mathrm{kem}$, $\eta$, and $c_\mathrm{aes}$, each prefixed by its 4-byte big-endian length. Length prefixes make the encoding unambiguous: two different field tuples can never produce the same signed bytes. The Stage~2 timings in Section~\ref{sec:res-pqc} were recorded with this encoding.
 
 \textit{Security Properties:} By construction, a fresh encapsulation per message gives each message an independent key, so compromise of one message key does not expose others, and the IND-CCA2 security of ML-KEM-768 protects the uplink against A2 at NIST Level~3. ML-DSA-65 (EUF-CMA) over the encoded envelope gives integrity and gateway origin authentication against A3, and binding the signature to $(id, seq)$ allows a cloud receiver that tracks the last accepted $seq$ per device to reject replays. Signing the ciphertext rather than the plaintext also prevents an observer from confirming guesses of low-entropy sensor readings against a public signature. Cloud-side signature verification, decryption, and replay rejection are expected protocol properties, not experimentally demonstrated results (Section~\ref{sec:keys}). The device-to-gateway link keeps whatever scheme the device already uses (AES-256 under Grover retains 128-bit security), which meets G4 but does not add forward secrecy on that segment.
 
@@ -202,43 +202,53 @@ For every message received on a device topic, Stage~2 executes Algorithm~\ref{al
 
 \textit{Cloud Receiver:} The cloud receiver is an assumed deployment component; it is not implemented or evaluated. Stage~2 constructs the protected envelope at the gateway, and we measure gateway-side encapsulation, encryption, and signing; in the prototype the envelope is not transmitted, so delivery, decapsulation, decryption, signature verification, and replay rejection at a cloud receiver are not evaluated. As a stand-in for the cloud public key, Stage~2 encapsulates to the ML-KEM-768 key pair derived from the master secret and signs with an ML-DSA-65 key derived for a fixed relay identity. In a deployment, the cloud receiver would generate and hold its own ML-KEM private key, and the gateway would use an authenticated copy of the corresponding public key together with its own signing key.
 
-\textit{Trust Assumptions:} The experiments assume a single trusted administrative domain. In the live sessions, clients, broker, gateway, and attack generators run on one Raspberry Pi~4B over loopback, and all nodes are controlled by the researchers. The master secret is assumed to be unavailable to attackers; the attack generators do not use it or any derived key. The secret is not rotated during the reported experiments. These are experimental assumptions, not security guarantees.
+\textit{Trust Assumptions:} The experiments assume a single trusted administrative domain. In the live sessions, the broker, both stages, and the gateway's own subscriber run on one Raspberry Pi, the benign clients and attack generators run on a second Raspberry Pi on the same Wi-Fi network, and all nodes are controlled by the researchers. The master secret is assumed to be unavailable to attackers; the attack generators do not use it or any derived key. The secret is not rotated during the reported experiments. These are experimental assumptions, not security guarantees.
 
 \textit{Limits of a Shared Secret:} A shared master secret is a single point of failure: whoever obtains it can derive every key derived from it, including device keys, the gateway's KEM private key, and the stand-in cloud key. Deterministic shared-seed key generation is a controlled-testbed convenience, not a recommended production provisioning method. A production deployment requires independently provisioned device keys, private keys protected in hardware (e.g., a secure element or TPM), separate cloud key management in which the gateway never holds the cloud private key, and key rotation and revocation. The reported encapsulation, decapsulation, signing, and verification times measure operations on keys already in memory and do not depend on how those keys were generated. Production key management (enrolment, certificate validation, hardware key access, rotation, and revocation) would add overhead that we do not measure.
 
 \subsection{Implementation}
 
-Both stages run on a Raspberry Pi~4B (BCM2711, four Cortex-A72 cores at 1.8~GHz, 4~GB LPDDR4) under Python~3.11. Stage~1 uses \texttt{NetfilterQueue}, \texttt{dpkt}, and LightGBM; Stage~2 uses \texttt{liboqs-python}~\cite{oqs2023}, the \texttt{cryptography} package for AES-GCM, and Paho-MQTT with Mosquitto. Timestamps come from \texttt{time.perf\_counter\_ns()}, and records are written by a background thread to avoid perturbing measurements.
+Both stages run on a Raspberry Pi~4B (BCM2711, four Cortex-A72 cores at 1.8~GHz, 4~GB LPDDR4) under Python~3.11; in the live sessions, benign clients and attack generators run on a second Raspberry Pi \TODO{confirm the model of both live-testbed Pis}, and both Pis join the same Wi-Fi access point (a mobile hotspot). Stage~1 uses \texttt{NetfilterQueue}, \texttt{dpkt}, and LightGBM; Stage~2 uses \texttt{liboqs-python}~\cite{oqs2023}, the \texttt{cryptography} package for AES-GCM, and Paho-MQTT with Mosquitto. Timestamps come from \texttt{time.perf\_counter\_ns()}, and records are written by a background thread to avoid perturbing measurements.
 
 % ═════════════════════════════════════════════════════════════════════════════
 \section{Evaluation Methodology}
 \label{sec:method}
 
-\subsection{Offline Model Evaluation}
+\subsection{Model Training and Calibration}
+\label{sec:training}
 
-The LightGBM model was trained on 1,129,927 CICIoMT2024 flows and tested on 484,255 held-out flows with the same 45 features (multiclass objective, learning rate 0.05, 31 leaves; training time 17.6~s). We report per-class precision, recall, F1, accuracy, and macro-F1.
+\textit{Training:} The LightGBM model is trained on the CICIoMT2024 Wi-Fi/MQTT flows with the 32 features of Section~\ref{sec:stage1}. A stratified 70/30 split gives 1,129,927 training and 484,255 test flows (multiclass objective, learning rate 0.05, 31 leaves, early stopping on 10\% of the training split; training time 14.0~s). We report per-class precision, recall, F1, accuracy, and macro-F1 on the test split.
+
+\textit{Pilot and Calibration:} A pilot benign-only session (C1, 10.6~min) on the live testbed, run with an earlier model that used all 45 dataset features, showed severe dataset shift. That model labelled 96.4\% of the verdicts on benign client connections (242 of 251) and all 125 verdicts on the gateway's own subscriber as attacks. We therefore restricted the model to the reproducible features and added the 375 classified benign flow segments of C1, each replicated 20 times (7,500 rows), to the training split only; the test split is unchanged. C1 is not used in any reported live result. Because C1 used the same benign generators as the evaluation, the live false-positive rates describe a deployment that is calibrated on its own benign traffic, not an uncalibrated model.
 
 \subsection{Live Workloads}
 
-\textit{Benign Clients:} Three generators model legitimate devices: a \emph{steady} sensor with a fixed publish interval, a \emph{burst} device that sends 5--20 messages at 10~msg/s and then idles for 3--15~s, and a \emph{mixed} device combining both. Each embeds a device identifier and a monotonic sequence number in every message.
+\textit{Benign Clients:} Four generators model legitimate devices: a \emph{steady} sensor publishing every 2~s; a \emph{mixed} device with random 1--3~s intervals and occasional idle periods; a \emph{burst} device that sends 3--8 messages at 5~msg/s and then idles for 5--15~s; and a monitoring \emph{subscriber} to all device topics (QoS~1). Each publisher embeds a device identifier and a monotonic sequence number in every message and logs every publish with its result code. Stage~2's own subscriber runs on the gateway host and is treated as infrastructure.
 
-\textit{Attack Clients:} Generators reproduce the CICIoMT2024 MQTT and TCP/IP attack families: MQTT connect flood, MQTT publish flood, TCP SYN flood, UDP flood, ICMP flood, port scan, malformed MQTT packets, slow-connection (Slowloris-style) exhaustion, and replay. An orchestrator runs each attack for a fixed window, optionally with benign clients running throughout.
+\textit{Attack Clients:} Ten generators reproduce CICIoMT2024 MQTT and TCP/IP attack families against the broker port, each at a low rate of one message, connection, or packet per second per thread: MQTT publish flood, malformed MQTT packets, slow-connection (Slowloris-style) exhaustion holding 5 connections, MQTT connect flood (serial and with 5 parallel threads), port scan (ports 1870--1900), vulnerability scan, UDP flood (1 and 5 threads), and TCP SYN flood. ICMP floods are not evaluated because the NFQUEUE rule matches only broker-port traffic, and replay is excluded.
 
-\subsection{Live Sessions and Metrics}
+\subsection{Live Testbed, Runs, and Metrics}
 \label{sec:protocol}
 
-All live components (clients, attack generators, firewall, broker, and gateway) ran on the same Raspberry Pi and exchanged traffic over the loopback interface, so the measurements reflect gateway processing cost without network variance. We analyse two sessions.
-\begin{itemize}
-  \item \textit{Attack-Only Session (11~min):} Ten attack types were injected with no benign clients. It measures Stage~1 latency and prediction behaviour.
-  \item \textit{Combined Session (20~min):} Three benign publishers (steady, mixed, burst), each restarted once during the session (six device identifiers in total), a monitoring subscriber, and the attack generators ran together, with both stages active and prevention enabled.
-\end{itemize}
-For both sessions we report Stage~1 verdicts, model confidence, and timing. Stage~2 per-message cost is reported for the combined session, for those messages that reached the gateway subscriber. Simultaneous operation of the two stages is measured; reliable end-to-end delivery, cloud reception, and full attack suppression are not.
+\textit{Testbed:} The gateway Pi runs Stage~1, the Mosquitto broker, and Stage~2; a second Pi runs all benign clients and attack generators, so live traffic crosses a Wi-Fi link. A control agent on the gateway starts every session from a clean state (broker restarted, block rules cleared) with identical Stage~1 settings (Section~\ref{sec:stage1}, threshold $\tau = 0.5$), and a runner on the client Pi then starts the workload.
 
-\textit{Attribution Without Labels:} The generators did not record their flows, so no session carries per-flow ground truth, and model predictions are not treated as labels. For the combined session we attribute connections from the packet log instead. Because all processes share one host clock, each message received by Stage~2 is matched to the client-to-broker packet that carried it, identifying benign publisher connections; subscriber connections are identified by traffic direction, as they receive far more data from the broker than they send. Connections matching neither rule remain unattributed.
+\textit{Runs:} Five run types are each repeated three times (15 sessions), and we report the mean $\pm$ standard deviation over repetitions.
+\begin{itemize}
+  \item \textit{R1:} Benign clients only for 10~min, IDS mode.
+  \item \textit{R2:} The ten attacks in sequence, each for 60~s with 20~s gaps, without benign clients, IDS mode.
+  \item \textit{R3:} The R2 attack sequence with benign clients running throughout, IDS mode.
+  \item \textit{R4:} As R3 in IPS mode, with the loopback address allow-listed so that the gateway's own subscriber cannot be blocked.
+  \item \textit{R5:} As R4 without the allow-list.
+\end{itemize}
+R2--R5 sessions last 14.2~min each.
+
+\textit{Ground Truth:} The client Pi logs the local port of every benign connection, the start and end of every attack window, and every benign publish; the clock offset between the Pis is measured at session start (at most 38~ms). Each flow seen by Stage~1 is labelled from these logs: flows from the loopback or gateway address are \emph{infrastructure}; flows from the client Pi on a logged benign port are \emph{benign}, attributed to their client; and other client-Pi flows are attributed to the attack whose window, extended by the flow timeout plus 5~s, contains the first packet. The remaining client-Pi flows (about 48 per IPS session, single packets just outside the connect-flood window, never classified) are left unlabelled.
+
+\textit{Metrics:} Because a long-lived connection receives one verdict per 20 packets, detection is reported per verdict: the \emph{flag rate} of a source is the share of its verdicts that are attacks, and precision, recall, and F1 are computed over attack and benign-client verdicts, with infrastructure reported separately. For IPS runs, the \emph{benign delivery ratio} is the share of successful benign publishes whose (device, sequence number) reached Stage~2; \emph{attack packets before verdict} is the number of packets of a blocked attack connection admitted before its first attack verdict; \emph{attack packets dropped} sums the \texttt{iptables} block-rule counters and in-callback drops; and blocked benign and infrastructure connections are counted from block events.
 
 \subsection{PQC Measurements}
 
-\textit{Stage~2 on Live Traffic:} We time KEM encapsulation, AES-GCM encryption, signing, their sum, and the full handler (MQTT callback to completion) for every message received by the gateway subscriber. These timers are gateway-side processing costs; they are not added to Stage~1 classification time to form an end-to-end latency, and they do not include broker transit or cloud delivery. The live benign clients publish unencrypted JSON, so $\textsc{DeviceDecrypt}$ is the identity and these messages carry no device-side PQC; Stage~2 alone applies post-quantum protection, at the gateway. The constructed envelope is logged and not forwarded.
+\textit{Stage~2 on Live Traffic:} We time KEM encapsulation, AES-GCM encryption, signing, their sum, and the full handler (MQTT callback to completion) for every message received by the gateway subscriber in R1 and R3--R5. These timers are gateway-side processing costs; they are not added to Stage~1 classification time to form an end-to-end latency, and they do not include broker transit or cloud delivery. The live benign clients publish unencrypted JSON, so $\textsc{DeviceDecrypt}$ is the identity and these messages carry no device-side PQC; Stage~2 alone applies post-quantum protection, at the gateway. The constructed envelope is logged and not forwarded.
 
 \textit{Scheme Comparison:} This separate benchmark evaluates device-to-gateway PQC: clients encrypt padded payloads of 5,120, 10,240, and 102,400 bytes under ten configurations (Table~\ref{tab:matrix}), 600 messages per configuration and size (18,000 messages, all accepted), and the gateway times decapsulation, decryption, and verification. Security level $L$ is the minimum NIST level of the KEM and signature. The configurations were measured sequentially in one session each, without interleaving or repeated sessions. PQC operations use liboqs; P-256 ECDH and ECDSA use OpenSSL through Python's \texttt{cryptography} package. AES-256-GCM and ChaCha20-Poly1305 are symmetric-only reference configurations: they perform no public-key establishment or signature verification and are not security-equivalent alternatives to the asymmetric configurations.
 
@@ -251,7 +261,7 @@ For both sessions we report Stage~1 verdicts, model confidence, and timing. Stag
 \subsection{Offline Classifier Performance}
 \label{sec:res-offline}
 
-On the held-out set the model reaches 97.85\% accuracy, 0.900 macro-F1, and 0.979 weighted F1 (Fig.~\ref{fig:offline}). Benign traffic is recognized with 0.979 precision and 0.979 recall, so about 2.1\% of benign test flows are assigned to an attack class. Volumetric TCP/IP attacks (SYN, TCP, UDP, ICMP DoS) and MQTT connect/publish floods reach F1 between 0.94 and 1.00. Performance drops for low-volume reconnaissance and protocol-abuse classes: ARP spoofing (0.834), OS scan (0.813), malformed MQTT (0.769), vulnerability scan (0.648), and ping sweep (0.127, only 56 test flows). These classes differ from benign traffic in a few packets rather than in rate, which flow statistics capture poorly.
+On the held-out set the model reaches 71.5\% accuracy, 0.709 macro-F1, and 0.706 weighted F1 (Fig.~\ref{fig:offline}). Restricting the model to live-reproducible features costs offline accuracy: the earlier 45-feature model reached 97.85\% accuracy and 0.900 macro-F1 on a held-out set of the same size but failed on live traffic (Section~\ref{sec:training}). Benign traffic is still recognized with 0.955 precision and 0.972 recall, so 2.8\% of benign test flows are assigned to an attack class. SYN floods (F1 0.96--0.98), MQTT connect floods (0.88--0.99), port scans (0.947), and TCP DDoS (0.903) remain well separated, and publish floods reach 0.83--0.85 and malformed MQTT 0.719. The loss concentrates in classes that the excluded windowing and timing columns used to separate: UDP floods (0.30--0.64), ICMP floods (0.55--0.68), TCP DoS (0.705), and low-volume reconnaissance such as OS scan (0.656), vulnerability scan (0.306), and ping sweep (0.216, only 56 test flows).
 
 \begin{figure}[!t]
 \centering
@@ -260,7 +270,7 @@ On the held-out set the model reaches 97.85\% accuracy, 0.900 macro-F1, and 0.97
 \label{fig:offline}
 \end{figure}
 
-Variance, rate, and total size together account for 56.7\% of split gain, followed by protocol type (9.4\%) and duration (6.6\%) (Fig.~\ref{fig:fi}). The model therefore relies mainly on volume and timing, which explains both its strength on floods and its weakness on low-rate probes.
+The standard deviation and minimum of the frame lengths account for 37.5\% of split gain, the five non-zero flag shares for 29.2\%, and packet rate for 8.2\% (Fig.~\ref{fig:fi}). Without the windowing and timing columns, the model separates traffic mainly by packet-size profile and TCP flag mix, which suits connection-oriented attacks and scans but not floods whose packets resemble benign telemetry.
 
 \begin{figure}[!t]
 \centering
@@ -269,47 +279,125 @@ Variance, rate, and total size together account for 56.7\% of split gain, follow
 \label{fig:fi}
 \end{figure}
 
-\subsection{Stage 1 Live Performance}
-\label{sec:res-ids}
+\subsection{Labelled Live Detection}
+\label{sec:res-labelled}
 
-\textit{Latency:} Table~\ref{tab:ids-latency} reports Stage~1 timing on the Pi over the 893 flows classified in the attack-only session (4,531 intercepted packets). LightGBM inference takes 0.435~ms on average, feature extraction plus inference plus decision 0.944~ms, and arrival of the triggering packet to verdict 1.201~ms for flows classified inline. Connect-flood flows, which are short and regular, are the fastest (0.871~ms); the other classes take 0.96--1.96~ms (e.g., OS scan 1.439~ms). These values are classification processing latency, not the time to detect and suppress an attack: before the trigger, flows spent 5.55~s on average (0.0004--95.9~s) collecting packets, all of which were admitted, and the time to the first enforced drop was not logged (Section~\ref{sec:stage1}). The processing cost is far below MQTT session setup times, so classification does not limit connection throughput at these rates.
+Table~\ref{tab:live-detect} reports per-source flag rates in IDS mode, with each source alone (R1 for benign traffic, R2 for attacks) and all sources together (R3).
+
+\textit{Benign Only (R1):} 1.7$\pm$0.4\% of benign-client verdicts and 0.6$\pm$0.5\% of gateway-subscriber verdicts were attacks, close to the offline benign error. Per connection the picture differs: every benign connection lasted the whole session and received 34--121 verdicts, so the mixed client and the monitoring subscriber drew at least one attack verdict in all three runs, the burst client and the gateway subscriber in two, and the steady client in none. Under per-verdict blocking, each of these connections would be cut off (Section~\ref{sec:res-e2e}).
+
+\textit{Attacks Alone (R2):} Precision was 1.000, recall 0.964$\pm$0.001, and F1 0.982. Every verdict on SYN-flood, connect-flood (serial and parallel), slow-connection, port-scan, and vulnerability-scan connections was an attack, as were 94.5\% of malformed-packet verdicts. Neither UDP flood was ever flagged, and the publish flood was flagged in only 1 of its 7 verdicts: at one message per second these flows resemble benign telemetry in the reproducible features, and the UDP classes are also the weakest offline (Fig.~\ref{fig:offline}). Recall is dominated by the connect floods, which produce most verdicts. The gateway subscriber was flagged in 60.4\% of its verdicts, as nearly all traffic it received in R2 consisted of forwarded attack messages.
+
+\textit{Combined (R3):} Precision fell to 0.867$\pm$0.006, with recall 0.963$\pm$0.002 and F1 0.913$\pm$0.004; attack flag rates matched R2. The precision loss comes almost entirely from the monitoring subscriber: it subscribes to all device topics, the broker forwards it the publish-flood and malformed payloads, and 43.2\% of its verdicts were attacks, whereas the three publishers stayed at 0--3.9\%. The flow of a subscriber thus inherits the character of the traffic published to its topics, and flow features alone cannot separate it from the attacker that feeds it.
 
 \begin{table}[!t]
 \centering
-\caption{Stage~1 Live Timing on Raspberry Pi~4B by Predicted Class (Mean, ms). Inspect = Arrival of the Triggering Packet to Verdict, Inline-Triggered Flows Only; Excludes Packet Collection Time}
-\label{tab:ids-latency}
+\caption{Live Detection by Traffic Source in IDS Mode. Flag Rate = Share of Verdicts Labelled Attack (\%, Mean $\pm$ SD Over Three Runs); Alone = R1 (Benign) or R2 (Attacks); Conn.\ and Verdicts From R3}
+\label{tab:live-detect}
 \footnotesize
 \setlength{\tabcolsep}{3pt}
 \resizebox{\columnwidth}{!}{%
 \begin{tabular}{lrrrr}
 \toprule
-\textbf{Predicted class} & \textbf{Flows} & \textbf{Infer.} & \textbf{Classify} & \textbf{Inspect} \\
+ & & & \multicolumn{2}{c}{\textbf{Flag rate (\%)}} \\
+\cmidrule(lr){4-5}
+\textbf{Source} & \textbf{Conn.} & \textbf{Verdicts} & \textbf{Alone} & \textbf{Combined} \\
 \midrule
-MQTT-DoS-Connect\_Flood  & 796 & 0.396 & 0.871 & 1.151 \\
-Recon-OS\_Scan           & 28  & 0.762 & 1.439 & 1.571 \\
-MQTT-DDoS-Connect\_Flood & 16  & 0.968 & 1.958 & 2.521 \\
-MQTT-DDoS-Publish\_Flood & 13  & 0.699 & 1.467 & 1.850 \\
-TCP\_IP-DDoS-SYN         & 13  & 0.689 & 1.491 & 1.713 \\
-TCP\_IP-DDoS-UDP1        & 12  & 0.461 & 1.161 & 1.164 \\
-MQTT-DoS-Publish\_Flood  & 8   & 0.474 & 1.189 & 1.379 \\
-TCP\_IP-DDoS-TCP         & 4   & 0.438 & 0.963 & 1.286 \\
-Other (ARP, port scan)   & 3   & --    & --    & --    \\
+Steady publisher        & 1     & 45.0  & 0.0$\pm$0.0   & 0.7$\pm$1.3 \\
+Mixed publisher         & 1     & 59.7  & 4.4$\pm$2.2   & 3.9$\pm$2.5 \\
+Burst publisher         & 1     & 55.7  & 1.6$\pm$1.4   & 0.0$\pm$0.0 \\
+Monitoring subscriber   & 1     & 348.3 & 1.1$\pm$0.5   & 43.2$\pm$2.7 \\
+Gateway subscriber (infra.) & 1 & 178.0 & 0.6$\pm$0.5   & 1.5$\pm$0.8 \\
 \midrule
-\textbf{All}             & \textbf{893} & \textbf{0.435} & \textbf{0.944} & \textbf{1.201} \\
+MQTT publish flood      & 1     & 7.0   & 14.3$\pm$0.0  & 14.3$\pm$0.0 \\
+Malformed MQTT          & 1     & 241.0 & 94.5$\pm$0.4  & 94.0$\pm$1.0 \\
+Slow connection (5 conn.) & 5   & 5.0   & 100$\pm$0     & 100$\pm$0 \\
+MQTT connect flood      & 59.0  & 117.0 & 100$\pm$0     & 100$\pm$0 \\
+MQTT connect flood (5 thr.) & 288.7 & 586.3 & 100$\pm$0 & 100$\pm$0 \\
+Port scan               & 1     & 1.3   & 100$\pm$0     & 100$\pm$0 \\
+Vulnerability scan      & 2     & 2.0   & 100$\pm$0     & 100$\pm$0 \\
+UDP flood               & 1     & 3.0   & 0$\pm$0       & 0$\pm$0 \\
+UDP flood (5 thr.)      & 5     & 15.0  & 0$\pm$0       & 0$\pm$0 \\
+TCP SYN flood           & 59.7  & 60.0  & 100$\pm$0     & 100$\pm$0 \\
+\midrule
+\multicolumn{5}{l}{Benign-client flag rate, R1: 1.7$\pm$0.4\%} \\
+\multicolumn{5}{l}{Precision / recall / F1, R2: 1.000 / 0.964$\pm$0.001 / 0.982$\pm$0.000} \\
+\multicolumn{5}{l}{Precision / recall / F1, R3: 0.867$\pm$0.006 / 0.963$\pm$0.002 / 0.913$\pm$0.004} \\
 \bottomrule
 \end{tabular}}
 \end{table}
 
-\textit{Prediction Behaviour:} All 893 classified flows of the attack-only session were predicted as attacks. Mean attack confidence was 0.997 (minimum 0.620), and 880 flows (98.5\%) exceeded 0.90. Flows had 3--10 packets (mean 4.6), so most verdicts were issued within the first few packets of a connection. Because flows were not tagged by generator, this share is a prediction rate, not a verified detection rate, and the predicted-class mix (89.1\% connect floods) is not a per-class accuracy; a labelled evaluation follows in Section~\ref{sec:res-labelled}.
+\subsection{Stage 1 Live Latency}
+\label{sec:res-ids}
+
+Table~\ref{tab:ids-latency} reports Stage~1 timing over the 19,109 verdicts of all 15 sessions. Median LightGBM inference takes 1.11~ms, feature extraction plus inference plus decision 2.41~ms (P95 4.44~ms), and arrival of the triggering packet to verdict 2.79~ms (P95 5.31~ms). R1 verdicts are slower (median classification 3.72~ms) because benign verdicts are issued at 20 packets, whereas most attack verdicts fall at 3--7 packets on FIN or RST. These values are processing costs, not detection delay: before its trigger a flow collects packets for a median 0.24~s (P95 16.0~s), and all of them are admitted. They are also about three times the mean classification time (0.94~ms) that we measured in an earlier single-host session with the 45-feature model; the live runs did not record CPU frequency or throttling state, so we report them as measured.
+
+\begin{table}[!t]
+\centering
+\caption{Stage~1 Live Timing per Verdict (Median, ms, Except Collect in s). Inspect = Arrival of the Triggering Packet to Verdict; Collect = First Packet of the Flow to Verdict}
+\label{tab:ids-latency}
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{lrrrrrr}
+\toprule
+\textbf{Run} & \textbf{Verdicts} & \textbf{Infer.} & \textbf{Classify} & \textbf{Inspect} & \textbf{Inspect P95} & \textbf{Collect} \\
+\midrule
+R1 & 1,086 & 1.483 & 3.716 & 4.443 & 5.834 & 6.069 \\
+R2 & 3,181 & 1.041 & 2.263 & 2.561 & 4.900 & 0.026 \\
+R3 & 5,173 & 1.079 & 2.365 & 2.693 & 5.263 & 0.035 \\
+R4 & 4,754 & 1.123 & 2.436 & 2.878 & 5.341 & 0.692 \\
+R5 & 4,915 & 1.153 & 2.505 & 2.945 & 5.394 & 1.263 \\
+\midrule
+\textbf{All} & \textbf{19,109} & \textbf{1.107} & \textbf{2.408} & \textbf{2.791} & \textbf{5.310} & \textbf{0.236} \\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+\subsection{Inline Blocking}
+\label{sec:res-e2e}
+
+Table~\ref{tab:ips-effect} compares the two IPS runs. Without blocking, every successful benign publish reached Stage~2 in all R1 and R3 runs, so any loss in R4 and R5 is caused by blocking.
+
+\textit{Attack Suppression:} In both IPS runs every labelled attack connection received at least one verdict. Blocked attack connections were admitted 7.3 packets on average before their verdict, after which the block rules dropped about 3,900 attack packets per session. Flag rates of the connect floods (about 80\%) and slow connections (about 42\%) are lower than in R3 because blocked clients retry, and their retransmissions and reconnections form additional short segments, some classified as benign. The UDP floods remained unflagged and unblocked.
+
+\textit{Collateral Blocking:} With the allow-list (R4), the gateway subscriber drew an attack verdict 11--13 times per session, and the allow-list prevented every one of these blocks. Benign clients had no exemption: 13.0$\pm$2.6 benign connections were blocked per session, each after a single attack verdict. Their clients reconnected on new ports (14.3 benign connections per session, against 4 in R3), but messages published while a connection was blocked were lost, and 88.6$\pm$5.3\% of benign messages reached Stage~2 (82.6, 91.9, and 91.5\% in the three runs). Without the allow-list (R5), the outcome depended on whether the gateway subscriber drew an attack verdict. In the first repetition it did not, and delivery was 100\%. In the other two, its connection was blocked 5 and 6 times at intervals of about 2~min, each time after it had reconnected, and delivery fell to 43.8\% and 33.8\%. A gateway that hosts its own MQTT clients behind an IPS must therefore exempt them, and per-verdict blocking of long-lived benign connections needs a further safeguard, such as requiring repeated attack verdicts or expiring blocks, which we have not evaluated.
+
+\begin{table}[!t]
+\centering
+\caption{Effect of Inline Blocking (IPS Mode, Mean $\pm$ SD Over Three Runs per Session)}
+\label{tab:ips-effect}
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{lrr}
+\toprule
+\textbf{Metric} & \textbf{R4: allow-list} & \textbf{R5: no allow-list} \\
+\midrule
+Benign publishes (successful)          & 1,205.7$\pm$5.9   & 1,205.0$\pm$15.4 \\
+Benign messages received by Stage~2    & 1,069.0$\pm$68.4  & 712.0$\pm$427.0 \\
+Benign delivery ratio                  & 0.886$\pm$0.053   & 0.592$\pm$0.357 \\
+\midrule
+Attack connections                     & 411.3$\pm$6.7     & 416.7$\pm$12.5 \\
+Attack connections never classified    & 0                 & 0 \\
+Attack packets before verdict (mean)   & 7.33$\pm$0.30     & 7.34$\pm$0.21 \\
+Attack packets dropped                 & 3,852$\pm$68      & 3,894$\pm$122 \\
+\midrule
+Benign connections blocked             & 13.0$\pm$2.6      & 8.3$\pm$5.5 \\
+Infrastructure blocks prevented        & 11.7$\pm$1.2      & -- \\
+Infrastructure connections blocked     & 0                 & 3.7$\pm$3.2 \\
+\bottomrule
+\end{tabular}}
+\end{table}
 
 \subsection{Stage 2 Re-Encryption Cost}
 \label{sec:res-pqc}
 
-Table~\ref{tab:stage2} and Fig.~\ref{fig:stage2} report Stage~2 cost for the 144 messages received by the gateway subscriber (188--213~B JSON payloads) in the combined session. The median re-encryption takes 0.156~ms: ML-DSA-65 signing dominates (0.094~ms), followed by ML-KEM-768 encapsulation (0.044~ms) and AES-GCM (0.009~ms). The mean of AES-GCM exceeds its P95 because two messages were delayed by scheduler preemption (maximum 1.609~ms). The full handler, including MQTT dispatch and JSON processing, has a median of 0.383~ms and P99 of 2.709~ms. Against a publish interval of seconds, this gateway-side cryptographic cost meets G5 by three orders of magnitude; G5 is not a measured end-to-end latency.
+Table~\ref{tab:stage2} and Fig.~\ref{fig:stage2} report Stage~2 cost for the 11,661 messages received by the gateway subscriber in R1 and R3--R5 (188--214~B JSON payloads). The median re-encryption takes 1.905~ms: ML-DSA-65 signing dominates (1.312~ms), followed by ML-KEM-768 encapsulation (0.461~ms) and AES-GCM (0.105~ms). The full handler, including key derivation, MQTT dispatch, and JSON processing, has a median of 4.07~ms and a P99 of 9.05~ms. These values are about 12 times the median re-encryption time (0.156~ms) of an earlier single-host session in which clients, broker, and gateway shared one Pi; as for Stage~1, CPU frequency and thermal state were not recorded during the live runs. Even so, against publish intervals of seconds, the gateway-side cryptographic cost meets G5 by more than two orders of magnitude; G5 is not a measured end-to-end latency.
 
 \begin{table}[!t]
 \centering
-\caption{Stage~2 Per-Message Gateway-Side Cost on Live Traffic (ms, $N = 144$ Messages Received by Stage~2, Real liboqs)}
+\caption{Stage~2 Per-Message Gateway-Side Cost on Live Traffic (ms, $N = 11{,}661$ Messages Received by Stage~2 in R1 and R3--R5, Real liboqs)}
 \label{tab:stage2}
 \footnotesize
 \setlength{\tabcolsep}{3pt}
@@ -318,12 +406,12 @@ Table~\ref{tab:stage2} and Fig.~\ref{fig:stage2} report Stage~2 cost for the 144
 \toprule
 \textbf{Operation} & \textbf{Median} & \textbf{Mean} & \textbf{P95} & \textbf{P99} & \textbf{Max} \\
 \midrule
-ML-KEM-768 encap.     & 0.044 & 0.047 & 0.065 & 0.103 & 0.215 \\
-AES-256-GCM encrypt   & 0.009 & 0.030 & 0.024 & 0.398 & 1.609 \\
-ML-DSA-65 sign        & 0.094 & 0.113 & 0.221 & 0.263 & 0.286 \\
+ML-KEM-768 encap.     & 0.461 & 0.453 & 0.745 & 1.072 & 7.682 \\
+AES-256-GCM encrypt   & 0.105 & 0.106 & 0.162 & 0.244 & 7.231 \\
+ML-DSA-65 sign        & 1.312 & 1.545 & 3.491 & 5.132 & 11.205 \\
 \midrule
-Re-encryption total   & 0.156 & 0.189 & 0.297 & 0.730 & 1.979 \\
-Full gateway handler  & 0.383 & 0.488 & 0.613 & 2.709 & 11.477 \\
+Re-encryption total   & 1.905 & 2.104 & 4.269 & 6.013 & 14.301 \\
+Full gateway handler  & 4.073 & 4.059 & 7.014 & 9.051 & 39.801 \\
 \bottomrule
 \end{tabular}}
 \end{table}
@@ -381,86 +469,13 @@ BIKE-L1 + ML-DSA-44        & 1  & 36.126 & 0.248 & 36.550 & 54.794 & 81.711  & 1
 
 \textit{Key Regeneration:} The PQC benchmark handler is stateless: it rederives the gateway KEM key pair and the device verification key for each message. The resulting non-cryptographic handler time, which includes key regeneration together with decoding, JSON handling, and logging, is 1.3--1.6~ms for ML-KEM/ML-DSA, 22~ms for Falcon-512, 19~ms for FrodoKEM, 45~ms for BIKE, and 155--174~ms for SLH-DSA, about 90$\times$ the cryptographic work. These figures are not pure key-generation latency: about 0.35~ms of non-cryptographic time is also observed in the AES-only, ChaCha20, and cached ECDH+ECDSA configurations. Practical gateways should cache keys per device and algorithm. Caching is expected to remove most of this overhead and to make Falcon and SLH-DSA viable, but a key-cached PQC handler was not measured.
 
-\subsection{Both Stages Combined}
-\label{sec:res-e2e}
-
-In the combined session, Stage~1 intercepted 4,253 packets and issued 37 flow verdicts: 36 attack (16 MQTT-DDoS-Publish\_Flood, 9 MQTT-DoS-Publish\_Flood, 6 TCP\_IP-DDoS-UDP1, 3 TCP\_IP-DoS-TCP, 2 MQTT-DDoS-Connect\_Flood) and 1 benign. Mean inference time was 0.906~ms and mean classification time 2.075~ms, about twice the attack-only value, because flows were longer (up to 50 packets) and both stages shared the Pi. Stage~2 re-encrypted 144 benign messages that reached its MQTT callback, with the costs in Table~\ref{tab:stage2}. Those 144 records are gateway-side constructions of the protected envelope; they are not cloud deliveries, and they are not all of the benign messages that Stage~1 admitted to the broker. Benign clients did not log every sequence number they sent, so a delivery ratio cannot be computed from the existing files.
-
-\textit{Blocked Connections:} Table~\ref{tab:blocked} attributes the 36 blocked connections using the method of Section~\ref{sec:protocol}. At least 11 were benign publishers and 9 were subscriber connections, including the gateway's own; the single benign verdict was a subscriber connection that was reclassified as an attack 15~s later. All six UDP flows to the broker port were attack traffic, as no benign client uses UDP. Because packets are accepted before classification, each blocked TCP connection delivered 13--33 client-to-broker packets before its verdict. A further 216 TCP connections, mostly of 10--14 packets, stayed below the 20-packet minimum and were never classified, so they reached the broker unfiltered.
-
-\begin{table}[!t]
-\centering
-\caption{Blocked Connections in the Combined Session by Inferred Role}
-\label{tab:blocked}
-\footnotesize
-\setlength{\tabcolsep}{3pt}
-\resizebox{\columnwidth}{!}{%
-\begin{tabular}{lrl}
-\toprule
-\textbf{Inferred role} & \textbf{Blocked} & \textbf{Attribution basis} \\
-\midrule
-Benign publisher            & 11 & Carried a message received by Stage~2 \\
-Subscriber (gateway, monitor) & 9  & Broker-to-client data dominates \\
-Publisher, unattributed     & 7  & No message reached Stage~2 \\
-Short TCP flows (21 pkts)   & 3  & Origin unknown \\
-UDP to broker port          & 6  & No benign client uses UDP \\
-\midrule
-\textbf{Total}              & \textbf{36} & \\
-\bottomrule
-\end{tabular}}
-\end{table}
-
-\textit{Effect on Stage~2:} Gateway receipts of benign messages paused from 0.3 to 4.1~min and from 4.3 to 6.1~min after the session start, and stopped at 6.3~min, two seconds after the fourth subscriber-like connection was blocked, although the session ran for 20~min. Each pause begins at a subscriber block in the packet log, which is consistent with Stage~1 cutting off the gateway's MQTT input, but the association is temporal rather than labelled: the logs do not record whether a blocked tuple belonged to the gateway process, nor whether unpublished benign messages were dropped, delayed, or never sent. Simultaneous operation of the two stages is therefore demonstrated only while the gateway subscriber remains connected. The Stage~1 classifier treats long-lived infrastructure clients like any other flow: a gateway that hosts its own MQTT clients behind the IPS must exempt them from blocking.
-
-\subsection{Labelled Live Detection}
-\label{sec:res-labelled}
-
-\TODO{Fill from the labelled re-run: each process bound to its own loopback address (gateway, monitor, benign publishers, attackers), ground-truth sidecar logs, benign send logs, drop counters, identical classification settings in all runs, three repetitions. Runs: R1 benign only (IDS mode); R2 each attack alone (IDS); R3 benign + attacks (IDS); R4 benign + attacks (IPS, infrastructure allow-listed); R5 same without allow-list.}
-
-\begin{table}[!t]
-\centering
-\caption{Live Detection by Traffic Source in IDS Mode (Mean $\pm$ SD Over Three Runs)}
-\label{tab:live-detect}
-\footnotesize
-\setlength{\tabcolsep}{3pt}
-\begin{tabular}{lrrr}
-\toprule
-\textbf{Source} & \textbf{Flows} & \textbf{Flagged} & \textbf{TPR / FPR} \\
-\midrule
-\TODO{one row per attack family} & -- & -- & -- \\
-Benign publishers & -- & -- & -- \\
-\midrule
-\multicolumn{4}{l}{Precision, recall, F1: \TODO{}} \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\begin{table}[!t]
-\centering
-\caption{Effect of Inline Blocking (IPS Mode, Mean $\pm$ SD Over Three Runs)}
-\label{tab:ips-effect}
-\footnotesize
-\setlength{\tabcolsep}{3pt}
-\begin{tabular}{lrr}
-\toprule
-\textbf{Metric} & \textbf{Allow-list} & \textbf{No allow-list} \\
-\midrule
-Benign delivery ratio                 & -- & -- \\
-Attack packets before verdict         & -- & -- \\
-Attack packets dropped                & -- & -- \\
-Attack flows never classified         & -- & -- \\
-Infrastructure connections blocked    & -- & -- \\
-\bottomrule
-\end{tabular}
-\end{table}
-
 % ═════════════════════════════════════════════════════════════════════════════
 \section{Discussion}
 \label{sec:discussion}
 
 \subsection{Why the Two Stages Compose}
 
-The stages address different adversaries at different layers, but simultaneous operation is not the same as experimentally validated end-to-end security or availability. Stage~1 acts in the packet path ahead of the broker, where long-lived floods can be cut off cheaply from flow statistics once classified, although packets before the verdict and short connections reach the broker. Stage~2 acts on messages that the gateway subscriber receives, constructing a post-quantum envelope; it does not, in this prototype, transmit that envelope, and it processes a message only while that subscriber remains connected. PQC work is therefore spent only on traffic that reaches Stage~2, not on packets that Stage~1 later drops, and long-term confidentiality of a transmitted envelope would not depend on the classifier being correct. The two stages also run as separate processes (packet callback vs.\ MQTT callback): Stage~1 inference can delay later packets waiting in the queue, but the Stage~1 and Stage~2 timers are not added to form an end-to-end latency.
+The stages address different adversaries at different layers, but simultaneous operation is not the same as experimentally validated end-to-end security or availability. Stage~1 acts in the packet path ahead of the broker, where attack connections can be cut off cheaply from flow statistics once classified, although packets before the verdict (7.3 per blocked attack connection in our runs) reach the broker. Stage~2 acts on messages that the gateway subscriber receives, constructing a post-quantum envelope; it does not, in this prototype, transmit that envelope, and it processes a message only while that subscriber remains connected. The coupling between the stages is therefore not only the admitted traffic: a false verdict on the gateway subscriber removes Stage~2's input altogether, as R5 showed. PQC work is therefore spent only on traffic that reaches Stage~2, not on packets that Stage~1 later drops, and long-term confidentiality of a transmitted envelope would not depend on the classifier being correct. The two stages also run as separate processes (packet callback vs.\ MQTT callback): Stage~1 inference can delay later packets waiting in the queue, but the Stage~1 and Stage~2 timers are not added to form an end-to-end latency.
 
 \subsection{Deployment Guidance}
 
@@ -468,24 +483,26 @@ The stages address different adversaries at different layers, but simultaneous o
   \item \textit{Scheme:} ML-KEM-768 + ML-DSA-65 gives NIST Level~3 for under 0.8~ms of gateway cryptographic time at 5~KB; its advantage over ECDH+ECDSA narrows with payload size, and PQC key caching would be needed for it to carry over to total handler time, which we have not measured; ML-KEM-512 + Falcon-512 is the most bandwidth-efficient Level~1 option; FrodoKEM and BIKE suit only latency-tolerant links.
   \item \textit{Keys:} Cache key pairs per device and algorithm; per-message derivation dominates cost for Falcon and SLH-DSA.
   \item \textit{Bandwidth:} The fixed PQC overhead is large for small messages; batch readings where latency allows.
-  \item \textit{IPS Policy:} Exempt infrastructure clients (the gateway's own subscriber and monitoring clients) from blocking, start in IDS mode, calibrate the threshold on local benign traffic, and allow-list registered devices before enabling blocking.
+  \item \textit{Features:} Use only features that the live extractor can reproduce exactly; a model that used all 45 dataset features labelled 96\% of benign verdicts as attacks in our pilot.
+  \item \textit{IPS Policy:} Exempt infrastructure clients (the gateway's own subscriber and monitoring clients) from blocking, start in IDS mode, calibrate on local benign traffic, and allow-list registered devices before enabling blocking. A per-verdict policy blocks a long-lived benign connection after its first false verdict, so a low per-verdict false-positive rate (1.7\%) still cost 11\% of benign messages in R4.
 \end{itemize}
 
 \subsection{Limitations}
 \label{sec:limits}
 
 \begin{itemize}
-  \item \textit{Testbed:} Clients, attackers, broker, and gateway ran on one Raspberry Pi over loopback, so network effects and multi-device contention are not captured.
-  \item \textit{Ground Truth:} The live sessions analysed in Sections~\ref{sec:res-ids} and~\ref{sec:res-e2e} carry no per-flow labels, so they yield predictions and an inferred attribution of blocked connections, not TPR, FPR, or a confusion matrix. Each of these sessions was run once.
-  \item \textit{Enforcement Timing:} The logs record classification processing time and packet collection time, but not dropped packets or the time from flow start to the first enforced drop, so attack suppression is not quantified.
-  \item \textit{Signature Revision:} Stage~2 timings were recorded before the signature input was changed from the plaintext to the encoded envelope (Section~\ref{sec:stage2}) and have not been re-measured.
-  \item \textit{Dataset Shift:} The model is trained on CICIoMT2024 and may not match other deployments; retraining or calibration on local traffic is needed.
+  \item \textit{Testbed:} All benign and attack traffic came from one client Pi over one Wi-Fi network, so many-device contention, multiple attacker addresses, and per-address blocking are not evaluated.
+  \item \textit{Attack Coverage:} Attacks ran at low rates (one event per second per thread); low-rate UDP and publish floods were largely missed, higher-rate variants were not tested, and ICMP floods and replay were excluded.
+  \item \textit{Ground Truth:} Labels come from client-side logs and attack time windows, not from per-packet tags; flows near window boundaries can be mislabelled, and about 48 single-packet flows per IPS session stayed unlabelled.
+  \item \textit{Calibration:} The model was calibrated on a pilot session that used the same benign generators as the evaluation, so the live false-positive rates are optimistic for unseen benign devices; the 32-feature model also loses offline accuracy (71.5\% vs 97.85\%) relative to the 45-feature model.
+  \item \textit{Timing Conditions:} The live Stage~1 and Stage~2 timings are about 3 and 12 times higher than in an earlier single-host session; CPU frequency, governor, and throttling state were not recorded, and the cause is not established.
+  \item \textit{Enforcement Delay:} We measure packets admitted before a verdict and packets dropped afterwards, but not the time from a verdict to the first enforced drop.
   \item \textit{Evasion:} An adversary who knows the features can shape traffic to look benign; adversarial robustness is not evaluated.
   \item \textit{Scheme Benchmark:} Configurations ran sequentially without independent repetitions, timer boundaries are implementation-specific (Section~\ref{sec:method}), and the PQC and classical handlers use different key-caching policies.
   \item \textit{Runtime:} Python adds dispatch and parsing overhead that a C implementation would avoid; absolute latencies are therefore conservative.
-  \item \textit{Joint Evaluation:} The combined session shows both stages running on one host, not continuous availability under attack and not cloud delivery. Stage~2 processed only the 144 messages that reached its subscriber; HNDL confidentiality and uplink authentication (G2, G3) are properties of the constructed envelope, not experimentally demonstrated against a cloud observer or active attacker.
+  \item \textit{Joint Evaluation:} The IPS runs measure benign delivery to Stage~2 under attack, not cloud delivery; HNDL confidentiality and uplink authentication (G2, G3) are properties of the constructed envelope, not experimentally demonstrated against a cloud observer or active attacker.
   \item \textit{Cloud Receiver:} The cloud receiver is assumed, not implemented; its cost is only a reference from gateway receive-side measurements, and WAN latency is not included (Section~\ref{sec:keys}).
-  \item \textit{Not Measured:} End-to-end message latency, benign-message delivery ratio, energy, WAN transit time, and multi-gateway scaling.
+  \item \textit{Not Measured:} End-to-end message latency, energy, WAN transit time, and multi-gateway scaling.
   \item \textit{Key Management:} All keys derive from one shared master secret under the trust assumptions of Section~\ref{sec:keys}; this is a testbed convenience and a single point of failure, not a production provisioning scheme.
 \end{itemize}
 
@@ -493,7 +510,7 @@ The stages address different adversaries at different layers, but simultaneous o
 \section{Conclusion}
 \label{sec:conclusion}
 
-We presented a two-stage MQTT gateway that classifies live MQTT-bound flows with a LightGBM model in the kernel packet path, blocks client connections flagged as attacks, and constructs an ML-KEM-768 + AES-256-GCM + ML-DSA-65 envelope on messages that reach Stage~2, and measured it on a Raspberry Pi~4B. Stage~1 needs under 1~ms of processing per classification, and Stage~2 needs a median 0.156~ms of cryptographic work per received message; these are separate gateway costs, not a measured end-to-end latency. Blocking takes effect only after a flow has collected enough packets, so short attack connections can complete first, and in the combined session the IPS also interrupted Stage~2's own subscriber. Across ten configurations, ML-KEM pairings with ML-DSA or Falcon needed less cryptographic time than ECDH+ECDSA at 5~KB, an advantage that narrows at 100~KB and that the per-message PQC key regeneration outweighed in total handler time; key caching is therefore expected, though not yet measured, to decide both this comparison and whether Falcon and SLH-DSA are practical. Live logs also show that an inline IPS must exempt the gateway's own MQTT clients, whose blocking stalled delivery to Stage~2. Future work will add energy measurements, distributed multi-node deployments, adversarially robust detection, and a native implementation.
+We presented a two-stage MQTT gateway that classifies live MQTT-bound flows with a LightGBM model in the kernel packet path, blocks client connections flagged as attacks, and constructs an ML-KEM-768 + AES-256-GCM + ML-DSA-65 envelope on messages that reach Stage~2, and evaluated it on a labelled two-Pi testbed. Restricting the model to features that a live flow can reproduce, and calibrating it on local benign traffic, brought the per-verdict benign flag rate from 96\% to 1.7\%; connection, SYN, slow-connection, and scan attacks were flagged in every run, but low-rate UDP and publish floods were largely missed. Stage~1 needs a median 2.4~ms of processing per verdict and Stage~2 a median 1.9~ms of cryptographic work per message; these are separate gateway costs, not a measured end-to-end latency. Inline blocking admitted about 7 packets per attack connection before cutting it off, but per-verdict blocking also cut off long-lived benign connections: 88.6\% of benign messages reached Stage~2 with the gateway's own clients allow-listed, and as few as 34\% without, when the IPS blocked Stage~2's own subscriber. Across ten configurations, ML-KEM pairings with ML-DSA or Falcon needed less cryptographic time than ECDH+ECDSA at 5~KB, an advantage that narrows at 100~KB and that the per-message PQC key regeneration outweighed in total handler time; key caching is therefore expected, though not yet measured, to decide both this comparison and whether Falcon and SLH-DSA are practical. Future work will evaluate blocking policies that tolerate isolated false verdicts, higher-rate floods, energy, many-device deployments, adversarially robust detection, and a native implementation.
 
 \bibliographystyle{IEEEtran}
 \bibliography{bib/references_journal}

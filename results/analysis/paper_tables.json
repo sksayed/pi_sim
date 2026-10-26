@@ -1,0 +1,1354 @@
+{
+  "R1": {
+    "benign_burst": {
+      "verdicts": {
+        "mean": 41.333333333333336,
+        "sd": 2.0816659994661326,
+        "n": 3
+      },
+      "flag_rate": {
+        "mean": 0.016298946531504672,
+        "sd": 0.01416559395952839,
+        "n": 3
+      },
+      "connections": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "conn_rate": {
+        "mean": 0.6666666666666666,
+        "sd": 0.5773502691896258,
+        "n": 3
+      }
+    },
+    "benign_mixed": {
+      "verdicts": {
+        "mean": 45.0,
+        "sd": 1.7320508075688772,
+        "n": 3
+      },
+      "flag_rate": {
+        "mean": 0.044489383215369056,
+        "sd": 0.021809559767566218,
+        "n": 3
+      },
+      "connections": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "conn_rate": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      }
+    },
+    "benign_steady": {
+      "verdicts": {
+        "mean": 34.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "flag_rate": {
+        "mean": 0.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "connections": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "conn_rate": {
+        "mean": 0.0,
+        "sd": 0.0,
+        "n": 3
+      }
+    },
+    "benign_subscriber": {
+      "verdicts": {
+        "mean": 120.33333333333333,
+        "sd": 3.7859388972001824,
+        "n": 3
+      },
+      "flag_rate": {
+        "mean": 0.011048071192978745,
+        "sd": 0.004635722266552762,
+        "n": 3
+      },
+      "connections": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "conn_rate": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      }
+    },
+    "infrastructure": {
+      "verdicts": {
+        "mean": 121.33333333333333,
+        "sd": 3.7859388972001824,
+        "n": 3
+      },
+      "flag_rate": {
+        "mean": 0.005559029949273851,
+        "sd": 0.004818772412642849,
+        "n": 3
+      },
+      "connections": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "conn_rate": {
+        "mean": 0.6666666666666666,
+        "sd": 0.5773502691896258,
+        "n": 3
+      }
+    }
+  },
+  "R2": {
+    "connect_flood": {
+      "verdicts": {
+        "mean": 114.66666666666667,
+        "sd": 1.1547005383792517,
+        "n": 3
+      },
+      "flag_rate": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "connections": {
+        "mean": 58.333333333333336,
+        "sd": 0.5773502691896258,
+        "n": 3
+      },
+      "conn_rate": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      }
+    },
+    "connect_flood_ddos": {
+      "verdicts": {
+        "mean": 582.3333333333334,
+        "sd": 6.658328118479393,
+        "n": 3
+      },
+      "flag_rate": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "connections": {
+        "mean": 288.6666666666667,
+        "sd": 0.5773502691896258,
+        "n": 3
+      },
+      "conn_rate": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      }
+    },
+    "flood": {
+      "verdicts": {
+        "mean": 7.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "flag_rate": {
+        "mean": 0.14285714285714285,
+        "sd": 0.0,
+        "n": 3
+      },
+      "connections": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "conn_rate": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      }
+    },
+    "infrastructure": {
+      "verdicts": {
+        "mean": 32.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "flag_rate": {
+        "mean": 0.6041666666666666,
+        "sd": 0.03608439182435161,
+        "n": 3
+      },
+      "connections": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "conn_rate": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      }
+    },
+    "malformed": {
+      "verdicts": {
+        "mean": 238.33333333333334,
+        "sd": 0.5773502691896258,
+        "n": 3
+      },
+      "flag_rate": {
+        "mean": 0.945460192445179,
+        "sd": 0.004079237693458583,
+        "n": 3
+      },
+      "connections": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "conn_rate": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      }
+    },
+    "port_scan": {
+      "verdicts": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "flag_rate": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "connections": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "conn_rate": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      }
+    },
+    "slowloris": {
+      "verdicts": {
+        "mean": 5.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "flag_rate": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "connections": {
+        "mean": 5.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "conn_rate": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      }
+    },
+    "syn_flood": {
+      "verdicts": {
+        "mean": 60.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "flag_rate": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "connections": {
+        "mean": 60.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "conn_rate": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      }
+    },
+    "udp_flood": {
+      "verdicts": {
+        "mean": 3.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "flag_rate": {
+        "mean": 0.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "connections": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "conn_rate": {
+        "mean": 0.0,
+        "sd": 0.0,
+        "n": 3
+      }
+    },
+    "udp_flood_ddos": {
+      "verdicts": {
+        "mean": 15.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "flag_rate": {
+        "mean": 0.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "connections": {
+        "mean": 5.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "conn_rate": {
+        "mean": 0.0,
+        "sd": 0.0,
+        "n": 3
+      }
+    },
+    "vul_scan": {
+      "verdicts": {
+        "mean": 2.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "flag_rate": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "connections": {
+        "mean": 2.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "conn_rate": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      }
+    }
+  },
+  "R3": {
+    "benign_burst": {
+      "verdicts": {
+        "mean": 55.666666666666664,
+        "sd": 1.1547005383792517,
+        "n": 3
+      },
+      "flag_rate": {
+        "mean": 0.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "connections": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "conn_rate": {
+        "mean": 0.0,
+        "sd": 0.0,
+        "n": 3
+      }
+    },
+    "benign_mixed": {
+      "verdicts": {
+        "mean": 59.666666666666664,
+        "sd": 0.5773502691896258,
+        "n": 3
+      },
+      "flag_rate": {
+        "mean": 0.03898305084745762,
+        "sd": 0.025335691892405268,
+        "n": 3
+      },
+      "connections": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "conn_rate": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      }
+    },
+    "benign_steady": {
+      "verdicts": {
+        "mean": 45.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "flag_rate": {
+        "mean": 0.007407407407407408,
+        "sd": 0.012830005981991684,
+        "n": 3
+      },
+      "connections": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "conn_rate": {
+        "mean": 0.3333333333333333,
+        "sd": 0.5773502691896258,
+        "n": 3
+      }
+    },
+    "benign_subscriber": {
+      "verdicts": {
+        "mean": 348.3333333333333,
+        "sd": 1.5275252316519465,
+        "n": 3
+      },
+      "flag_rate": {
+        "mean": 0.43152240882440623,
+        "sd": 0.027475644693684093,
+        "n": 3
+      },
+      "connections": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "conn_rate": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      }
+    },
+    "connect_flood": {
+      "verdicts": {
+        "mean": 117.0,
+        "sd": 1.0,
+        "n": 3
+      },
+      "flag_rate": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "connections": {
+        "mean": 59.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "conn_rate": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      }
+    },
+    "connect_flood_ddos": {
+      "verdicts": {
+        "mean": 586.3333333333334,
+        "sd": 2.3094010767585034,
+        "n": 3
+      },
+      "flag_rate": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "connections": {
+        "mean": 288.6666666666667,
+        "sd": 0.5773502691896258,
+        "n": 3
+      },
+      "conn_rate": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      }
+    },
+    "flood": {
+      "verdicts": {
+        "mean": 7.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "flag_rate": {
+        "mean": 0.14285714285714285,
+        "sd": 0.0,
+        "n": 3
+      },
+      "connections": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "conn_rate": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      }
+    },
+    "infrastructure": {
+      "verdicts": {
+        "mean": 178.0,
+        "sd": 2.6457513110645907,
+        "n": 3
+      },
+      "flag_rate": {
+        "mean": 0.014898761490940262,
+        "sd": 0.008409846888430435,
+        "n": 3
+      },
+      "connections": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "conn_rate": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      }
+    },
+    "malformed": {
+      "verdicts": {
+        "mean": 241.0,
+        "sd": 2.6457513110645907,
+        "n": 3
+      },
+      "flag_rate": {
+        "mean": 0.940474979231924,
+        "sd": 0.0100597557210771,
+        "n": 3
+      },
+      "connections": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "conn_rate": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      }
+    },
+    "port_scan": {
+      "verdicts": {
+        "mean": 1.3333333333333333,
+        "sd": 0.5773502691896257,
+        "n": 3
+      },
+      "flag_rate": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "connections": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "conn_rate": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      }
+    },
+    "slowloris": {
+      "verdicts": {
+        "mean": 5.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "flag_rate": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "connections": {
+        "mean": 5.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "conn_rate": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      }
+    },
+    "syn_flood": {
+      "verdicts": {
+        "mean": 60.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "flag_rate": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "connections": {
+        "mean": 59.666666666666664,
+        "sd": 0.5773502691896258,
+        "n": 3
+      },
+      "conn_rate": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      }
+    },
+    "udp_flood": {
+      "verdicts": {
+        "mean": 3.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "flag_rate": {
+        "mean": 0.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "connections": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "conn_rate": {
+        "mean": 0.0,
+        "sd": 0.0,
+        "n": 3
+      }
+    },
+    "udp_flood_ddos": {
+      "verdicts": {
+        "mean": 15.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "flag_rate": {
+        "mean": 0.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "connections": {
+        "mean": 5.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "conn_rate": {
+        "mean": 0.0,
+        "sd": 0.0,
+        "n": 3
+      }
+    },
+    "vul_scan": {
+      "verdicts": {
+        "mean": 2.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "flag_rate": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "connections": {
+        "mean": 2.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "conn_rate": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      }
+    }
+  },
+  "R4": {
+    "benign_burst": {
+      "verdicts": {
+        "mean": 54.666666666666664,
+        "sd": 4.932882862316248,
+        "n": 3
+      },
+      "flag_rate": {
+        "mean": 0.0601688951442646,
+        "sd": 0.08969932417564705,
+        "n": 3
+      },
+      "connections": {
+        "mean": 2.0,
+        "sd": 1.7320508075688772,
+        "n": 3
+      },
+      "conn_rate": {
+        "mean": 0.6666666666666666,
+        "sd": 0.5773502691896258,
+        "n": 3
+      }
+    },
+    "benign_mixed": {
+      "verdicts": {
+        "mean": 14.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "flag_rate": {
+        "mean": 0.5,
+        "sd": 0.0,
+        "n": 3
+      },
+      "connections": {
+        "mean": 7.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "conn_rate": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      }
+    },
+    "benign_steady": {
+      "verdicts": {
+        "mean": 47.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "flag_rate": {
+        "mean": 0.02127659574468085,
+        "sd": 0.0,
+        "n": 3
+      },
+      "connections": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "conn_rate": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      }
+    },
+    "benign_subscriber": {
+      "verdicts": {
+        "mean": 63.333333333333336,
+        "sd": 11.590225767142472,
+        "n": 3
+      },
+      "flag_rate": {
+        "mean": 0.07599510104102879,
+        "sd": 0.029206448020701267,
+        "n": 3
+      },
+      "connections": {
+        "mean": 4.333333333333333,
+        "sd": 0.5773502691896258,
+        "n": 3
+      },
+      "conn_rate": {
+        "mean": 0.7666666666666666,
+        "sd": 0.028867513459481315,
+        "n": 3
+      }
+    },
+    "connect_flood": {
+      "verdicts": {
+        "mean": 214.0,
+        "sd": 4.58257569495584,
+        "n": 3
+      },
+      "flag_rate": {
+        "mean": 0.7963069130153831,
+        "sd": 0.025499699663633496,
+        "n": 3
+      },
+      "connections": {
+        "mean": 58.333333333333336,
+        "sd": 0.5773502691896258,
+        "n": 3
+      },
+      "conn_rate": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      }
+    },
+    "connect_flood_ddos": {
+      "verdicts": {
+        "mean": 977.0,
+        "sd": 59.02541825349483,
+        "n": 3
+      },
+      "flag_rate": {
+        "mean": 0.8038331605421384,
+        "sd": 0.008968640937414231,
+        "n": 3
+      },
+      "connections": {
+        "mean": 277.6666666666667,
+        "sd": 7.094598884597588,
+        "n": 3
+      },
+      "conn_rate": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      }
+    },
+    "flood": {
+      "verdicts": {
+        "mean": 9.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "flag_rate": {
+        "mean": 0.2222222222222222,
+        "sd": 0.0,
+        "n": 3
+      },
+      "connections": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "conn_rate": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      }
+    },
+    "infrastructure": {
+      "verdicts": {
+        "mean": 104.33333333333333,
+        "sd": 6.429100507328636,
+        "n": 3
+      },
+      "flag_rate": {
+        "mean": 0.11258059602237286,
+        "sd": 0.01859154279092841,
+        "n": 3
+      },
+      "connections": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "conn_rate": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      }
+    },
+    "malformed": {
+      "verdicts": {
+        "mean": 2.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "flag_rate": {
+        "mean": 0.5,
+        "sd": 0.0,
+        "n": 3
+      },
+      "connections": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "conn_rate": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      }
+    },
+    "port_scan": {
+      "verdicts": {
+        "mean": 3.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "flag_rate": {
+        "mean": 0.6666666666666666,
+        "sd": 0.0,
+        "n": 3
+      },
+      "connections": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "conn_rate": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      }
+    },
+    "slowloris": {
+      "verdicts": {
+        "mean": 17.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "flag_rate": {
+        "mean": 0.4313725490196078,
+        "sd": 0.06792356108113243,
+        "n": 3
+      },
+      "connections": {
+        "mean": 6.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "conn_rate": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      }
+    },
+    "syn_flood": {
+      "verdicts": {
+        "mean": 59.333333333333336,
+        "sd": 0.5773502691896258,
+        "n": 3
+      },
+      "flag_rate": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "connections": {
+        "mean": 59.333333333333336,
+        "sd": 0.5773502691896258,
+        "n": 3
+      },
+      "conn_rate": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      }
+    },
+    "udp_flood": {
+      "verdicts": {
+        "mean": 3.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "flag_rate": {
+        "mean": 0.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "connections": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "conn_rate": {
+        "mean": 0.0,
+        "sd": 0.0,
+        "n": 3
+      }
+    },
+    "udp_flood_ddos": {
+      "verdicts": {
+        "mean": 15.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "flag_rate": {
+        "mean": 0.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "connections": {
+        "mean": 5.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "conn_rate": {
+        "mean": 0.0,
+        "sd": 0.0,
+        "n": 3
+      }
+    },
+    "vul_scan": {
+      "verdicts": {
+        "mean": 2.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "flag_rate": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "connections": {
+        "mean": 2.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "conn_rate": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      }
+    }
+  },
+  "R5": {
+    "benign_burst": {
+      "verdicts": {
+        "mean": 56.666666666666664,
+        "sd": 2.0816659994661326,
+        "n": 3
+      },
+      "flag_rate": {
+        "mean": 0.005952380952380952,
+        "sd": 0.010309826235529031,
+        "n": 3
+      },
+      "connections": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "conn_rate": {
+        "mean": 0.3333333333333333,
+        "sd": 0.5773502691896258,
+        "n": 3
+      }
+    },
+    "benign_mixed": {
+      "verdicts": {
+        "mean": 29.333333333333332,
+        "sd": 26.558112382722786,
+        "n": 3
+      },
+      "flag_rate": {
+        "mean": 0.3333333333333333,
+        "sd": 0.2886751345948129,
+        "n": 3
+      },
+      "connections": {
+        "mean": 5.0,
+        "sd": 3.4641016151377544,
+        "n": 3
+      },
+      "conn_rate": {
+        "mean": 0.6666666666666666,
+        "sd": 0.5773502691896258,
+        "n": 3
+      }
+    },
+    "benign_steady": {
+      "verdicts": {
+        "mean": 46.333333333333336,
+        "sd": 1.1547005383792517,
+        "n": 3
+      },
+      "flag_rate": {
+        "mean": 0.014184397163120567,
+        "sd": 0.012284048280630334,
+        "n": 3
+      },
+      "connections": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "conn_rate": {
+        "mean": 0.6666666666666666,
+        "sd": 0.5773502691896258,
+        "n": 3
+      }
+    },
+    "benign_subscriber": {
+      "verdicts": {
+        "mean": 92.66666666666667,
+        "sd": 40.12895878705717,
+        "n": 3
+      },
+      "flag_rate": {
+        "mean": 0.05276027625104884,
+        "sd": 0.03323497312571149,
+        "n": 3
+      },
+      "connections": {
+        "mean": 3.3333333333333335,
+        "sd": 0.5773502691896258,
+        "n": 3
+      },
+      "conn_rate": {
+        "mean": 0.8055555555555555,
+        "sd": 0.17347216662217774,
+        "n": 3
+      }
+    },
+    "connect_flood": {
+      "verdicts": {
+        "mean": 205.33333333333334,
+        "sd": 10.016652800877813,
+        "n": 3
+      },
+      "flag_rate": {
+        "mean": 0.790703270789069,
+        "sd": 0.009822985037195253,
+        "n": 3
+      },
+      "connections": {
+        "mean": 56.666666666666664,
+        "sd": 3.214550253664318,
+        "n": 3
+      },
+      "conn_rate": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      }
+    },
+    "connect_flood_ddos": {
+      "verdicts": {
+        "mean": 1008.6666666666666,
+        "sd": 52.5959440768329,
+        "n": 3
+      },
+      "flag_rate": {
+        "mean": 0.7890579221082389,
+        "sd": 0.01186813498659691,
+        "n": 3
+      },
+      "connections": {
+        "mean": 284.0,
+        "sd": 9.539392014169456,
+        "n": 3
+      },
+      "conn_rate": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      }
+    },
+    "flood": {
+      "verdicts": {
+        "mean": 9.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "flag_rate": {
+        "mean": 0.2222222222222222,
+        "sd": 0.0,
+        "n": 3
+      },
+      "connections": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "conn_rate": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      }
+    },
+    "infrastructure": {
+      "verdicts": {
+        "mean": 88.0,
+        "sd": 68.63672486358888,
+        "n": 3
+      },
+      "flag_rate": {
+        "mean": 0.07737582543784094,
+        "sd": 0.07100111580626621,
+        "n": 3
+      },
+      "connections": {
+        "mean": 4.0,
+        "sd": 2.6457513110645907,
+        "n": 3
+      },
+      "conn_rate": {
+        "mean": 0.6666666666666666,
+        "sd": 0.5773502691896258,
+        "n": 3
+      }
+    },
+    "malformed": {
+      "verdicts": {
+        "mean": 2.3333333333333335,
+        "sd": 0.5773502691896258,
+        "n": 3
+      },
+      "flag_rate": {
+        "mean": 0.5555555555555555,
+        "sd": 0.0962250448649376,
+        "n": 3
+      },
+      "connections": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "conn_rate": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      }
+    },
+    "port_scan": {
+      "verdicts": {
+        "mean": 3.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "flag_rate": {
+        "mean": 0.6666666666666666,
+        "sd": 0.0,
+        "n": 3
+      },
+      "connections": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "conn_rate": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      }
+    },
+    "slowloris": {
+      "verdicts": {
+        "mean": 17.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "flag_rate": {
+        "mean": 0.411764705882353,
+        "sd": 0.05882352941176469,
+        "n": 3
+      },
+      "connections": {
+        "mean": 6.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "conn_rate": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      }
+    },
+    "syn_flood": {
+      "verdicts": {
+        "mean": 60.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "flag_rate": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "connections": {
+        "mean": 60.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "conn_rate": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      }
+    },
+    "udp_flood": {
+      "verdicts": {
+        "mean": 3.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "flag_rate": {
+        "mean": 0.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "connections": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "conn_rate": {
+        "mean": 0.0,
+        "sd": 0.0,
+        "n": 3
+      }
+    },
+    "udp_flood_ddos": {
+      "verdicts": {
+        "mean": 15.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "flag_rate": {
+        "mean": 0.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "connections": {
+        "mean": 5.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "conn_rate": {
+        "mean": 0.0,
+        "sd": 0.0,
+        "n": 3
+      }
+    },
+    "vul_scan": {
+      "verdicts": {
+        "mean": 2.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "flag_rate": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "connections": {
+        "mean": 2.0,
+        "sd": 0.0,
+        "n": 3
+      },
+      "conn_rate": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3
+      }
+    }
+  }
+}
