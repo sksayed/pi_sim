@@ -1,0 +1,1 @@
+[SYN-FLOOD] Mode: dos (TCP_IP-DoS-SYN)  src: 10.24.1.15  target: 10.24.1.39:1883  spoof_ports: True
