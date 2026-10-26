@@ -11,7 +11,7 @@
   "gateway_ip": "10.24.1.39",
   "client_ip": "10.24.1.15",
   "client_host": "sayed-edge-device-pi",
-  "clock_offset_s": -0.019166946411132812,
+  "clock_offset_s": -0.008694171905517578,
   "attacks": [
     "flood",
     "malformed",
@@ -31,6 +31,6 @@
     "warmup_s": 20,
     "drain_s": 15
   },
-  "start_wall_ns": 1792979897957683604,
-  "stop_wall_ns": 1792980713121114913
+  "start_wall_ns": 1792985205092213062,
+  "stop_wall_ns": 1792986020252412685
 }

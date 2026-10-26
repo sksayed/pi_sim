@@ -1,0 +1,19 @@
+[SLOWLORIS-HOLD] Opening 5 persistent connections to 10.24.1.39:1883
+[SLOWLORIS-HOLD] Each connection drips a PINGREQ every 15.0s
+[SLOWLORIS-HOLD] #000 connected, holding...
+[SLOWLORIS-HOLD] #001 connected, holding...
+[SLOWLORIS-HOLD] #002 connected, holding...
+[SLOWLORIS-HOLD] #003 connected, holding...
+[SLOWLORIS-HOLD] #004 connected, holding...
+[SLOWLORIS-HOLD] 5 connections open. Ctrl-C to stop.
+[SLOWLORIS-HOLD] Connections alive: 5/5
+[SLOWLORIS-HOLD] Connections alive: 5/5
+[SLOWLORIS-HOLD] Connections alive: 5/5
+[SLOWLORIS-HOLD] Connections alive: 5/5
+[SLOWLORIS-HOLD] Connections alive: 5/5
+[SLOWLORIS-HOLD] Connections alive: 5/5
+[SLOWLORIS-HOLD] Connections alive: 5/5
+[SLOWLORIS-HOLD] Connections alive: 5/5
+[SLOWLORIS-HOLD] Connections alive: 5/5
+[SLOWLORIS-HOLD] Connections alive: 5/5
+[SLOWLORIS-HOLD] Connections alive: 5/5

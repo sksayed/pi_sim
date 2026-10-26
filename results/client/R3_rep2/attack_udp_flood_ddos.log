@@ -1,0 +1,1 @@
+[UDP-FLOOD] Mode: ddos (TCP_IP-DDoS-UDP)  threads: 5  target: 10.24.1.39:1883  payload: 1024B
