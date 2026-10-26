@@ -71,8 +71,8 @@ Precision / recall / F1: 0.985 ± 0.004 (n=3) / 0.791 ± 0.009 (n=3) / 0.877 ± 
 | benign_sent | 1205.667 ± 5.859 (n=3) |
 | benign_received_by_stage2 | 1069.000 ± 68.432 (n=3) |
 | benign_delivery_ratio | 0.886 ± 0.053 (n=3) |
-| attack_pkts_before_verdict_mean | 7.331 ± 0.298 (n=3) |
-| attack_pkts_dropped | 3852.333 ± 68.223 (n=3) |
+| attack_pkts_before_block_mean | 7.331 ± 0.298 (n=3) |
+| attack_pkts_dropped | 3825.667 ± 69.299 (n=3) |
 | attack_connections_never_classified | 0.000 ± 0.000 (n=3) |
 | attack_connections | 411.333 ± 6.658 (n=3) |
 | benign_connections_blocked | 13.000 ± 2.646 (n=3) |
@@ -103,8 +103,8 @@ Precision / recall / F1: 0.991 ± 0.007 (n=3) / 0.779 ± 0.008 (n=3) / 0.872 ± 
 | benign_sent | 1205.000 ± 15.395 (n=3) |
 | benign_received_by_stage2 | 712.000 ± 426.979 (n=3) |
 | benign_delivery_ratio | 0.592 ± 0.357 (n=3) |
-| attack_pkts_before_verdict_mean | 7.344 ± 0.208 (n=3) |
-| attack_pkts_dropped | 3894.333 ± 121.583 (n=3) |
+| attack_pkts_before_block_mean | 7.344 ± 0.208 (n=3) |
+| attack_pkts_dropped | 3879.000 ± 135.547 (n=3) |
 | attack_connections_never_classified | 0.000 ± 0.000 (n=3) |
 | attack_connections | 416.667 ± 12.503 (n=3) |
 | benign_connections_blocked | 8.333 ± 5.508 (n=3) |

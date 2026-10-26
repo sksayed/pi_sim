@@ -28,6 +28,8 @@ FIXED_FW_SETTINGS = {
     "FW_BLOCK_TTL_S": "0",
     "FW_VERBOSE_PACKET_LOGS": "false",
     "FW_JSON_EVENT_LOGS": "true",
+    "FW_MIN_CLIENT_SHARE": "0.3",
+    "FW_BLOCK_AFTER_N": "2",
 }
 
 # The gateway's own subscriber connects over loopback.
@@ -43,8 +45,11 @@ BENIGN_CLIENTS = [
 
 # (name, run_attack.py args, needs_root). All target the broker port 1883.
 # Replay is excluded (no benign capture file); ICMP never reaches Stage 1.
+# Publish flood ~80 pkt/s (CIC median 74-90). UDP floods use CIC's 50-byte frames
+# (8-byte payload) at 500 pkt/s total, below CIC's ~20k pkt/s, which the Python
+# NFQUEUE path on the gateway Pi cannot absorb.
 ATTACKS = [
-    ("flood",              ["flood", "--rate", "1"], False),
+    ("flood",              ["flood", "--rate", "40"], False),
     ("malformed",          ["malformed", "--rate", "1"], False),
     ("slowloris",          ["slowloris", "--mode", "hold", "--connections", "5"], False),
     ("connect_flood",      ["connect_flood", "--mode", "serial", "--rate", "1"], False),
@@ -52,8 +57,9 @@ ATTACKS = [
     ("port_scan",          ["port_scan", "--mode", "port_scan", "--rate", "1",
                             "--start", "1870", "--end", "1900"], False),
     ("vul_scan",           ["port_scan", "--mode", "vul_scan", "--rate", "1"], False),
-    ("udp_flood",          ["udp_flood", "--mode", "dos", "--rate", "1"], False),
-    ("udp_flood_ddos",     ["udp_flood", "--mode", "ddos", "--threads", "5", "--rate", "1"], False),
+    ("udp_flood",          ["udp_flood", "--mode", "dos", "--rate", "500", "--payload", "8"], False),
+    ("udp_flood_ddos",     ["udp_flood", "--mode", "ddos", "--threads", "5", "--rate", "100",
+                            "--payload", "8"], False),
     ("syn_flood",          ["syn_flood", "--mode", "dos", "--rate", "1"], True),
 ]
 

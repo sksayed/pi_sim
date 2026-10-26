@@ -111,9 +111,8 @@ def analyze_session(session: str) -> dict | None:
     conn_label: dict[tuple, str] = {}
     pkts_before_block: dict[tuple, int] = defaultdict(int)
     blocked_conns: dict[tuple, str] = {}
-    first_attack_seen: set[tuple] = set()
     verdict_conns: set[tuple] = set()
-    cb_drops = 0
+    cb_drops: dict[tuple, int] = defaultdict(int)
 
     for ev in _events(gw_dir):
         kind = ev.get("event")
@@ -125,11 +124,10 @@ def analyze_session(session: str) -> dict | None:
             v = verdicts[src]
             v["verdicts"] += 1
             v["conns"].add(conn)
-            if conn not in first_attack_seen:
+            if conn not in blocked_conns:
                 pkts_before_block[conn] += ev["flow_pkts"]
             if ev["verdict"] == "ATTACK":
                 v["flagged"] += 1
-                first_attack_seen.add(conn)
         elif kind in ("flow_unclassified", "flow_open_at_shutdown"):
             conn = (ev["client_ip"], ev["client_port"], ev["flow_proto"])
             src = label(*conn, ev["nfqueue_first_wall_ns"])
@@ -140,7 +138,7 @@ def analyze_session(session: str) -> dict | None:
             conn = (ev["ip"], ev["src_port"], ev["proto"])
             blocked_conns[conn] = conn_label.get(conn, "unknown")
         elif kind == "packet_dropped":
-            cb_drops += 1
+            cb_drops[(ev["src_ip"], ev["sport"], ev["proto"])] += 1
 
     sources = {}
     for src, v in sorted(verdicts.items()):
@@ -177,15 +175,16 @@ def analyze_session(session: str) -> dict | None:
         for ip, port, pkts in _iptables_drops(gw_dir):
             if any(c[0] == ip and c[1] == port and s in attack_names for c, s in blocked_conns.items()):
                 drops += pkts
+        drops += sum(n for c, n in cb_drops.items() if blocked_conns.get(c) in attack_names)
         attack_conns = [c for c, s in conn_label.items() if s in attack_names]
         never = sum(1 for c in attack_conns if c not in verdict_conns)
         result["ips"] = {
             "benign_sent": len(sent),
             "benign_received_by_stage2": len(sent & recv),
             "benign_delivery_ratio": len(sent & recv) / len(sent) if sent else None,
-            "attack_pkts_before_verdict_mean": (statistics.mean(pkts_before_block[c] for c in attack_blocked)
-                                                if attack_blocked else None),
-            "attack_pkts_dropped": drops + cb_drops,
+            "attack_pkts_before_block_mean": (statistics.mean(pkts_before_block[c] for c in attack_blocked)
+                                              if attack_blocked else None),
+            "attack_pkts_dropped": drops,
             "attack_connections_never_classified": never,
             "attack_connections": len(attack_conns),
             "benign_connections_blocked": sum(1 for s in blocked_conns.values() if s == "benign"),

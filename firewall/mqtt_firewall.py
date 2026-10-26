@@ -54,6 +54,11 @@ CLASS_NAMES: list[str] = (
 BENIGN_LABEL = os.getenv("FW_BENIGN_LABEL", "Benign")  # exact name of the benign class
 BLOCK_VERDICT = _env_bool("FW_BLOCK_VERDICT", True)   # False = IDS mode (log only)
 BLOCK_TTL_S = float(os.getenv("FW_BLOCK_TTL_S", "0")) # <=0 means no auto-unblock
+# An ATTACK prediction counts only if at least this share of the segment's packets
+# was sent by the client (not forwarded by the broker). 0 disables the rule.
+MIN_CLIENT_SHARE = float(os.getenv("FW_MIN_CLIENT_SHARE", "0"))
+# Block a connection only after this many consecutive ATTACK verdicts.
+BLOCK_AFTER_N = max(1, int(os.getenv("FW_BLOCK_AFTER_N", "1")))
 # Ordered model inputs written by ml/train_lgbm.py; without it, all 45 CIC columns.
 FEATURES_PATH = os.getenv(
     "FW_FEATURES_PATH", str(Path(__file__).resolve().parent / "feature_columns.json"))
@@ -415,6 +420,8 @@ class MQTTFirewall:
             feature_columns=FEATURE_COLUMNS,
             classify_every_n_pkts=CLASSIFY_EVERY_N_PKTS,
             allow_ips=sorted(ALLOW_IPS),
+            min_client_share=MIN_CLIENT_SHARE,
+            block_after_n=BLOCK_AFTER_N,
         )
 
         # Verify feature count
@@ -504,6 +511,8 @@ class MQTTFirewall:
         self.flow_table = FlowTable()
         self.blocklist  = Blocklist()
         self._stop      = threading.Event()
+        self._attack_streak: dict[tuple, int] = {}
+        self._streak_lock = threading.Lock()
 
         # Background reaper thread
         self._reaper = threading.Thread(target=self._flow_reaper, daemon=True)
@@ -608,9 +617,25 @@ class MQTTFirewall:
             all_probs   = {self._class_names[0]: round(1 - attack_prob, 4),
                            self._class_names[1] if self._n_classes >= 2 else "attack": round(attack_prob, 4)}
 
+        model_verdict = "ATTACK" if is_attack else "benign"
+        from_broker = flow.src_port == 1883 and flow.dst_port != 1883
+        client_pkts = flow.bwd_pkts if from_broker else flow.fwd_pkts
+        client_share = client_pkts / pkts if pkts else 0.0
+        if is_attack and client_share < MIN_CLIENT_SHARE:
+            is_attack = False
+            attack_type = "benign"
+
         label = "ATTACK" if is_attack else "benign"
-        client_ip, _, client_port, _ = self._client_side_block_tuple(flow)
+        block_tuple = self._client_side_block_tuple(flow)
+        client_ip, _, client_port, _ = block_tuple
         allowlisted = client_ip in ALLOW_IPS
+        with self._streak_lock:
+            if is_attack:
+                streak = self._attack_streak.get(block_tuple, 0) + 1
+                self._attack_streak[block_tuple] = streak
+            else:
+                streak = 0
+                self._attack_streak.pop(block_tuple, None)
 
         t_verdict_ns    = time.perf_counter_ns()
         t_inspection_ns = (t_verdict_ns - t_arrival_ns) if t_arrival_ns > 0 else 0
@@ -628,6 +653,9 @@ class MQTTFirewall:
         log_event(
             "verdict",
             verdict=label,
+            model_verdict=model_verdict,
+            client_share=round(client_share, 4),
+            attack_streak=streak,
             attack_type=attack_type,
             attack_prob=attack_prob,
             threshold=ATTACK_THRESHOLD,
@@ -650,12 +678,14 @@ class MQTTFirewall:
             t_verdict_wall_ns=int(time.time_ns()),
         )
 
-        if label == "ATTACK" and BLOCK_VERDICT:
+        if label == "ATTACK" and BLOCK_VERDICT and streak >= BLOCK_AFTER_N:
             if allowlisted:
                 log_event("block_skipped_allowlist", ip=client_ip, proto=flow.proto,
                           src_port=client_port, attack_type=attack_type)
             else:
-                self.blocklist.block(*self._client_side_block_tuple(flow))
+                self.blocklist.block(*block_tuple)
+                with self._streak_lock:
+                    self._attack_streak.pop(block_tuple, None)
 
         self.flow_table.mark_classified(key)
         self.flow_table.remove(key)

@@ -60,7 +60,8 @@ def main() -> None:
                 if e.get("event") != "verdict":
                     continue
                 for k, name in STAGE1.items():
-                    if e.get(k) is not None:
+                    # Reaper-triggered verdicts have no arrival packet and log 0.
+                    if e.get(k) is not None and not (k == "t_inspection_ns" and e[k] == 0):
                         stage1[run][name].append(e[k] / 1e6)
                 stage1[run]["collection_s"].append(
                     (e["t_verdict_wall_ns"] - e["nfqueue_first_wall_ns"]) / 1e9)
