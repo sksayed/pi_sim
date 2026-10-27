@@ -1,0 +1,12 @@
+[UDP-FLOOD] Mode: ddos (TCP_IP-DDoS-UDP)  threads: 5  target: 10.24.1.39:1883  payload: 8B
+[UDP-FLOOD] thread=002  total_sent=1000
+[UDP-FLOOD] thread=002  total_sent=2000
+[UDP-FLOOD] thread=002  total_sent=3000
+[UDP-FLOOD] thread=004  total_sent=4000
+[UDP-FLOOD] thread=003  total_sent=5000
+[UDP-FLOOD] thread=002  total_sent=6000
+[UDP-FLOOD] thread=001  total_sent=7000
+[UDP-FLOOD] thread=002  total_sent=8000
+[UDP-FLOOD] thread=000  total_sent=9000
+[UDP-FLOOD] thread=000  total_sent=10000
+[UDP-FLOOD] thread=004  total_sent=11000

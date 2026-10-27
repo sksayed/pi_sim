@@ -1,0 +1,36 @@
+{
+  "session": "R5_rep8",
+  "run": "R5",
+  "rep": 8,
+  "run_config": {
+    "benign": true,
+    "attacks": true,
+    "block": true,
+    "allow_list": false
+  },
+  "gateway_ip": "10.24.1.39",
+  "client_ip": "10.24.1.15",
+  "client_host": "sayed-edge-device-pi",
+  "clock_offset_s": 0.005578041076660156,
+  "attacks": [
+    "flood",
+    "malformed",
+    "slowloris",
+    "connect_flood",
+    "connect_flood_ddos",
+    "port_scan",
+    "vul_scan",
+    "udp_flood",
+    "udp_flood_ddos",
+    "syn_flood"
+  ],
+  "timing": {
+    "benign_only_s": 600,
+    "attack_s": 60,
+    "gap_s": 20,
+    "warmup_s": 20,
+    "drain_s": 15
+  },
+  "start_wall_ns": 1793038618941388022,
+  "stop_wall_ns": 1793039456113147063
+}
