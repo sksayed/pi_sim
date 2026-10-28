@@ -7,7 +7,11 @@ on Client Pi A first. This Pi does not start or stop sessions.
 
     sudo .venv/bin/python experiments/extra_client.py --tag pi2
     sudo .venv/bin/python experiments/extra_client.py --tag pi2 --attacks
-    sudo .venv/bin/python experiments/extra_client.py --gateway 192.168.x.x --tag pi2
+    sudo .venv/bin/python experiments/extra_client.py --tag pi2 --attacks-only --attack-slice all
+    sudo .venv/bin/python experiments/extra_client.py --tag pi2 --attacks-only --attack-slice b
+
+Phase 4: use --attacks-only (no benign). Slice all for E2/E3; slice b for E4/E5.
+Pass --session E2_rep12 to join a specific session.
 
 Without --gateway it uses the same UDP beacon / subnet scan as client_runner.
 It waits until Pi A has started a session, registers as a peer, writes CSVs under
@@ -86,10 +90,19 @@ def main() -> int:
     parser.add_argument("--tag", default="pi2", help="Peer tag and device-id prefix")
     parser.add_argument("--session", help="Only join this session name (default: any active)")
     parser.add_argument("--attacks", action="store_true",
-                        help="Run the plan attack list once while benign clients publish")
+                        help="Run attacks once while benign clients also publish")
+    parser.add_argument("--attacks-only", action="store_true",
+                        help="Phase 4: run attacks only (no benign publishers)")
+    parser.add_argument("--attack-slice", choices=("all", "a", "b"), default="all",
+                        help="Which partition of plan.ATTACKS to run (default all)")
     parser.add_argument("--wait-s", type=float, default=3600,
                         help="How long to wait for Pi A to start a session")
     args = parser.parse_args()
+
+    do_attacks = args.attacks or args.attacks_only
+    do_benign = not args.attacks_only
+    if args.attacks_only and not do_attacks:
+        do_attacks = True
 
     gateway = args.gateway or find_gateway()
     if not gateway:
@@ -136,20 +149,27 @@ def main() -> int:
         "client_host": socket.gethostname(),
         "clock_offset_s": offset,
         "attacks": [],
+        "attack_slice": args.attack_slice,
+        "attacks_only": bool(args.attacks_only),
         "start_wall_ns": time.time_ns(),
     }
 
     procs = []
-    for name, cmd in plan.BENIGN_CLIENTS:
-        procs.append(_launch([PYTHON, "benign_clients/run_benign.py", *cmd], env))
-        time.sleep(0.4)
-    print(f"[EXTRA] Joined {session} as tag={args.tag} ip={client_ip}. "
-          f"Logs → {out}")
+    if do_benign:
+        for name, cmd in plan.BENIGN_CLIENTS:
+            procs.append(_launch([PYTHON, "benign_clients/run_benign.py", *cmd], env))
+            time.sleep(0.4)
+        print(f"[EXTRA] Joined {session} as tag={args.tag} ip={client_ip} (benign on). "
+              f"Logs → {out}")
+    else:
+        print(f"[EXTRA] Joined {session} as tag={args.tag} ip={client_ip} "
+              f"(attacks-only, slice={args.attack_slice}). Logs → {out}")
 
     try:
-        if args.attacks:
-            attacks = [a for a in plan.ATTACKS if IS_ROOT or not a[2]]
-            skipped = [a[0] for a in plan.ATTACKS if a not in attacks]
+        if do_attacks:
+            wanted = plan.attack_slice(args.attack_slice)
+            attacks = [a for a in wanted if IS_ROOT or not a[2]]
+            skipped = [a[0] for a in wanted if a not in attacks]
             if skipped:
                 print(f"[EXTRA] Not root, skipping {skipped}")
             meta["attacks"] = [a[0] for a in attacks]
@@ -167,6 +187,9 @@ def main() -> int:
                     fh.write(f"{name},{t_start},{time.time_ns()}\n")
                 time.sleep(plan.GAP_S)
             print("[EXTRA] Attack pass done. Waiting for the session to end.")
+
+        if not do_benign and not do_attacks:
+            print("[EXTRA] Nothing to run (no benign, no attacks). Waiting for session end.")
 
         while True:
             try:

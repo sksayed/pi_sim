@@ -150,10 +150,16 @@ def _kill(proc: subprocess.Popen) -> None:
         pass
 
 
-def run_session(gateway: str, run_id: str, rep: int, attacks: list) -> None:
+def run_session(gateway: str, run_id: str, rep: int, available_attacks: list) -> None:
     run = plan.RUNS[run_id]
     session = plan.session_name(run_id, rep)
     out = RESULTS_DIR / session
+    if (out / "meta.json").exists():
+        raise RuntimeError(
+            f"{session} already has meta.json — refusing to overwrite. "
+            "Choose a free --first-rep (Phase 4 uses 12+; never 6–9)."
+        )
+    attacks = plan.attacks_for_run(run_id, available_attacks)
     out.mkdir(parents=True, exist_ok=True)
     for name, header in (
         ("benign_conns.csv", "ts_unix_ns,client,device_id,local_ip,local_port"),
@@ -165,8 +171,14 @@ def run_session(gateway: str, run_id: str, rep: int, attacks: list) -> None:
     env = {**os.environ, "GATEWAY_IP": gateway, "GATEWAY_PORT": str(plan.MQTT_PORT),
            "BENIGN_LOG_DIR": str(out), "PYTHONUNBUFFERED": "1"}
 
+    pi_b = run.get("pi_b", "off")
     print(f"\n[CLIENT] ===== {session}  benign={run['benign']}  attacks={run['attacks']}  "
-          f"IPS={run['block']}  allow_list={run['allow_list']} =====")
+          f"slice={run.get('attack_slice', 'all')}  IPS={run['block']}  "
+          f"allow_list={run['allow_list']}  pi_b={pi_b} =====")
+    if pi_b != "off":
+        extra = " ".join(plan.pi_b_extra_args(run_id))
+        print(f"[CLIENT] Start on Pi B now:  sudo .venv/bin/python experiments/extra_client.py "
+              f"--tag pi2 --session {session} {extra}")
     offset = _clock_offset(gateway)
     _call(gateway, {"cmd": "start", "session": session, "run": run_id, "rep": rep,
                     "gateway_ip": gateway})
@@ -174,7 +186,9 @@ def run_session(gateway: str, run_id: str, rep: int, attacks: list) -> None:
         "session": session, "run": run_id, "rep": rep, "run_config": run,
         "gateway_ip": gateway, "client_ip": _local_ip_towards(gateway),
         "client_host": socket.gethostname(), "clock_offset_s": offset,
-        "attacks": [a[0] for a in attacks] if run["attacks"] else [],
+        "attacks": [a[0] for a in attacks],
+        "attack_slice": run.get("attack_slice", "all"),
+        "pi_b": pi_b,
         "timing": {"benign_only_s": plan.BENIGN_ONLY_S, "attack_s": plan.ATTACK_S,
                    "gap_s": plan.GAP_S, "warmup_s": plan.WARMUP_S, "drain_s": plan.DRAIN_S},
         "start_wall_ns": time.time_ns(),
@@ -239,8 +253,16 @@ def main() -> int:
         print(f"Unknown runs: {unknown}. Choose from {list(plan.RUNS)}")
         return 1
 
-    attacks = [a for a in plan.ATTACKS if IS_ROOT or not a[2]]
-    skipped = [a[0] for a in plan.ATTACKS if a not in attacks]
+    phase4 = [r for r in runs if r in plan.PHASE4_RUNS]
+    if phase4:
+        bad = [rep for rep in range(args.first_rep, args.first_rep + args.reps)
+               if rep in plan.PAPER_REPS]
+        if bad:
+            print(f"[CLIENT] Refusing Phase 4 with paper reps {bad}. Use --first-rep 12 (or higher).")
+            return 1
+
+    available = [a for a in plan.ATTACKS if IS_ROOT or not a[2]]
+    skipped = [a[0] for a in plan.ATTACKS if a not in available]
     if skipped:
         print(f"[CLIENT] Not root: skipping {skipped}. Use sudo to include them.")
 
@@ -259,8 +281,14 @@ def main() -> int:
         print("         Is gateway_agent.py running, and are both Pis on the same hotspot?")
         return 1
     print(f"[CLIENT] Gateway agent on {resp['host']} reachable.")
+    # Estimate using the longest attack list among selected runs.
+    n_att = max((len(plan.attacks_for_run(r, available)) for r in runs), default=0)
     print(f"[CLIENT] Plan: runs={runs} reps={args.reps} — about "
-          f"{_estimate_minutes(runs, len(attacks), args.reps):.0f} min")
+          f"{_estimate_minutes(runs, n_att, args.reps):.0f} min")
+    for r in phase4:
+        pb = plan.RUNS[r].get("pi_b", "off")
+        print(f"[CLIENT] {r}: pi_b={pb}  "
+              f"{' '.join(plan.pi_b_extra_args(r)) if pb != 'off' else '(leave Pi B idle)'}")
 
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
     if os.getenv("SUDO_USER"):
@@ -269,7 +297,7 @@ def main() -> int:
     try:
         for rep in range(args.first_rep, args.first_rep + args.reps):
             for run_id in runs:
-                run_session(args.gateway, run_id, rep, attacks)
+                run_session(args.gateway, run_id, rep, available)
     except KeyboardInterrupt:
         print("\n[CLIENT] Interrupted.")
     finally:

@@ -270,6 +270,7 @@ Off unless `GW_CLOUD_FORWARD=1`. The path is IoT Pi → MQTT → gateway Pi → 
 - Second client Pi runs `experiments/extra_client.py`: auto-finds the agent, waits for Pi A’s session, registers as a peer, logs CSVs under `results/client/<session>/peers/<tag>/`. Do not run `client_runner.py` on both Pis. `analyze.py` / `paper_tables.py` label both client IPs.
 - Run steps: `docs/e2e_cloud.md`. Local wiring check: `python cloud/e2e_selftest.py`.
 - Use new rep numbers (11+). Do not overwrite reps 6–9.
+- Phase 4 matrix: `E1`–`E5` in `plan.py`, reps 12–14. Pi B: `extra_client --attacks-only`. Runbook: `docs/phase4_runbook.md`.
 
 ## 10. Communication leftover for the next agent
 

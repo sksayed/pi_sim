@@ -4,12 +4,21 @@ plan.py — Labelled live-evaluation plan (paper Section "Labelled Live Detectio
 Shared by experiments/gateway_agent.py (gateway Pi) and
 experiments/client_runner.py (client Pi). Edit here, commit, pull on both Pis.
 
-Runs
+Runs (two-Pi paper baseline)
   R1  benign only                     IDS
   R2  each attack alone (sequential)  IDS
   R3  benign + attacks                IDS
   R4  benign + attacks                IPS, gateway-local clients allow-listed
   R5  benign + attacks                IPS, no allow-list
+
+Phase 4 (three-Pi + cloud). Use --first-rep 12 (or higher). Never reuse reps 6–9.
+  E1  Pi A benign; Pi B off;           IPS + allow-list + cloud
+  E2  Pi A benign; Pi B attacks-all;   IDS + cloud
+  E3  Pi A benign; Pi B attacks-all;   IPS + allow-list + cloud
+  E4  Pi A benign+attacks-slice-a; Pi B attacks-slice-b; IDS + cloud
+  E5  Pi A benign+attacks-slice-a; Pi B attacks-slice-b; IPS + allow-list + cloud
+
+E4/E5 partition ATTACKS so the combined schedule matches one full pass (E2/E3 volume).
 """
 
 from __future__ import annotations
@@ -70,6 +79,17 @@ RUNS = {
     "R3": {"benign": True,  "attacks": True,  "block": False, "allow_list": False},
     "R4": {"benign": True,  "attacks": True,  "block": True,  "allow_list": True},
     "R5": {"benign": True,  "attacks": True,  "block": True,  "allow_list": False},
+    # Phase 4 — Pi B role is enforced by extra_client flags, not by the agent.
+    "E1": {"benign": True,  "attacks": False, "block": True,  "allow_list": True,
+           "attack_slice": "none", "pi_b": "off"},
+    "E2": {"benign": True,  "attacks": False, "block": False, "allow_list": False,
+           "attack_slice": "none", "pi_b": "attacks_all"},
+    "E3": {"benign": True,  "attacks": False, "block": True,  "allow_list": True,
+           "attack_slice": "none", "pi_b": "attacks_all"},
+    "E4": {"benign": True,  "attacks": True,  "block": False, "allow_list": False,
+           "attack_slice": "a", "pi_b": "attacks_b"},
+    "E5": {"benign": True,  "attacks": True,  "block": True,  "allow_list": True,
+           "attack_slice": "a", "pi_b": "attacks_b"},
 }
 
 # Timing (seconds). Gap must exceed FW_FLOW_TIMEOUT_S so attack windows do not overlap.
@@ -88,7 +108,59 @@ def session_name(run_id: str, rep: int) -> str:
 # (rules and attack rates were chosen on them); rep 10 was interrupted.
 PAPER_REPS = (6, 7, 8, 9)
 
+# Phase 4 three-Pi + cloud matrix (separate from PAPER_REPS).
+PHASE4_REPS = (12, 13, 14)
+PHASE4_RUNS = ("E1", "E2", "E3", "E4", "E5")
+
 
 def is_paper_session(name: str) -> bool:
     run, _, rep = name.partition("_rep")
-    return run in RUNS and rep.isdigit() and int(rep) in PAPER_REPS
+    return run in ("R1", "R2", "R3", "R4", "R5") and rep.isdigit() and int(rep) in PAPER_REPS
+
+
+def is_phase4_session(name: str) -> bool:
+    run, _, rep = name.partition("_rep")
+    return run in PHASE4_RUNS and rep.isdigit() and int(rep) in PHASE4_REPS
+
+
+def attack_slice(which: str) -> list:
+    """Return a subset of ATTACKS.
+
+    all  — full list (Pi B on E2/E3)
+    a/b  — disjoint partition; a∪b = all, a∩b = ∅ (E4/E5 multi-source, same total volume)
+    none — empty
+    """
+    which = (which or "all").lower()
+    if which in ("none", "off", "-"):
+        return []
+    if which == "all":
+        return list(ATTACKS)
+    if which == "a":
+        return [ATTACKS[i] for i in range(len(ATTACKS)) if i % 2 == 0]
+    if which == "b":
+        return [ATTACKS[i] for i in range(len(ATTACKS)) if i % 2 == 1]
+    raise ValueError(f"Unknown attack slice {which!r}; use all|a|b|none")
+
+
+def attacks_for_run(run_id: str, available: list | None = None) -> list:
+    """Pi A attack list for this run, filtered by root availability if given."""
+    cfg = RUNS[run_id]
+    if not cfg.get("attacks"):
+        return []
+    wanted = attack_slice(cfg.get("attack_slice", "all"))
+    if available is None:
+        return wanted
+    names = {a[0] for a in wanted}
+    return [a for a in available if a[0] in names]
+
+
+def pi_b_extra_args(run_id: str) -> list[str]:
+    """CLI args for experiments/extra_client.py for this Phase 4 run."""
+    role = RUNS[run_id].get("pi_b", "off")
+    if role == "off":
+        return []
+    if role == "attacks_all":
+        return ["--attacks-only", "--attack-slice", "all"]
+    if role == "attacks_b":
+        return ["--attacks-only", "--attack-slice", "b"]
+    raise ValueError(f"Unknown pi_b role {role!r} for {run_id}")
