@@ -27,6 +27,8 @@ import statistics
 from collections import defaultdict
 from pathlib import Path
 
+import plan
+
 REPO_ROOT = Path(__file__).resolve().parents[1]
 RESULTS = REPO_ROOT / "results"
 WINDOW_GRACE_BEFORE_S = 1.0
@@ -230,8 +232,10 @@ def summarize(results: list[dict]) -> str:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.parse_args()
-    sessions = sorted(p.name for p in (RESULTS / "gateway").glob("R*_rep*") if p.is_dir())
+    parser.add_argument("--all", action="store_true", help="include development trials, not only plan.PAPER_REPS")
+    args = parser.parse_args()
+    sessions = sorted(p.name for p in (RESULTS / "gateway").glob("R*_rep*")
+                      if p.is_dir() and (args.all or plan.is_paper_session(p.name)))
     results = [r for r in (analyze_session(s) for s in sessions) if r]
     if not results:
         print("No complete sessions found (need results/gateway/<s>/ and results/client/<s>/).")

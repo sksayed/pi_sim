@@ -82,3 +82,13 @@ DRAIN_S = 15
 
 def session_name(run_id: str, rep: int) -> str:
     return f"{run_id}_rep{rep}"
+
+
+# Repetitions reported in the paper. Reps 1-5 were development trials
+# (rules and attack rates were chosen on them); rep 10 was interrupted.
+PAPER_REPS = (6, 7, 8, 9)
+
+
+def is_paper_session(name: str) -> bool:
+    run, _, rep = name.partition("_rep")
+    return run in RUNS and rep.isdigit() and int(rep) in PAPER_REPS

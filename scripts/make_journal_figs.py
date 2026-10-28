@@ -1,8 +1,12 @@
 """Figures and summary numbers for the journal paper (paper/journal/)."""
+import sys
 from pathlib import Path
 
 import matplotlib.pyplot as plt
 import pandas as pd
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "experiments"))
+import plan  # noqa: E402
 
 OUT = Path("paper/journal/figures")
 OUT.mkdir(parents=True, exist_ok=True)
@@ -39,7 +43,8 @@ def feature_importance(top=15):
 
 
 def stage2_latency():
-    files = sorted(Path("results/gateway").glob("R*_rep*/reencrypt_metrics.csv"))
+    files = sorted(f for f in Path("results/gateway").glob("R*_rep*/reencrypt_metrics.csv")
+                   if plan.is_paper_session(f.parent.name))
     d = pd.concat([pd.read_csv(f) for f in files])
     d = d[d.pqc_available]
     cols = {"t_encap_ns": "ML-KEM-768\nencap", "t_aes_enc_ns": "AES-256-GCM\nencrypt",

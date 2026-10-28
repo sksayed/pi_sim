@@ -1,37 +1,79 @@
-\documentclass[conference]{IEEEtran}
-\IEEEoverridecommandlockouts
+% KICS 2026 Fall Conference (추계종합학술발표회) --- English paper
+% Official format: A4, 1--2 pages, Times, two-column body after a
+% full-width title/abstract block (Sample_English Paper DOC/HWP).
+% Compile: pdflatex kics_2page_pqc_matrix.tex  (run twice for citations)
+\documentclass[a4paper,twocolumn,10pt]{article}
+
 \usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{times}
 \usepackage{cite}
 \usepackage{amsmath,amssymb,amsfonts}
 \usepackage{graphicx}
 \usepackage{textcomp}
-\usepackage{xcolor}
-\usepackage{balance}
 \usepackage{booktabs}
-\usepackage{caption}
-\usepackage{hyperref}
-\hypersetup{hidelinks}
+\usepackage{url}
+\usepackage{balance}
+\usepackage[
+  a4paper,
+  top=18mm,
+  bottom=18mm,
+  left=18mm,
+  right=18mm,
+  columnsep=6mm
+]{geometry}
+\usepackage[font=small,skip=3pt,labelsep=period]{caption}
 
-\pagestyle{plain}
+\pagestyle{empty}
+
+% KICS sample uses "I. Introduction" (title case), not IEEE small-caps
+\makeatletter
+\renewcommand{\section}{\@startsection{section}{1}{\z@}%
+  {1.0ex \@plus 0.2ex \@minus 0.1ex}%
+  {0.5ex \@plus 0.1ex}%
+  {\normalfont\normalsize\bfseries}}
+\renewcommand{\subsection}{\@startsection{subsection}{2}{\z@}%
+  {0.8ex \@plus 0.1ex}%
+  {0.3ex \@plus 0.05ex}%
+  {\normalfont\normalsize\bfseries}}
+\renewcommand{\thesection}{\Roman{section}}
+\renewcommand{\thesubsection}{\arabic{subsection}}
+\renewcommand{\@seccntformat}[1]{\csname the#1\endcsname. }
+\makeatother
+
+\renewcommand{\figurename}{Fig.}
+\renewcommand{\tablename}{Table}
+\setlength{\parindent}{9pt}
+\setlength{\parskip}{0pt}
+\clubpenalty=10000
+\widowpenalty=10000
 
 \begin{document}
 
-\title{Post-Quantum Cryptography for MQTT Gateways:\\An Empirical Measurement Study on Commodity Edge Hardware}
-
-\author{\IEEEauthorblockN{Sheikh Sayed Bin Rahman, Kanita Jerin Tanha, Minsoo Kim, and Taesoo Jun}
-\IEEEauthorblockA{Pervasive Intelligent Computing Laboratory, Department of IT Convergence Engineering\\
-Kumoh National Institute of Technology, Gumi, South Korea\\
-Email: (sksayed, kanitajerin17, kms991022, taesoo.jun)@kumoh.ac.kr}}
-
-\maketitle
-
-\begin{abstract}
+\twocolumn[{%
+\centering
+{\fontsize{14}{17}\selectfont\bfseries
+Post-Quantum Cryptography for MQTT Gateways:\\
+An Empirical Measurement Study on Commodity Edge Hardware\par}
+\vspace{8pt}
+{\fontsize{11}{13}\selectfont
+Sheikh Sayed Bin Rahman, Kanita Jerin Tanha, Minsoo Kim, and Taesoo Jun$^*$\par}
+\vspace{4pt}
+{\fontsize{10}{12}\selectfont
+Pervasive Intelligent Computing Laboratory, Department of IT Convergence Engineering\\
+Kumoh National Institute of Technology, Gumi, South Korea\par}
+\vspace{2pt}
+{\fontsize{9}{11}\selectfont
+sksayed@kumoh.ac.kr, kanitajerin17@kumoh.ac.kr, kms991022@kumoh.ac.kr, $^*$taesoo.jun@kumoh.ac.kr\par}
+\vspace{10pt}
+{\normalsize\bfseries Abstract\par}
+\vspace{4pt}
+\begin{minipage}{0.98\textwidth}
+\fontsize{9}{11}\selectfont
 NIST has standardized several post-quantum key-encapsulation and signature families, but IoT gateway designers lack side-by-side measurements of what each choice costs on commodity edge hardware. We benchmark ten schemes---seven post-quantum KEM/signature pairings (ML-KEM, BIKE, FrodoKEM; ML-DSA, Falcon, SLH-DSA) and three classical baselines---on a Raspberry Pi MQTT gateway using real liboqs primitives, 18,000 live messages, and 5/10/100~KB payloads. At 5~KB, ML-KEM pairings with ML-DSA or Falcon require 0.56--0.77~ms median gateway cryptographic processing, 36--54\% less than classical ECDH+ECDSA (1.21~ms), because ML-KEM decapsulation outperforms P-256 scalar multiplication on the Cortex-A72, whereas code-based and unstructured-lattice KEMs require 18--37~ms. In our stateless implementation, per-message key regeneration dominates handler latency for Falcon and SLH-DSA (up to 174~ms), showing that key caching is essential.
-\end{abstract}
-
-\begin{IEEEkeywords}
-Post-Quantum Cryptography, ML-KEM, ML-DSA, Falcon, SLH-DSA, MQTT, IoT Gateway, Raspberry Pi, liboqs
-\end{IEEEkeywords}
+\end{minipage}
+\vspace{8pt}
+}]
 
 \section{Introduction}
 
@@ -39,21 +81,20 @@ Harvest-now-decrypt-later (HNDL) adversaries record encrypted IoT traffic today 
 
 \textbf{Contribution.} We measure ten schemes on one Raspberry Pi gateway under an identical live MQTT workload (30 scheme--payload cells, 600 messages each) and report receive-side cryptographic latency, tail latency, serialized message size, and the hidden cost of key regeneration, yielding concrete scheme recommendations for MQTT gateways.
 
-\section{Benchmark Setup}
+\section{Methodology}
 
-Each client encrypts a padded JSON payload with AES-256-GCM under a key derived from a fresh KEM encapsulation, signs it, and publishes it to a local Mosquitto broker. The gateway subscribes, decapsulates, decrypts, and verifies; we time each receive-side step with \texttt{time.perf\_counter\_ns()} and log asynchronously to avoid perturbing measurements. Gateway/device key material is reconstructed deterministically via HKDF-SHA256 from a provisioned master secret, so no key material crosses MQTT. The gateway is a Raspberry Pi~4B (Cortex-A72, 4~GB) running Python~3.11 and \texttt{liboqs-python}~\cite{oqs2023}.
+Each client encrypts a padded JSON payload with AES-256-GCM under a key derived from a fresh KEM encapsulation, signs it, and publishes it to a local Mosquitto broker. The gateway subscribes, decapsulates, decrypts, and verifies; we time each receive-side step with \texttt{time.perf\_counter\_ns()} and log asynchronously to avoid perturbing measurements. Gateway/device key material is reconstructed deterministically via HKDF-SHA256 from a provisioned master secret, so no key material crosses MQTT. The gateway is a Raspberry Pi~4B (Cortex-A72, 4~GB) running Python~3.11 and \texttt{liboqs-python}~\cite{oqs2023}. Co-locating client, broker, and gateway isolates cryptographic cost from WAN delay.
 
-We evaluate seven post-quantum pairings: ML-KEM-512 with ML-DSA-44 or Falcon-512; ML-KEM-768 with ML-DSA-65 or SLH-DSA-SHA2-128s; BIKE-L1 with ML-DSA-44; and FrodoKEM-640-AES with ML-DSA-65 or SLH-DSA-SHA2-128s. Classical baselines are two symmetric-only schemes, AES-256-GCM and ChaCha20-Poly1305, and ECDH-P256 + ECDSA-P256. Payloads are 5,120, 10,240, and 102,400 bytes. All 18,000 messages completed successfully; all signed configurations passed signature verification.
+We evaluate seven post-quantum pairings: ML-KEM-512 with ML-DSA-44 or Falcon-512; ML-KEM-768 with ML-DSA-65 or SLH-DSA-SHA2-128s; BIKE-L1 with ML-DSA-44; and FrodoKEM-640-AES with ML-DSA-65 or SLH-DSA-SHA2-128s. Classical baselines are two symmetric-only schemes, AES-256-GCM and ChaCha20-Poly1305---which perform no public-key establishment or signature verification---and ECDH-P256 + ECDSA-P256. PQC primitives use liboqs; P-256 operations use OpenSSL. Payloads are 5,120, 10,240, and 102,400 bytes. Each scheme--size cell was measured sequentially ($N=600$). The crypto timer sums key establishment, decryption, and verification; JSON parsing, Base64 decoding, and logging lie outside it but inside the full handler. All 18,000 messages completed successfully; all signed configurations passed signature verification.
 
 \section{Results}
 
-\begin{table}[!t]
+\begin{table*}[!t]
 \centering
-\captionsetup{font=footnotesize, skip=2pt}
 \caption{Gateway receive cost per message (median, ms) and serialized MQTT message size. $L$ = minimum NIST security level of the pairing; real liboqs, $N=600$ per cell. ``Crypto'' = decapsulation + decryption + verification where applicable.}
 \label{tab:matrix}
 \footnotesize
-\setlength{\tabcolsep}{2.2pt}
+\setlength{\tabcolsep}{4.5pt}
 \begin{tabular}{lcrrrrrr}
 \toprule
  & & \multicolumn{5}{c}{\textbf{5 KB payload}} & \textbf{100 KB} \\
@@ -73,16 +114,13 @@ Frodo-640 + SLH-128s   & 1  & 17.859 & 1.374 & 19.410 & 43.616 & 30,851 & 21.858
 BIKE-L1 + ML-DSA-44    & 1  & 36.126 & 0.248 & 36.550 & 54.794 & 12,677 & 39.093 \\
 \bottomrule
 \end{tabular}
-\vspace{-3mm}
-\end{table}
+\end{table*}
 
 \begin{figure*}[!t]
 \centering
-\captionsetup{font=footnotesize, skip=2pt}
-\includegraphics[width=0.9\textwidth]{figures/kics_pqc_matrix.png}
+\includegraphics[width=0.92\textwidth]{figures/kics_pqc_matrix.png}
 \caption{Left: gateway cryptographic latency (log scale) at 5~KB and 100~KB. Right: remaining handler time at 5~KB, dominated by per-message key regeneration for Falcon, SLH-DSA, BIKE, and FrodoKEM.}
 \label{fig:matrix}
-\vspace{-3mm}
 \end{figure*}
 
 \textbf{Latency.} Table~\ref{tab:matrix} and Fig.~\ref{fig:matrix} show three tiers. ML-KEM pairings with ML-DSA or Falcon require 0.56--0.77~ms gateway cryptographic processing at 5~KB, 36--54\% less than ECDH+ECDSA (1.21~ms), because ML-KEM decapsulation (0.13--0.19~ms) is 3--5$\times$ faster than P-256 ECDH scalar multiplication (0.62~ms) on the Cortex-A72. SLH-DSA verification adds about 1~ms, keeping ML-KEM-768 + SLH-DSA under 2~ms. FrodoKEM-640 (17.6~ms) and BIKE-L1 (36.1~ms) decapsulation dominate their pairings; their P95 values (44--55~ms) also show the heaviest tails. At 100~KB, AES-GCM decryption grows to about 1.9~ms and narrows the gap: ML-KEM-768 + ML-DSA-65 costs only 1.9$\times$ symmetric-only AES (3.50 vs.\ 1.86~ms). Results at 10~KB lie between the two sizes for every scheme.
@@ -91,17 +129,19 @@ BIKE-L1 + ML-DSA-44    & 1  & 36.126 & 0.248 & 36.550 & 54.794 & 12,677 & 39.093
 
 \textbf{Hidden cost of key regeneration.} In our stateless implementation, the full handler also regenerates the gateway KEM key pair and device verification key for every message. For ML-KEM/ML-DSA this adds only 1.3--1.6~ms, but Falcon-512 adds 22~ms, FrodoKEM 19~ms, BIKE 45~ms, and SLH-DSA 155--174~ms (Fig.~\ref{fig:matrix}, right), about 90$\times$ the cryptographic work itself. Practical gateways should therefore cache key pairs per device and KEM rather than rederiving them.
 
-\textbf{Recommendation.} For MQTT gateways, ML-KEM-768 + ML-DSA-65 offers NIST Level~3 at under 0.8~ms and a 5.9~KB per-message overhead; ML-KEM-512 + Falcon-512 is the most bandwidth-efficient Level~1 option; SLH-DSA suits conservative deployments if keys are cached; FrodoKEM and BIKE are better suited to latency-tolerant links.
+\textbf{Recommendation.} For MQTT gateways, ML-KEM-768 + ML-DSA-65 offers NIST Level~3 at under 0.8~ms and a 5.9~KB per-message overhead; ML-KEM-512 + Falcon-512 is the most bandwidth-efficient Level~1 option; SLH-DSA suits conservative deployments if keys are cached; FrodoKEM and BIKE are better suited to latency-tolerant links. These rankings are receive-side cryptographic costs under a single-publisher workload; they do not include multi-client contention or energy.
 
 \section{Conclusion}
 
-On a Raspberry Pi MQTT gateway, receive-side ML-KEM pairings with ML-DSA or Falcon are faster than classical ECDH+ECDSA, while FrodoKEM and BIKE pairings are 23--47$\times$ slower than ML-KEM-768 + ML-DSA-65 and enlarge messages substantially. Key caching, not algorithm choice alone, determines whether Falcon and SLH-DSA are practical. Future work will add energy measurements and multi-gateway deployments.
+On a Raspberry Pi MQTT gateway, receive-side ML-KEM pairings with ML-DSA or Falcon are faster than classical ECDH+ECDSA, while FrodoKEM and BIKE pairings are 23--47$\times$ slower than ML-KEM-768 + ML-DSA-65 and enlarge messages substantially. The Falcon/SLH-DSA handler penalty is an artifact of per-message key regeneration, not of verification itself, so key caching---not algorithm choice alone---determines whether those signatures are practical. Future work will add energy measurements and multi-gateway deployments.
 
-\noindent\textbf{Acknowledgment.} Funded by NRF (MSIT; RS-2026-25497739, 34\%), IITP Innovative Human Resource Development for Local Intellectualization (MSIT; IITP-2026-RS-2020-II201612, 33\%), and NRF Basic Science Research Program (MOE; 2018R1A6A1A03024003, 33\%).
+\section*{ACKNOWLEDGMENT}
+
+This work was funded by NRF (MSIT; RS-2026-25497739, 34\%), IITP Innovative Human Resource Development for Local Intellectualization (MSIT; IITP-2026-RS-2020-II201612, 33\%), and NRF Basic Science Research Program (MOE; 2018R1A6A1A03024003, 33\%).
+
 \balance
-
 \begin{thebibliography}{9}
-\footnotesize
+\fontsize{8}{9.5}\selectfont
 
 \bibitem{shor1994}
 P.~W. Shor, ``Algorithms for quantum computation: Discrete logarithms and factoring,'' in \textit{Proc. 35th FOCS}, 1994, pp.~124--134.

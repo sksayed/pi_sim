@@ -13,6 +13,8 @@ from pathlib import Path
 
 import numpy as np
 
+import plan
+
 REPO_ROOT = Path(__file__).resolve().parent.parent
 RESULTS = REPO_ROOT / "results"
 OUT = RESULTS / "analysis"
@@ -46,7 +48,8 @@ def _stats(values: list[float]) -> dict:
 
 
 def _sessions() -> list[Path]:
-    return sorted(p for p in (RESULTS / "gateway").iterdir() if (p / "meta.json").exists())
+    return sorted(p for p in (RESULTS / "gateway").iterdir()
+                  if (p / "meta.json").exists() and plan.is_paper_session(p.name))
 
 
 def main() -> None:

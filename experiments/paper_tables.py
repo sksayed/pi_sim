@@ -18,6 +18,7 @@ from pathlib import Path
 
 import numpy as np
 
+import plan
 from analyze import RESULTS, Labeller
 
 OUT = RESULTS / "analysis" / "paper_tables.json"
@@ -57,7 +58,7 @@ def session_sources(session: str) -> dict:
 def main() -> None:
     per_run: dict[str, list[dict]] = defaultdict(list)
     for gw in sorted((RESULTS / "gateway").iterdir()):
-        if not (gw / "meta.json").exists():
+        if not (gw / "meta.json").exists() or not plan.is_paper_session(gw.name):
             continue
         run = json.loads((gw / "meta.json").read_text())["run"]
         per_run[run].append({"session": gw.name, "sources": session_sources(gw.name)})
