@@ -246,20 +246,32 @@ A third stage (for example: actual cloud publish + verify/decap, key provisionin
 1. **Not silently change Stage 1 policies or `PAPER_REPS`** if the journal numbers must stay reproducible.
 2. **Not mix development trials (reps 1–5) into paper tables.**
 3. Keep MQTT topic contract: `nodes/{device_id}/data`, JSON with `crypto_type`, etc. (`CLAUDE.md`).
-4. Decide whether Stage 2’s envelope is finally **transmitted**; today it is not.
+4. Stage 2’s envelope is transmitted only when `GW_CLOUD_FORWARD=1` (HTTPS POST to the PC). Default off, so reps 6–9 stay unchanged.
 5. If you change key generation, **both Pis must pull the same commit** or every message fails.
 6. If you change the firewall, re-run at least a short R1, then R3/R4, on **new rep numbers** (e.g. start at 11). Do not overwrite 6–9.
 7. Prefer new modules/directories (`stage3/`, `cloud/`) over rewriting `mqtt_firewall.py` unless the new stage is really IPS policy.
 
 Suggested first implementation steps when you begin:
 
-- Write a one-page threat/goal note for the new stage (what adversary, what is measured).
 - List which existing timers/CSV columns you will reuse vs new files under `results/`.
 - Keep `.env` / private keys out of git.
 
 ---
 
-## 9. Communication leftover for the next agent
+## 9. Cloud end-to-end extension (HTTPS, not part of the journal numbers)
+
+Off unless `GW_CLOUD_FORWARD=1`. The path is IoT Pi → MQTT → gateway Pi → HTTPS port 8443 → Windows PC on the same hotspot.
+
+- Stage 2 still builds the ML-KEM-768 + AES-256-GCM + ML-DSA-65 envelope. A background thread POSTs it (`gateway/cloud_uplink.py`). The MQTT callback does not wait. HTTPS time is not added to the Stage 2 CSV.
+- The PC runs `python -m cloud.https_server`. It verifies ML-DSA, decapsulates ML-KEM, decrypts AES-GCM, then applies replay rules. HTTP 200 only after that. A retry of the last accepted seq returns `duplicate=true` and is not stored again. An older seq returns 409 and is not retried.
+- Gateway ML-DSA private key and cloud ML-KEM private key are generated with the system RNG (`python -m cloud.provision`). They are not derived from `MASTER_SECRET`. Public keys are pinned by SHA-256 in `keys/trust.json`. TLS verification stays on.
+- Logs: `results/cloud/uplink.jsonl`, `results/cloud/replay_state.json`, `results/gateway/cloud_uplink.jsonl`. No database.
+- `cloud/cloud_receiver.py` (MQTT) is retired.
+- Second client Pi runs `experiments/extra_client.py` (traffic only). Do not run `client_runner.py` on both Pis.
+- Run steps: `docs/e2e_cloud.md`. Local wiring check: `python cloud/e2e_selftest.py`.
+- Use new rep numbers (11+). Do not overwrite reps 6–9.
+
+## 10. Communication leftover for the next agent
 
 - Raspberry Pi path on devices was `~/Desktop/pi_project/pi_sim`.
 - Gateway agent waits on TCP **9100**; UDP beacon **9101**.

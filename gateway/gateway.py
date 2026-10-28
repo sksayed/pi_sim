@@ -85,6 +85,7 @@ load_dotenv(dotenv_path=Path(__file__).resolve().parents[1] / ".env")
 
 GATEWAY_IP   = os.getenv("GATEWAY_IP", "127.0.0.1")
 GATEWAY_PORT = int(os.getenv("GATEWAY_PORT", 1883))
+CLOUD_FORWARD = os.getenv("GW_CLOUD_FORWARD", "0").strip().lower() in ("1", "true", "yes", "on")
 
 # ── State ──────────────────────────────────────────────────────────────────────
 # Maps (device_id, session_id) → last_seq.
@@ -600,7 +601,7 @@ _HANDLERS = {
 
 # ── MQTT callbacks ─────────────────────────────────────────────────────────────
 
-def _make_on_message(km):
+def _make_on_message(km, uplink=None):
     def on_message(client, userdata, mqtt_msg):
         t_recv_ns      = time.time_ns()
         t_handler_start = time.perf_counter_ns()
@@ -641,7 +642,9 @@ def _make_on_message(km):
         # Attach raw payload size for gateway benchmarking (crypto-only timing is
         # recorded inside handlers).
         msg["_payload_bytes"] = len(mqtt_msg.payload)
-        handler(km, msg, t_recv_ns, t_handler_start)
+        payload = handler(km, msg, t_recv_ns, t_handler_start)
+        if uplink is not None and isinstance(payload, dict) and payload.get("ciphertext"):
+            uplink.submit(payload, t_recv_ns)
 
     return on_message
 
@@ -670,9 +673,19 @@ def main() -> None:
     print(f"[GATEWAY] Crypto mode : {mode}")
     print(f"[GATEWAY] Replay protection : enabled (per-device seq tracking)")
 
+    uplink = None
+    if CLOUD_FORWARD:
+        sys.path.insert(0, str(_GW_DIR))
+        from cloud_uplink import start_from_env
+        try:
+            uplink = start_from_env()
+        except Exception as exc:
+            print(f"[GATEWAY] Cloud uplink disabled: {exc}", file=sys.stderr)
+            sys.exit(1)
+
     client = mqtt.Client(client_id=f"gateway-{uuid.uuid4().hex[:8]}", clean_session=True)
     client.on_connect    = on_connect
-    client.on_message    = _make_on_message(km)
+    client.on_message    = _make_on_message(km, uplink)
     client.on_disconnect = on_disconnect
 
     print(f"[GATEWAY] Connecting to broker at {GATEWAY_IP}:{GATEWAY_PORT} …")

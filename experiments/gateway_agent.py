@@ -68,6 +68,15 @@ def _broker_listens_on_lan() -> bool:
     )
 
 
+def _allow_ips(run: dict, cloud: str = "") -> str:
+    """Loopback allow-list for R4, plus the cloud PC when CLOUD_ALLOW_IP is set."""
+    ips = list(plan.INFRA_ALLOW_IPS) if run["allow_list"] else []
+    cloud = cloud.strip()
+    if cloud and cloud not in ips:
+        ips.append(cloud)
+    return ",".join(ips)
+
+
 def _restart_mosquitto() -> None:
     _sh(["systemctl", "restart", "mosquitto"], check=True)
     if not _wait_for_port("127.0.0.1", plan.MQTT_PORT, 20):
@@ -133,7 +142,7 @@ class Agent:
             "FW_MODEL_PATH": str(REPO_ROOT / "firewall" / "lightgbm_model.txt"),
             "FW_SCALER_PATH": str(REPO_ROOT / "firewall" / "standard_scaler.pkl"),
             "FW_BLOCK_VERDICT": "true" if run["block"] else "false",
-            "FW_ALLOW_IPS": ",".join(plan.INFRA_ALLOW_IPS) if run["allow_list"] else "",
+            "FW_ALLOW_IPS": _allow_ips(run, env.get("CLOUD_ALLOW_IP", "")),
             "FW_LOG_FILE": str(out / "firewall.log"),
             "FW_JSONL_FILE": str(out / "firewall.jsonl"),
             "GATEWAY_IP": "127.0.0.1",

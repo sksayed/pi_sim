@@ -5,7 +5,9 @@ Single responsibility: receive a plaintext benign sensor message that has passed
 the firewall, re-encrypt it with a PQC KEM + signature + AES-256-GCM scheme, and
 log all pipeline timing metrics to CSV for paper analysis.
 
-The encrypted payload is printed as CLOUD-READY (actual cloud forwarding is Phase 3).
+The encrypted payload is printed as CLOUD-READY. If GW_CLOUD_FORWARD=1, a background
+thread POSTs it to the cloud PC over HTTPS. The MQTT callback does not wait.
+Default is off, so the labelled paper runs do not send anything.
 
 Configuration (env vars):
     GW_REENCRYPT_KEM    KEM algorithm   (default: ML-KEM-768)
@@ -59,6 +61,17 @@ REENCRYPT_CSV    = os.getenv(
     "GW_REENCRYPT_CSV_PATH",
     str(_REPO_ROOT / "benchmarks" / "gateway" / "reencrypt_metrics.csv"),
 )
+
+# (kem_alg, sig_alg, cloud_public_key, gateway_signing_key, relay_id)
+# None keeps the journal path: both keys are derived from MASTER_SECRET.
+_UPLINK: tuple[str, str, bytes, bytes, str] | None = None
+
+
+def use_provisioned_uplink(kem_alg: str, sig_alg: str, cloud_pk: bytes,
+                           gateway_sk: bytes, relay_id: str = "gateway") -> None:
+    """Use independently generated cloud and gateway keys for the HTTPS path."""
+    global _UPLINK
+    _UPLINK = (kem_alg, sig_alg, cloud_pk, gateway_sk, relay_id)
 
 _CSV_FIELDS = [
     "ts_unix_ns",
@@ -199,15 +212,22 @@ def handle_benign(km, msg: dict, t_recv_ns: int = 0, t_handler_start: int = 0) -
     }, separators=(",", ":")).encode()
 
     try:
-        # Derive cloud-side KEM public key (gateway knows cloud's public key)
-        gw_pk, _ = km.kem_keypair(REENCRYPT_KEM)
-
-        # Derive signing key for this relay device
-        _, sig_sk = km.sig_keypair(REENCRYPT_SIG, CLOUD_DEVICE_ID)
+        # Derive keys only when Phase 3 has not installed an independent pair.
+        # The journal path keeps HKDF derivation. The HTTPS path uses a cloud
+        # public key and a gateway signing key that were generated with the
+        # system RNG and never leave their own machines.
+        if _UPLINK is None:
+            kem_alg = REENCRYPT_KEM
+            sig_alg = REENCRYPT_SIG
+            cloud_pk, _ = km.kem_keypair(kem_alg)
+            _, sig_sk = km.sig_keypair(sig_alg, CLOUD_DEVICE_ID)
+            relay_id = CLOUD_DEVICE_ID
+        else:
+            kem_alg, sig_alg, cloud_pk, sig_sk, relay_id = _UPLINK
 
         # ── KEM encapsulate ────────────────────────────────────────────────────
         t0 = time.perf_counter_ns()
-        kem_ct, shared_secret = km.kem_encapsulate(REENCRYPT_KEM, gw_pk)
+        kem_ct, shared_secret = km.kem_encapsulate(kem_alg, cloud_pk)
         t1 = time.perf_counter_ns()
 
         # ── AES-256-GCM encrypt ────────────────────────────────────────────────
@@ -219,7 +239,7 @@ def handle_benign(km, msg: dict, t_recv_ns: int = 0, t_handler_start: int = 0) -
         # ── Sign encrypted envelope ────────────────────────────────────────────
         signed_message = encode_signed_envelope(device_id, seq, kem_ct, nonce, ciphertext)
         t4 = time.perf_counter_ns()
-        signature = km.sig_sign(REENCRYPT_SIG, signed_message, sig_sk)
+        signature = km.sig_sign(sig_alg, signed_message, sig_sk)
         t5 = time.perf_counter_ns()
 
         t_done = time.perf_counter_ns()
@@ -232,10 +252,11 @@ def handle_benign(km, msg: dict, t_recv_ns: int = 0, t_handler_start: int = 0) -
 
         cloud_payload = {
             "device_id":     device_id,
-            "relay_id":      CLOUD_DEVICE_ID,
+            "relay_id":      relay_id,
             "seq":           seq,
-            "kem":           REENCRYPT_KEM,
-            "sig":           REENCRYPT_SIG,
+            "t_publish_ns":  t_publish_ns,
+            "kem":           kem_alg,
+            "sig":           sig_alg,
             "kem_ciphertext": base64.b64encode(kem_ct).decode(),
             "nonce":          base64.b64encode(nonce).decode(),
             "ciphertext":     base64.b64encode(ciphertext).decode(),
@@ -245,7 +266,7 @@ def handle_benign(km, msg: dict, t_recv_ns: int = 0, t_handler_start: int = 0) -
         _wan = f"wan_ms={t_broker_transit_ns/1e6:.2f}  " if LOG_WAN_TRANSIT else ""
         print(
             f"[BENIGN-PIPELINE] CLOUD-READY  device={device_id}  seq={seq}  "
-            f"kem={REENCRYPT_KEM}  sig={REENCRYPT_SIG}  "
+            f"kem={kem_alg}  sig={sig_alg}  "
             f"{_wan}"
             f"reencrypt={t_reencrypt_ns/1e6:.2f}ms  "
             f"on_device_gw={t_recv_to_done/1e6:.2f}ms"
@@ -255,8 +276,8 @@ def handle_benign(km, msg: dict, t_recv_ns: int = 0, t_handler_start: int = 0) -
             ts_unix_ns          = time.time_ns(),
             device_id           = device_id,
             seq                 = seq,
-            kem                 = REENCRYPT_KEM,
-            sig                 = REENCRYPT_SIG,
+            kem                 = kem_alg,
+            sig                 = sig_alg,
             payload_bytes       = len(plaintext),
             t_publish_ns        = t_publish_ns,
             t_broker_transit_ns = t_broker_transit_ns,
