@@ -2,8 +2,10 @@
 """
 gateway_agent.py — Gateway-Pi side of the labelled live evaluation.
 
-Run once on the gateway Pi, then start experiments/client_runner.py on the
-client Pi. The client tells this agent when each session starts and stops.
+Run once on the gateway Pi, then start experiments/client_runner.py on Client
+Pi A. Pi A tells this agent when each session starts and stops. Optional peer
+Pis run experiments/extra_client.py, call status/register_peer, and never start
+or stop the session.
 
     sudo .venv/bin/python experiments/gateway_agent.py
 
@@ -181,11 +183,37 @@ class Agent:
             "gateway_host": socket.gethostname(),
             "gateway_lan_ip": req.get("gateway_ip", ""),
             "client_ip": peer_ip,
+            "peer_clients": [],
             "git_commit": _git_commit(),
             "start_wall_ns": time.time_ns(),
         }
         print(f"[AGENT] {session} running (client {peer_ip})")
-        return {"ok": True, "gw_time": time.time()}
+        return {"ok": True, "gw_time": time.time(), "session": session}
+
+    def status(self) -> dict:
+        return {
+            "ok": True,
+            "gw_time": time.time(),
+            "host": socket.gethostname(),
+            "session": self.session,
+            "controller_ip": (self.meta or {}).get("client_ip"),
+            "peer_clients": list((self.meta or {}).get("peer_clients", [])),
+        }
+
+    def register_peer(self, req: dict, peer_ip: str) -> dict:
+        """Record an extra client Pi. Does not start or stop the session."""
+        if not self.session:
+            return {"ok": False, "error": "no active session"}
+        want = req.get("session")
+        if want and want != self.session:
+            return {"ok": False, "error": f"active session is {self.session}, not {want}"}
+        tag = str(req.get("tag") or "peer").strip() or "peer"
+        entry = {"tag": tag, "client_ip": peer_ip, "host": req.get("host", "")}
+        peers = self.meta.setdefault("peer_clients", [])
+        peers[:] = [p for p in peers if not (p.get("tag") == tag or p.get("client_ip") == peer_ip)]
+        peers.append(entry)
+        print(f"[AGENT] peer registered tag={tag} ip={peer_ip} for {self.session}")
+        return {"ok": True, "session": self.session, "peer_clients": peers}
 
     # ── stop ───────────────────────────────────────────────────────────────────
     def stop(self, req: dict) -> dict:
@@ -212,13 +240,17 @@ class Agent:
         return {"ok": True}
 
 
-def _beacon(stop: threading.Event) -> None:
-    """Broadcast this agent's presence so the client Pi can find it without an IP."""
-    msg = json.dumps({"magic": plan.BEACON_MAGIC, "port": plan.CONTROL_PORT,
-                      "host": socket.gethostname()}).encode()
+def _beacon(stop: threading.Event, agent: "Agent") -> None:
+    """Broadcast this agent's presence so client Pis can find it without an IP."""
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
         s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
         while not stop.is_set():
+            msg = json.dumps({
+                "magic": plan.BEACON_MAGIC,
+                "port": plan.CONTROL_PORT,
+                "host": socket.gethostname(),
+                "session": agent.session,
+            }).encode()
             try:
                 s.sendto(msg, ("255.255.255.255", plan.BEACON_PORT))
             except OSError:
@@ -239,7 +271,12 @@ class Handler(socketserver.StreamRequestHandler):
             req = json.loads(self.rfile.readline().decode())
             cmd = req.get("cmd")
             if cmd == "ping":
-                resp = {"ok": True, "gw_time": time.time(), "host": socket.gethostname()}
+                resp = {"ok": True, "gw_time": time.time(), "host": socket.gethostname(),
+                        "session": agent.session}
+            elif cmd == "status":
+                resp = agent.status()
+            elif cmd == "register_peer":
+                resp = agent.register_peer(req, self.client_address[0])
             elif cmd == "start":
                 resp = agent.start(req, self.client_address[0])
             elif cmd == "stop":
@@ -265,15 +302,20 @@ def main() -> int:
 
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
     _chown_to_user(REPO_ROOT / "results")
+    try:
+        from cloud.setup_gateway import ensure_gateway_cloud
+        ensure_gateway_cloud(require_bundle=False)
+    except Exception as exc:
+        print(f"[AGENT] cloud setup skipped: {exc}", file=sys.stderr)
     agent = Agent()
     stop_beacon = threading.Event()
-    threading.Thread(target=_beacon, args=(stop_beacon,), daemon=True).start()
+    threading.Thread(target=_beacon, args=(stop_beacon, agent), daemon=True).start()
     socketserver.TCPServer.allow_reuse_address = True
     with socketserver.TCPServer(("0.0.0.0", args.port), Handler) as server:
         server.agent = agent  # type: ignore[attr-defined]
         server.finished = False  # type: ignore[attr-defined]
         server.timeout = 1.0
-        print(f"[AGENT] Waiting for the client Pi on port {args.port} (Ctrl+C to quit)")
+        print(f"[AGENT] Waiting for client Pis on port {args.port} (Ctrl+C to quit)")
         try:
             while not server.finished:  # type: ignore[attr-defined]
                 server.handle_request()

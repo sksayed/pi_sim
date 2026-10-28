@@ -263,11 +263,11 @@ Suggested first implementation steps when you begin:
 Off unless `GW_CLOUD_FORWARD=1`. The path is IoT Pi → MQTT → gateway Pi → HTTPS port 8443 → Windows PC on the same hotspot.
 
 - Stage 2 still builds the ML-KEM-768 + AES-256-GCM + ML-DSA-65 envelope. A background thread POSTs it (`gateway/cloud_uplink.py`). The MQTT callback does not wait. HTTPS time is not added to the Stage 2 CSV.
-- The PC runs `python -m cloud.https_server`. It verifies ML-DSA, decapsulates ML-KEM, decrypts AES-GCM, then applies replay rules. HTTP 200 only after that. A retry of the last accepted seq returns `duplicate=true` and is not stored again. An older seq returns 409 and is not retried.
+- The PC runs `python -m cloud.setup_pc` (auto IP/TLS/env/portproxy + server) or `python -m cloud.https_server`. It verifies ML-DSA, decapsulates ML-KEM, decrypts AES-GCM, then applies replay rules. HTTP 200 only after that. A retry of the last accepted seq returns `duplicate=true` and is not stored again. An older seq returns 409 and is not retried.
 - Gateway ML-DSA private key and cloud ML-KEM private key are generated with the system RNG (`python -m cloud.provision`). They are not derived from `MASTER_SECRET`. Public keys are pinned by SHA-256 in `keys/trust.json`. TLS verification stays on.
 - Logs: `results/cloud/uplink.jsonl`, `results/cloud/replay_state.json`, `results/gateway/cloud_uplink.jsonl`. No database.
 - `cloud/cloud_receiver.py` (MQTT) is retired.
-- Second client Pi runs `experiments/extra_client.py` (traffic only). Do not run `client_runner.py` on both Pis.
+- Second client Pi runs `experiments/extra_client.py`: auto-finds the agent, waits for Pi A’s session, registers as a peer, logs CSVs under `results/client/<session>/peers/<tag>/`. Do not run `client_runner.py` on both Pis. `analyze.py` / `paper_tables.py` label both client IPs.
 - Run steps: `docs/e2e_cloud.md`. Local wiring check: `python cloud/e2e_selftest.py`.
 - Use new rep numbers (11+). Do not overwrite reps 6–9.
 

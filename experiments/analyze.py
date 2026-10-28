@@ -9,11 +9,15 @@ After both Pis have pushed, pull on any machine and run:
 Reads results/gateway/<session>/ and results/client/<session>/ and writes
 results/analysis/summary.md and summary.json (per session and mean ± SD per run).
 
-Flow labels (ground truth), from the client Pi's logs:
-  infrastructure  client IP is the gateway itself (its own subscriber)
-  benign          client Pi IP and a port recorded in benign_conns.csv
-  <attack name>   client Pi IP, other port, first packet inside that attack's window
-  unlabelled      client Pi IP, outside every window and not a benign port
+Flow labels (ground truth), from Client Pi A and optional peer Pis:
+  results/client/<session>/                 — Pi A (session controller)
+  results/client/<session>/peers/<tag>/     — Pi B, ... (extra_client.py)
+
+  infrastructure  packet from the gateway itself
+  benign          known client IP and a port in that Pi's benign_conns.csv
+  <attack name>   known client IP, other port, first packet in that Pi's attack window
+  unlabelled      known client IP, outside every window and not a benign port
+  other           unknown source IP
 """
 
 from __future__ import annotations
@@ -58,26 +62,76 @@ def _events(gw_dir: Path):
                 continue
 
 
+def client_log_dirs(client_dir: Path) -> list[Path]:
+    """Primary client dir plus any peers/<tag> directories written by extra_client."""
+    dirs = [client_dir] if client_dir.is_dir() else []
+    peers = client_dir / "peers"
+    if peers.is_dir():
+        dirs.extend(sorted(p for p in peers.iterdir() if p.is_dir()))
+    return dirs
+
+
+def _load_client_ground_truth(path: Path, fallback_ip: str | None = None,
+                              fallback_offset: float = 0.0) -> dict | None:
+    meta_path = path / "meta.json"
+    meta = json.loads(meta_path.read_text()) if meta_path.exists() else {}
+    ip = meta.get("client_ip") or fallback_ip
+    if not ip:
+        return None
+    ports = {int(r["local_port"]) for r in _read_csv(path / "benign_conns.csv")
+             if r["local_port"] not in ("", "0")}
+    windows = [(r["attack"], int(r["start_wall_ns"]) / 1e9, int(r["end_wall_ns"]) / 1e9)
+               for r in _read_csv(path / "attack_windows.csv")]
+    return {
+        "client_ip": ip,
+        "offset": float(meta.get("clock_offset_s", fallback_offset)),
+        "benign_ports": ports,
+        "windows": windows,
+        "dir": path,
+        "tag": meta.get("tag") or path.name,
+    }
+
+
 class Labeller:
     def __init__(self, cmeta: dict, gmeta: dict, client_dir: Path, flow_timeout_s: float):
-        self.client_ip = gmeta.get("client_ip") or cmeta["client_ip"]
-        self.infra_ips = {"127.0.0.1", cmeta.get("gateway_ip", "")}
-        self.offset = cmeta.get("clock_offset_s", 0.0)
-        self.benign_ports = {int(r["local_port"]) for r in _read_csv(client_dir / "benign_conns.csv")
-                             if r["local_port"] not in ("", "0")}
-        self.windows = [(r["attack"], int(r["start_wall_ns"]) / 1e9, int(r["end_wall_ns"]) / 1e9)
-                        for r in _read_csv(client_dir / "attack_windows.csv")]
+        self.infra_ips = {"127.0.0.1", cmeta.get("gateway_ip", ""), gmeta.get("gateway_lan_ip", "")}
+        self.infra_ips.discard("")
         self.grace_after = flow_timeout_s + 5.0
+        self.by_ip: dict[str, dict] = {}
+        primary_ip = gmeta.get("client_ip") or cmeta.get("client_ip")
+        primary_offset = float(cmeta.get("clock_offset_s", 0.0))
+        for path in client_log_dirs(client_dir):
+            is_primary = path == client_dir
+            gt = _load_client_ground_truth(
+                path,
+                fallback_ip=primary_ip if is_primary else None,
+                fallback_offset=primary_offset if is_primary else 0.0,
+            )
+            if gt:
+                self.by_ip[gt["client_ip"]] = gt
+        for peer in gmeta.get("peer_clients") or []:
+            ip = peer.get("client_ip")
+            if ip and ip not in self.by_ip:
+                self.by_ip[ip] = {
+                    "client_ip": ip, "offset": 0.0, "benign_ports": set(),
+                    "windows": [], "dir": None, "tag": peer.get("tag", "peer"),
+                }
+        # Back-compat for callers that still read a single controller IP / window list.
+        self.client_ip = primary_ip
+        self.offset = primary_offset
+        self.benign_ports = set().union(*(g["benign_ports"] for g in self.by_ip.values())) if self.by_ip else set()
+        self.windows = [w for g in self.by_ip.values() for w in g["windows"]]
 
     def __call__(self, ip: str, port: int, proto: int, first_ns: int) -> str:
         if ip in self.infra_ips:
             return "infrastructure"
-        if ip != self.client_ip:
+        gt = self.by_ip.get(ip)
+        if gt is None:
             return "other"
-        if proto == 6 and port in self.benign_ports:
+        if proto == 6 and port in gt["benign_ports"]:
             return "benign"
-        t = first_ns / 1e9 - self.offset
-        for name, start, end in self.windows:
+        t = first_ns / 1e9 - gt["offset"]
+        for name, start, end in gt["windows"]:
             if start - WINDOW_GRACE_BEFORE_S <= t <= end + self.grace_after:
                 return name
         return "unlabelled"
@@ -165,10 +219,15 @@ def analyze_session(session: str) -> dict | None:
         prf["f1"] = 2 * prf["precision"] * prf["recall"] / (prf["precision"] + prf["recall"])
 
     result = {"session": session, "run": cmeta["run"], "rep": cmeta["rep"],
-              "client_ip": label.client_ip, "sources": sources, "detection": prf}
+              "client_ip": label.client_ip,
+              "client_ips": sorted(label.by_ip),
+              "sources": sources, "detection": prf}
 
     if cmeta["run_config"].get("block"):
-        sent = {(r["device_id"], r["seq"]) for r in _read_csv(cl_dir / "benign_sends.csv") if r["rc"] == "0"}
+        sent = set()
+        for path in client_log_dirs(cl_dir):
+            sent |= {(r["device_id"], r["seq"]) for r in _read_csv(path / "benign_sends.csv")
+                     if r.get("rc") == "0"}
         devices = {d for d, _ in sent}
         recv = {(r["device_id"], r["seq"]) for r in _read_csv(gw_dir / "reencrypt_metrics.csv")
                 if r["device_id"] in devices}

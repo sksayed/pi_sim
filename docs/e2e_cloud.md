@@ -12,31 +12,24 @@ The PC is a LAN stand-in for a cloud receiver. It does not receive raw IP packet
 
 Device-to-gateway keys are unchanged (`MASTER_SECRET`). The gateway signing key and the cloud KEM key are generated separately. Each private key stays on the machine that created it.
 
-## One-time keys and certificate
+## PC + gateway cloud setup (automated)
 
-On the **PC**, from the repo root, with liboqs installed:
-
-```bash
-python -m cloud.provision --role cloud --out keys/cloud
-python -m cloud.provision --tls --ip <PC_HOTSPOT_IP> --out keys/tls
-```
-
-On the **gateway Pi**:
+**PC (Windows/WSL)** — one command:
 
 ```bash
-python -m cloud.provision --role gateway --out keys/gateway
+python -m cloud.https_server
 ```
 
-Copy `keys/cloud/kem.pk` and `keys/cloud/kem.alg` to the gateway. Copy `keys/gateway/sig.pk` and `keys/gateway/sig.alg` to the PC. Copy `keys/tls/cloud.crt` to the gateway. Leave `kem.sk` on the PC and `sig.sk` on the gateway.
+On start it calls `cloud.setup_pc`: detects the Wi-Fi IP, refreshes TLS/`.env.cloud`/portproxy when the IP changes, rebuilds `keys/for_gateway_pi.tar.gz`, then serves on port 8443.
 
-Compare the SHA-256 printed at generation with the file you copied, then pin it. Do this on each machine for the public key it received:
+**Gateway Pi** — after the tarball is on the Pi (scp, or set `GATEWAY_SSH=user@gateway-ip` in `.env.cloud` on the PC for auto-push):
 
 ```bash
-python -m cloud.provision --pin keys/cloud/kem.pk --label cloud_kem_pk --trust keys/trust.json
-python -m cloud.provision --pin keys/gateway/sig.pk --label gateway_sig_pk --trust keys/trust.json
+python -m cloud.setup_gateway
+sudo .venv/bin/python experiments/gateway_agent.py
 ```
 
-The fingerprint must match the one printed where the key was generated. A mismatch refuses to start.
+`gateway_agent` also runs `setup_gateway` automatically if the tarball is present. Pasteable agent instructions: `docs/GATEWAY_PI_SETUP_PROMPT.md`.
 
 ## Gateway `.env`
 
@@ -75,6 +68,8 @@ This uses port 18443 and a temporary directory. It is a wiring check. It does no
 **1. PC**
 
 ```bash
+python -m cloud.setup_pc
+# or, if keys/env are already current:
 python -m cloud.https_server
 ```
 
@@ -95,13 +90,17 @@ sudo .venv/bin/python experiments/client_runner.py --runs R1 --reps 1 --first-re
 
 Use a new rep number (11 or higher). Do not reuse reps 6–9.
 
-**4. Client Pi B** (traffic only; do not run `client_runner.py` here):
+**4. Client Pi B** (peer; do not run `client_runner.py` here):
+
+Start this after the agent is up. It finds the gateway by the same UDP beacon as Pi A, waits until Pi A starts a session, then joins:
 
 ```bash
-sudo .venv/bin/python experiments/extra_client.py --gateway <GATEWAY_PI_IP> --tag pi2
+sudo .venv/bin/python experiments/extra_client.py --tag pi2
 ```
 
-Add `--attacks` on Pi B if that Pi should send the attack list once.
+Optional: `--gateway <IP>`, `--session R1_rep11`, `--attacks`.
+
+Pi B writes ground truth under `results/client/<session>/peers/pi2/` (`benign_conns.csv`, `benign_sends.csv`, `attack_windows.csv`, `meta.json`). After you pull both Pis’ results onto one machine, `experiments/analyze.py` labels flows from both client IPs.
 
 ## What the logs mean
 

@@ -19,7 +19,7 @@ from pathlib import Path
 import numpy as np
 
 import plan
-from analyze import RESULTS, Labeller
+from analyze import RESULTS, Labeller, client_log_dirs
 
 OUT = RESULTS / "analysis" / "paper_tables.json"
 
@@ -29,9 +29,24 @@ def session_sources(session: str) -> dict:
     gmeta = json.loads((gw / "meta.json").read_text())
     cmeta = json.loads((cl / "meta.json").read_text())
     label = Labeller(cmeta, gmeta, cl, float(gmeta["fw_settings"].get("FW_FLOW_TIMEOUT_S", 10)))
-    with open(cl / "benign_conns.csv") as fh:
-        port_client = {int(r["local_port"]): r["client"] for r in csv.DictReader(fh)
-                       if r["local_port"] not in ("", "0")}
+    # Key by (source IP, local port) so Pi A and Pi B ports never collide.
+    port_client: dict[tuple[str, int], str] = {}
+    for path in client_log_dirs(cl):
+        peer_meta = {}
+        meta_path = path / "meta.json"
+        if meta_path.exists():
+            peer_meta = json.loads(meta_path.read_text())
+        fallback_ip = peer_meta.get("client_ip") or cmeta.get("client_ip")
+        tag = peer_meta.get("tag")
+        with open(path / "benign_conns.csv") as fh:
+            for r in csv.DictReader(fh):
+                if r["local_port"] in ("", "0"):
+                    continue
+                ip = r.get("local_ip") or fallback_ip
+                name = r["client"]
+                if tag and path != cl:
+                    name = f"{tag}_{name}"
+                port_client[(ip, int(r["local_port"]))] = name
     verdicts = defaultdict(int)
     flagged = defaultdict(int)
     conns = defaultdict(set)
@@ -43,7 +58,8 @@ def session_sources(session: str) -> dict:
                 continue
             src = label(e["client_ip"], e["client_port"], e["flow_proto"], e["nfqueue_first_wall_ns"])
             if src == "benign":
-                src = "benign_" + port_client[e["client_port"]]
+                src = "benign_" + port_client.get(
+                    (e["client_ip"], e["client_port"]), "unknown")
             conn = (e["client_ip"], e["client_port"], e["flow_proto"])
             verdicts[src] += 1
             conns[src].add(conn)

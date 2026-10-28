@@ -262,10 +262,33 @@ def make_server() -> ThreadingHTTPServer:
 
 
 def main() -> int:
+    # Auto-detect Wi-Fi IP changes, refresh TLS/.env.cloud/portproxy/bundle, then serve.
+    try:
+        from cloud.setup_pc import prepare_cloud_pc
+        prepare_cloud_pc()
+    except Exception as exc:
+        print(f"[CLOUD] setup_pc skipped/failed: {exc}", file=sys.stderr)
+
+    try:
+        from dotenv import load_dotenv
+        load_dotenv(dotenv_path=REPO_ROOT / ".env")
+        # Optional overlay when .env is not writable (e.g. owned by root).
+        load_dotenv(dotenv_path=REPO_ROOT / ".env.cloud", override=True)
+    except ImportError:
+        pass
+
+    # Re-read bind/port after .env.cloud may have changed.
+    global BIND, PORT, LOG_PATH, REPLAY_PATH
+    BIND = os.getenv("CLOUD_BIND", BIND)
+    PORT = int(os.getenv("CLOUD_PORT", str(PORT)))
+    LOG_PATH = Path(os.getenv("CLOUD_LOG", str(LOG_PATH)))
+    REPLAY_PATH = Path(os.getenv("CLOUD_REPLAY", str(REPLAY_PATH)))
+
     missing = [k for k in ("CLOUD_TRUST", "CLOUD_GATEWAY_PK", "CLOUD_KEM_SK", "CLOUD_TLS_CERT", "CLOUD_TLS_KEY")
                if not os.getenv(k)]
     if missing:
         print("Missing environment variables: " + ", ".join(missing), file=sys.stderr)
+        print("Run: python -m cloud.setup_pc", file=sys.stderr)
         return 1
     server = make_server()
     stop = threading.Event()
