@@ -171,14 +171,17 @@ def run_session(gateway: str, run_id: str, rep: int, available_attacks: list) ->
     env = {**os.environ, "GATEWAY_IP": gateway, "GATEWAY_PORT": str(plan.MQTT_PORT),
            "BENIGN_LOG_DIR": str(out), "PYTHONUNBUFFERED": "1"}
 
-    pi_b = run.get("pi_b", "off")
+    pi_b = run.get("pi_b", "benign")
     print(f"\n[CLIENT] ===== {session}  benign={run['benign']}  attacks={run['attacks']}  "
           f"slice={run.get('attack_slice', 'all')}  IPS={run['block']}  "
           f"allow_list={run['allow_list']}  pi_b={pi_b} =====")
-    if pi_b != "off":
+    if pi_b not in ("off", "idle", None, ""):
         extra = " ".join(plan.pi_b_extra_args(run_id))
-        print(f"[CLIENT] Start on Pi B now:  sudo .venv/bin/python experiments/extra_client.py "
-              f"--tag pi2 --session {session} {extra}")
+        cmd = (f"sudo .venv/bin/python experiments/extra_client.py --tag pi2 "
+               f"--session {session}" + (f" {extra}" if extra else ""))
+        print(f"[CLIENT] Start on Pi B now:  {cmd}")
+    else:
+        print("[CLIENT] Pi B: leave idle for this session.")
     offset = _clock_offset(gateway)
     _call(gateway, {"cmd": "start", "session": session, "run": run_id, "rep": rep,
                     "gateway_ip": gateway})
@@ -286,9 +289,10 @@ def main() -> int:
     print(f"[CLIENT] Plan: runs={runs} reps={args.reps} — about "
           f"{_estimate_minutes(runs, n_att, args.reps):.0f} min")
     for r in phase4:
-        pb = plan.RUNS[r].get("pi_b", "off")
-        print(f"[CLIENT] {r}: pi_b={pb}  "
-              f"{' '.join(plan.pi_b_extra_args(r)) if pb != 'off' else '(leave Pi B idle)'}")
+        pb = plan.RUNS[r].get("pi_b", "benign")
+        extra = plan.pi_b_extra_args(r)
+        hint = " ".join(extra) if extra else "(benign only — no --attacks flags)"
+        print(f"[CLIENT] {r}: pi_b={pb}  {hint}")
 
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
     if os.getenv("SUDO_USER"):

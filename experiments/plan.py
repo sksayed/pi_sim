@@ -11,10 +11,11 @@ Runs (two-Pi paper baseline)
   R4  benign + attacks                IPS, gateway-local clients allow-listed
   R5  benign + attacks                IPS, no allow-list
 
-Phase 4 (three-Pi + cloud). Use --first-rep 12 (or higher). Never reuse reps 6–9.
-  E1  Pi A benign; Pi B off;           IPS + allow-list + cloud
-  E2  Pi A benign; Pi B attacks-all;   IDS + cloud
-  E3  Pi A benign; Pi B attacks-all;   IPS + allow-list + cloud
+Phase 4 (three-Pi + cloud). Use --first-rep 20+ for a clean campaign. Never reuse reps 6–9.
+  Pi B is never idle: benign load on E1, attacks on E2–E5.
+  E1  Pi A benign; Pi B benign;                         IPS + allow-list + cloud
+  E2  Pi A benign; Pi B attacks-all;                    IDS + cloud
+  E3  Pi A benign; Pi B attacks-all;                    IPS + allow-list + cloud
   E4  Pi A benign+attacks-slice-a; Pi B attacks-slice-b; IDS + cloud
   E5  Pi A benign+attacks-slice-a; Pi B attacks-slice-b; IPS + allow-list + cloud
 
@@ -80,8 +81,9 @@ RUNS = {
     "R4": {"benign": True,  "attacks": True,  "block": True,  "allow_list": True},
     "R5": {"benign": True,  "attacks": True,  "block": True,  "allow_list": False},
     # Phase 4 — Pi B role is enforced by extra_client flags, not by the agent.
+    # pi_b: benign | attacks_all | attacks_b  (never "off" in this matrix)
     "E1": {"benign": True,  "attacks": False, "block": True,  "allow_list": True,
-           "attack_slice": "none", "pi_b": "off"},
+           "attack_slice": "none", "pi_b": "benign"},
     "E2": {"benign": True,  "attacks": False, "block": False, "allow_list": False,
            "attack_slice": "none", "pi_b": "attacks_all"},
     "E3": {"benign": True,  "attacks": False, "block": True,  "allow_list": True,
@@ -155,9 +157,12 @@ def attacks_for_run(run_id: str, available: list | None = None) -> list:
 
 
 def pi_b_extra_args(run_id: str) -> list[str]:
-    """CLI args for experiments/extra_client.py for this Phase 4 run."""
-    role = RUNS[run_id].get("pi_b", "off")
-    if role == "off":
+    """CLI args for experiments/extra_client.py for this Phase 4 run (after --tag)."""
+    role = RUNS[run_id].get("pi_b", "benign")
+    if role in ("off", "idle"):
+        return []
+    if role == "benign":
+        # Default extra_client: benign publishers only (no --attacks*).
         return []
     if role == "attacks_all":
         return ["--attacks-only", "--attack-slice", "all"]

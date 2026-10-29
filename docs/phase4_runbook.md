@@ -1,77 +1,72 @@
 # Phase 4 — Three-Pi + cloud matrix (E1–E5 × 3 reps)
 
-Does **not** touch paper reps 6–9 or rep 11. Use `--first-rep 12` → sessions `E1_rep12` … `E5_rep14`.
+Does **not** touch paper reps 6–9. For a clean campaign use `--first-rep 20` (sessions `E1_rep20` …). Older interrupted `E*_rep12/13` can stay in git as archive.
 
-IPS cells (E1, E3, E5) use the same `FIXED_FW_SETTINGS` as R4/R5 and **allow_list=True** (controller Pi A IP), matching validated R4-style allow-list.
+**Pi B is never idle.** It always joins every session (benign on E1, attacks on E2–E5).
 
-## Attack volume
+IPS cells (E1, E3, E5) use `FIXED_FW_SETTINGS` and **allow_list=True** (controller Pi A IP).
 
-| Experiments | Pi A attacks | Pi B attacks |
-|---|---|---|
-| E1 | none | off |
-| E2, E3 | none | full `ATTACKS` list |
-| E4, E5 | slice `a` (even indices) | slice `b` (odd indices) |
+## Matrix
 
-`a ∪ b = all`, disjoint → combined E4/E5 attack volume matches one full pass (E2/E3).
+| Exp | Pi A | Pi B command (after `--tag pi2 --session <id>`) | Gateway |
+|---|---|---|---|
+| E1 | Benign | *(no extra flags — benign publishers)* | IPS + allow-list + cloud |
+| E2 | Benign | `--attacks-only --attack-slice all` | IDS + cloud |
+| E3 | Benign | `--attacks-only --attack-slice all` | IPS + allow-list + cloud |
+| E4 | Benign + attack slice `a` | `--attacks-only --attack-slice b` | IDS + cloud |
+| E5 | Benign + attack slice `a` | `--attacks-only --attack-slice b` | IPS + allow-list + cloud |
 
-## Startup order (each session)
+E4/E5: `a ∪ b = all`, disjoint → same total attack volume as one full pass (E2/E3).
+
+## Startup order (every session)
 
 ### 1. Windows PC
 ```bash
-cd ~/journal_paper_proj/pi_sim
-source .venv/bin/activate
+cd ~/journal_paper_proj/pi_sim && source .venv/bin/activate
 python -m cloud.https_server
 ```
 
 ### 2. Gateway Pi
 ```bash
 cd ~/Desktop/pi_project/pi_sim
-# once after pulling / new PC IP:
-#   python -m cloud.setup_gateway
-# .env must have GW_CLOUD_FORWARD=1
 sudo .venv/bin/python experiments/gateway_agent.py
 ```
+(`GW_CLOUD_FORWARD=1` in `.env`)
 
-### 3. Pi B (before or right after Pi A starts a session)
-**E1:** do nothing (leave idle).
+### 3. Pi B — always start (waits for session)
+**E1**
+```bash
+sudo .venv/bin/python experiments/extra_client.py --tag pi2
+```
 
-**E2 / E3:**
+**E2 / E3**
 ```bash
 sudo .venv/bin/python experiments/extra_client.py --tag pi2 --attacks-only --attack-slice all
 ```
 
-**E4 / E5:**
+**E4 / E5**
 ```bash
 sudo .venv/bin/python experiments/extra_client.py --tag pi2 --attacks-only --attack-slice b
 ```
 
-Optional: `--session E2_rep12` to pin the session name.
+Optional: add `--session E1_rep20` to pin the name.
 
-### 4. Pi A (controller)
-Full matrix (≈ many hours):
+### 4. Pi A — one experiment at a time (recommended)
 ```bash
-sudo .venv/bin/python experiments/client_runner.py \
-  --runs E1,E2,E3,E4,E5 --reps 3 --first-rep 12
+sudo .venv/bin/python experiments/client_runner.py --runs E1 --reps 1 --first-rep 20
 ```
 
-One experiment / one rep (sanity):
+Then E2_rep20, E3_rep20, … after each succeeds. Full matrix later:
 ```bash
-sudo .venv/bin/python experiments/client_runner.py --runs E1 --reps 1 --first-rep 12
+sudo .venv/bin/python experiments/client_runner.py --runs E1,E2,E3,E4,E5 --reps 3 --first-rep 20
 ```
 
-Pi A prints the exact Pi B command when `pi_b != off`. Start Pi B while that session is active (extra_client waits for the agent session).
+Pi A prints the exact Pi B command at session start.
 
 ## Outputs
 
 - Pi A: `results/client/E*_rep*/`
 - Pi B: `results/client/E*_rep*/peers/pi2/`
 - Gateway: `results/gateway/E*_rep*/`
-- Cloud PC: `results/cloud/uplink.jsonl` (append-only; archive/copy per campaign if you need isolation)
-- Gateway HTTPS timings: `results/gateway/cloud_uplink.jsonl`
-
-Paper analysis (`analyze.py` without `--all`) still uses only R1–R5 reps 6–9. Phase 4 sessions are separate (`plan.is_phase4_session`).
-
-## Safety
-
-- Refuses Phase 4 if `--first-rep` intersects paper reps 6–9.
-- Refuses to start a session that already has `meta.json`.
+- Cloud: `results/cloud/uplink.jsonl`
+- Gateway HTTPS: `results/gateway/cloud_uplink.jsonl`
