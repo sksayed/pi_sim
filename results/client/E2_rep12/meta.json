@@ -1,0 +1,29 @@
+{
+  "session": "E2_rep12",
+  "run": "E2",
+  "rep": 12,
+  "run_config": {
+    "benign": true,
+    "attacks": false,
+    "block": false,
+    "allow_list": false,
+    "attack_slice": "none",
+    "pi_b": "attacks_all"
+  },
+  "gateway_ip": "10.111.108.39",
+  "client_ip": "10.111.108.15",
+  "client_host": "sayed-edge-device-pi",
+  "clock_offset_s": -0.002373218536376953,
+  "attacks": [],
+  "attack_slice": "none",
+  "pi_b": "attacks_all",
+  "timing": {
+    "benign_only_s": 600,
+    "attack_s": 60,
+    "gap_s": 20,
+    "warmup_s": 20,
+    "drain_s": 15
+  },
+  "start_wall_ns": 1793214213546425021,
+  "stop_wall_ns": 1793214850598614311
+}
