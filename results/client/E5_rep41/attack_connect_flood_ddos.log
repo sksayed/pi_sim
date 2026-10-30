@@ -1,0 +1,3 @@
+[CONNECT-FLOOD] Mode: parallel (MQTT-DDoS-Connect_Flood)  threads: 5  target: 10.137.166.39:1883
+[CONNECT-FLOOD] thread=000  total_connections=100
+[CONNECT-FLOOD] thread=002  total_connections=200
