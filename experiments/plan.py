@@ -26,7 +26,7 @@ E4/E5 partition ATTACKS so the combined schedule matches one full pass (E2/E3 vo
 from __future__ import annotations
 
 # Bump when Phase 4 pi_b roles change so Pis can confirm they pulled the right tip.
-PLAN_ID = "phase4-pi-b-never-idle-v3"
+PLAN_ID = "phase4-pi-b-auto-v4"
 
 CONTROL_PORT = 9100
 BEACON_PORT = 9101
@@ -172,4 +172,21 @@ def pi_b_extra_args(run_id: str) -> list[str]:
         return ["--attacks-only", "--attack-slice", "all"]
     if role == "attacks_b":
         return ["--attacks-only", "--attack-slice", "b"]
+    raise ValueError(f"Unknown pi_b role {role!r} for {run_id}")
+
+
+def pi_b_traffic_mode(run_id: str) -> dict:
+    """How extra_client --auto should behave for this run.
+
+    Returns dict with keys: role, do_benign, do_attacks, attack_slice.
+    """
+    role = RUNS[run_id].get("pi_b", "benign")
+    if role in ("off", "idle"):
+        return {"role": role, "do_benign": False, "do_attacks": False, "attack_slice": "all"}
+    if role == "benign":
+        return {"role": role, "do_benign": True, "do_attacks": False, "attack_slice": "all"}
+    if role == "attacks_all":
+        return {"role": role, "do_benign": False, "do_attacks": True, "attack_slice": "all"}
+    if role == "attacks_b":
+        return {"role": role, "do_benign": False, "do_attacks": True, "attack_slice": "b"}
     raise ValueError(f"Unknown pi_b role {role!r} for {run_id}")

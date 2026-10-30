@@ -37,23 +37,17 @@ sudo .venv/bin/python experiments/gateway_agent.py
 ```
 (`GW_CLOUD_FORWARD=1` in `.env`)
 
-### 3. Pi B — always start (waits for session)
-**E1**
+### 3. Pi B — start once with `--auto` (recommended for full matrix)
 ```bash
-sudo .venv/bin/python experiments/extra_client.py --tag pi2
+sudo .venv/bin/python experiments/extra_client.py --tag pi2 --auto
 ```
+Leave this running. For each Pi A session it reads `run` from the gateway agent and
+applies the plan role (E1 benign, E2/E3 attacks-all, E4/E5 attacks-b) without restarting.
 
-**E2 / E3**
-```bash
-sudo .venv/bin/python experiments/extra_client.py --tag pi2 --attacks-only --attack-slice all
-```
-
-**E4 / E5**
-```bash
-sudo .venv/bin/python experiments/extra_client.py --tag pi2 --attacks-only --attack-slice b
-```
-
-Optional: add `--session E1_rep20` to pin the name.
+Manual one-shot (if not using `--auto`):
+- E1: `... extra_client.py --tag pi2`
+- E2/E3: `... --tag pi2 --attacks-only --attack-slice all`
+- E4/E5: `... --tag pi2 --attacks-only --attack-slice b`
 
 ### 4. Pi A — full matrix (3 reps) or one experiment at a time
 ```bash

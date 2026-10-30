@@ -217,13 +217,19 @@ class Agent:
         return {"ok": True, "gw_time": time.time(), "session": session}
 
     def status(self) -> dict:
+        meta = self.meta or {}
+        run_id = meta.get("run")
+        run_cfg = meta.get("run_config") or {}
         return {
             "ok": True,
             "gw_time": time.time(),
             "host": socket.gethostname(),
             "session": self.session,
-            "controller_ip": (self.meta or {}).get("client_ip"),
-            "peer_clients": list((self.meta or {}).get("peer_clients", [])),
+            "run": run_id,
+            "rep": meta.get("rep"),
+            "pi_b": run_cfg.get("pi_b"),
+            "controller_ip": meta.get("client_ip"),
+            "peer_clients": list(meta.get("peer_clients", [])),
         }
 
     def register_peer(self, req: dict, peer_ip: str) -> dict:

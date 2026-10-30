@@ -180,7 +180,9 @@ def run_session(gateway: str, run_id: str, rep: int, available_attacks: list) ->
         extra = " ".join(plan.pi_b_extra_args(run_id))
         cmd = (f"sudo .venv/bin/python experiments/extra_client.py --tag pi2 "
                f"--session {session}" + (f" {extra}" if extra else ""))
-        print(f"[CLIENT] Start on Pi B now:  {cmd}")
+        print(f"[CLIENT] Pi B (manual one-shot):  {cmd}")
+        print("[CLIENT] Pi B (auto matrix):      sudo .venv/bin/python "
+              "experiments/extra_client.py --tag pi2 --auto")
     else:
         print("[CLIENT] Pi B: leave idle for this session.")
     offset = _clock_offset(gateway)
