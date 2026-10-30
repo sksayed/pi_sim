@@ -1,10 +1,14 @@
 # Phase 4 — Three-Pi + cloud matrix (E1–E5 × 3 reps)
 
-Does **not** touch paper reps 6–9. For a clean campaign use `--first-rep 20` (sessions `E1_rep20` …). Older interrupted `E*_rep12/13` can stay in git as archive.
+Does **not** touch paper reps 6–9. For a clean campaign use a fresh `--first-rep` (e.g. `30`) so sessions do not collide with archive/`E1_rep20`/`E1_rep25` attempts.
 
 **Pi B is never idle.** It always joins every session (benign on E1, attacks on E2–E5).
 
-IPS cells (E1, E3, E5) use `FIXED_FW_SETTINGS` and **allow_list=True** (controller Pi A IP).
+IPS allow-list (E1/E3/E5, `allow_list=True`):
+- Always: `127.0.0.1` (+ optional `CLOUD_ALLOW_IP`)
+- **E1 / E3:** also Pi A (benign controller)
+- **E1 only:** also Pi B when it registers (`pi_b=benign`) via `allow_ips_extra.txt`
+- **E5:** remote Pis are **not** allow-listed (both may attack; IPS must be able to block)
 
 ## Matrix
 
@@ -51,14 +55,15 @@ sudo .venv/bin/python experiments/extra_client.py --tag pi2 --attacks-only --att
 
 Optional: add `--session E1_rep20` to pin the name.
 
-### 4. Pi A — one experiment at a time (recommended)
+### 4. Pi A — full matrix (3 reps) or one experiment at a time
 ```bash
-sudo .venv/bin/python experiments/client_runner.py --runs E1 --reps 1 --first-rep 20
+# Full E1–E5 × 3 (Pi B command changes per experiment — restart Pi B when Pi A prints it)
+sudo .venv/bin/python experiments/client_runner.py --runs E1,E2,E3,E4,E5 --reps 3 --first-rep 30
 ```
 
-Then E2_rep20, E3_rep20, … after each succeeds. Full matrix later:
+One experiment:
 ```bash
-sudo .venv/bin/python experiments/client_runner.py --runs E1,E2,E3,E4,E5 --reps 3 --first-rep 20
+sudo .venv/bin/python experiments/client_runner.py --runs E1 --reps 3 --first-rep 30
 ```
 
 Pi A prints the exact Pi B command at session start.

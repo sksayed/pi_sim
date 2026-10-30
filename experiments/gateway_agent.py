@@ -71,13 +71,33 @@ def _broker_listens_on_lan() -> bool:
     )
 
 
-def _allow_ips(run: dict, cloud: str = "") -> str:
-    """Loopback allow-list for R4, plus the cloud PC when CLOUD_ALLOW_IP is set."""
+def _allow_ips(run: dict, cloud: str = "", controller_ip: str = "") -> str:
+    """Build FW_ALLOW_IPS for this session.
+
+    R4-style baseline: loopback (+ optional CLOUD_ALLOW_IP).
+    Phase 4 IPS cells where Pi A is benign-only (E1/E3): also protect controller_ip
+    from false-positive blocks. E5 keeps attacks=True so Pi A is not allow-listed.
+    Benign Pi B (E1) is added later via FW_ALLOW_IPS_FILE in register_peer.
+    """
     ips = list(plan.INFRA_ALLOW_IPS) if run["allow_list"] else []
     cloud = cloud.strip()
     if cloud and cloud not in ips:
         ips.append(cloud)
+    controller_ip = controller_ip.strip()
+    if (
+        run.get("allow_list")
+        and not run.get("attacks")
+        and controller_ip
+        and controller_ip not in ips
+    ):
+        ips.append(controller_ip)
     return ",".join(ips)
+
+
+def _write_allow_ips_file(path: Path, ips: list[str]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    body = "\n".join(dict.fromkeys(ip.strip() for ip in ips if ip and ip.strip()))
+    path.write_text((body + "\n") if body else "")
 
 
 def _restart_mosquitto() -> None:
@@ -140,12 +160,16 @@ class Agent:
 
         env = {**os.environ, **{k: v for k, v in dotenv_values(REPO_ROOT / ".env").items() if v is not None}}
         env.update(plan.FIXED_FW_SETTINGS)
+        allow_file = out / "allow_ips_extra.txt"
+        _write_allow_ips_file(allow_file, [])
+        allow_csv = _allow_ips(run, env.get("CLOUD_ALLOW_IP", ""), peer_ip)
         env.update({
             "FW_QUEUE_NUM": "0",
             "FW_MODEL_PATH": str(REPO_ROOT / "firewall" / "lightgbm_model.txt"),
             "FW_SCALER_PATH": str(REPO_ROOT / "firewall" / "standard_scaler.pkl"),
             "FW_BLOCK_VERDICT": "true" if run["block"] else "false",
-            "FW_ALLOW_IPS": _allow_ips(run, env.get("CLOUD_ALLOW_IP", "")),
+            "FW_ALLOW_IPS": allow_csv,
+            "FW_ALLOW_IPS_FILE": str(allow_file),
             "FW_LOG_FILE": str(out / "firewall.log"),
             "FW_JSONL_FILE": str(out / "firewall.jsonl"),
             "GATEWAY_IP": "127.0.0.1",
@@ -153,6 +177,7 @@ class Agent:
             "GW_REENCRYPT_CSV_PATH": str(out / "reencrypt_metrics.csv"),
             "PYTHONUNBUFFERED": "1",
         })
+        print(f"[AGENT] FW_ALLOW_IPS={allow_csv or '(none)'}  extra_file={allow_file.name}")
 
         fw_out = open(out / "firewall_console.log", "w")
         self.procs["firewall"] = subprocess.Popen(
@@ -213,6 +238,17 @@ class Agent:
         peers = self.meta.setdefault("peer_clients", [])
         peers[:] = [p for p in peers if not (p.get("tag") == tag or p.get("client_ip") == peer_ip)]
         peers.append(entry)
+        # E1: Pi B is benign under IPS — add to dynamic allow-list so FPs do not DROP it.
+        run = (self.meta or {}).get("run_config") or {}
+        if run.get("allow_list") and run.get("pi_b") == "benign" and self.session_dir:
+            allow_file = self.session_dir / "allow_ips_extra.txt"
+            existing = []
+            if allow_file.exists():
+                existing = [ln.strip() for ln in allow_file.read_text().splitlines() if ln.strip()]
+            if peer_ip not in existing:
+                existing.append(peer_ip)
+            _write_allow_ips_file(allow_file, existing)
+            print(f"[AGENT] allow-listed benign peer {peer_ip} via {allow_file.name}")
         print(f"[AGENT] peer registered tag={tag} ip={peer_ip} for {self.session}")
         return {"ok": True, "session": self.session, "peer_clients": peers}
 

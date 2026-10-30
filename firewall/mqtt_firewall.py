@@ -70,6 +70,23 @@ FEATURE_COLUMNS: list[str] = (
 )
 # Comma-separated client IPs that are classified and logged but never blocked.
 ALLOW_IPS = {ip.strip() for ip in os.getenv("FW_ALLOW_IPS", "").split(",") if ip.strip()}
+# Optional extra allow-list file (one IP per line). Re-read on each check so the
+# gateway agent can add a benign peer Pi after session start without restarting.
+ALLOW_IPS_FILE = os.getenv("FW_ALLOW_IPS_FILE", "").strip()
+
+
+def _effective_allow_ips() -> set[str]:
+    ips = set(ALLOW_IPS)
+    if ALLOW_IPS_FILE:
+        try:
+            text = Path(ALLOW_IPS_FILE).read_text()
+        except OSError:
+            text = ""
+        for line in text.splitlines():
+            ip = line.split("#", 1)[0].strip()
+            if ip:
+                ips.add(ip)
+    return ips
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_LOG_DIR = REPO_ROOT / "Firewall_logs"
 DEFAULT_LOG_FILE = DEFAULT_LOG_DIR / "mqtt_firewall.log"
@@ -634,7 +651,7 @@ class MQTTFirewall:
         label = "ATTACK" if is_attack else "benign"
         block_tuple = self._client_side_block_tuple(flow)
         client_ip, _, client_port, _ = block_tuple
-        allowlisted = client_ip in ALLOW_IPS
+        allowlisted = client_ip in _effective_allow_ips()
         with self._streak_lock:
             if is_attack:
                 streak = self._attack_streak.get(block_tuple, 0) + 1

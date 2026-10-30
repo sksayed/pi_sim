@@ -26,7 +26,7 @@ E4/E5 partition ATTACKS so the combined schedule matches one full pass (E2/E3 vo
 from __future__ import annotations
 
 # Bump when Phase 4 pi_b roles change so Pis can confirm they pulled the right tip.
-PLAN_ID = "phase4-pi-b-never-idle-v2"
+PLAN_ID = "phase4-pi-b-never-idle-v3"
 
 CONTROL_PORT = 9100
 BEACON_PORT = 9101
