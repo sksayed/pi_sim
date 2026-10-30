@@ -192,7 +192,12 @@ def _run_one_session(
                 print(f"[EXTRA] Not root, skipping {skipped}")
             meta["attacks"] = [a[0] for a in attacks]
             for i, (name, cmd, _) in enumerate(attacks, 1):
-                st = _call(gateway, {"cmd": "status"}, timeout=5)
+                try:
+                    st = _call(gateway, {"cmd": "status"}, timeout=5)
+                except (OSError, ValueError, RuntimeError, TimeoutError) as exc:
+                    # TimeoutError is OSError on 3.x; name it explicitly for clarity.
+                    print(f"[EXTRA] Lost agent during attacks ({exc}); stopping.")
+                    break
                 if st.get("session") != session:
                     print("[EXTRA] Session ended during attacks; stopping.")
                     break
@@ -212,7 +217,7 @@ def _run_one_session(
         while True:
             try:
                 st = _call(gateway, {"cmd": "status"}, timeout=5)
-            except (OSError, ValueError, RuntimeError) as exc:
+            except (OSError, ValueError, RuntimeError, TimeoutError) as exc:
                 print(f"[EXTRA] Lost agent ({exc}); stopping session.")
                 break
             if st.get("session") != session:
