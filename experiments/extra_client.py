@@ -42,6 +42,10 @@ from experiments.client_runner import (  # noqa: E402
     _local_ip_towards,
     find_gateway,
 )
+from experiments.results_fs import (  # noqa: E402
+    chown_results_to_invoker,
+    ensure_results_dir,
+)
 
 PYTHON = str(REPO_ROOT / ".venv" / "bin" / "python")
 IS_ROOT = os.geteuid() == 0
@@ -120,8 +124,7 @@ def main() -> int:
         "host": socket.gethostname(),
     }, timeout=10)
 
-    out = RESULTS_DIR / session / "peers" / args.tag
-    out.mkdir(parents=True, exist_ok=True)
+    out = ensure_results_dir(RESULTS_DIR / session / "peers" / args.tag)
     for name, header in (
         ("benign_conns.csv", "ts_unix_ns,client,device_id,local_ip,local_port"),
         ("benign_sends.csv", "ts_unix_ns,client,device_id,seq,qos,rc"),
@@ -208,6 +211,7 @@ def main() -> int:
             _kill(proc)
         meta["stop_wall_ns"] = time.time_ns()
         (out / "meta.json").write_text(json.dumps(meta, indent=2) + "\n")
+        chown_results_to_invoker(RESULTS_DIR / session)
         print(f"[EXTRA] Saved {out / 'meta.json'}")
     return 0
 
