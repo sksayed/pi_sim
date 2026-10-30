@@ -26,7 +26,7 @@ E4/E5 partition ATTACKS so the combined schedule matches one full pass (E2/E3 vo
 from __future__ import annotations
 
 # Bump when Phase 4 pi_b roles change so Pis can confirm they pulled the right tip.
-PLAN_ID = "phase4-pi-b-auto-v4"
+PLAN_ID = "phase4-pi-b-wait-v5"
 
 CONTROL_PORT = 9100
 BEACON_PORT = 9101
@@ -104,6 +104,8 @@ ATTACK_S = 60
 GAP_S = 20
 WARMUP_S = 20
 DRAIN_S = 15
+# Extra seconds Pi A keeps the session up so Pi B can join and finish its attack pass.
+PEER_JOIN_SLACK_S = 45
 
 
 def session_name(run_id: str, rep: int) -> str:
@@ -190,3 +192,25 @@ def pi_b_traffic_mode(run_id: str) -> dict:
     if role == "attacks_b":
         return {"role": role, "do_benign": False, "do_attacks": True, "attack_slice": "b"}
     raise ValueError(f"Unknown pi_b role {role!r} for {run_id}")
+
+
+def pi_b_attack_duration_s(run_id: str) -> int:
+    """Wall seconds Pi B needs for its attack schedule (ATTACK_S+GAP_S per attack)."""
+    mode = pi_b_traffic_mode(run_id)
+    if not mode["do_attacks"]:
+        return 0
+    n = len(attack_slice(mode["attack_slice"]))
+    return n * (ATTACK_S + GAP_S)
+
+
+def phase4_benign_window_s(run_id: str) -> int:
+    """How long Pi A should keep a benign-only session alive.
+
+    E2/E3: Pi B runs attacks-all (~13+ min) while Pi A is benign-only. The
+    session must outlive Pi B's attack pass or the agent stop kills Pi B.
+    """
+    wait = BENIGN_ONLY_S
+    peer = pi_b_attack_duration_s(run_id)
+    if peer:
+        wait = max(wait, peer + PEER_JOIN_SLACK_S)
+    return wait

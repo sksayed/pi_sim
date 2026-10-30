@@ -271,8 +271,15 @@ def main() -> int:
             )
             session = st["session"]
             run_id = st.get("run")
-            mode = _resolve_mode(args, run_id)
-            _run_one_session(gateway, args.tag, session, run_id, mode)
+            try:
+                mode = _resolve_mode(args, run_id)
+                _run_one_session(gateway, args.tag, session, run_id, mode)
+            except Exception as exc:
+                # Never let one failed/torn-down session kill --auto for the matrix.
+                print(f"[EXTRA] Session {session} ended with error ({exc!r}); "
+                      f"{'continuing --auto' if args.auto else 'stopping'}.")
+                if not args.auto:
+                    return 1
             last_session = session
             if not args.auto:
                 break

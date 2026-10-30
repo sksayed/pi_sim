@@ -221,9 +221,23 @@ def run_session(gateway: str, run_id: str, rep: int, available_attacks: list) ->
                 with open(out / "attack_windows.csv", "a") as f:
                     f.write(f"{name},{t_start},{time.time_ns()}\n")
                 time.sleep(plan.GAP_S)
+            # E4/E5: Pi B may have started later; hold until peer attack budget elapses.
+            peer_s = plan.pi_b_attack_duration_s(run_id)
+            used = len(attacks) * (plan.ATTACK_S + plan.GAP_S)
+            extra = peer_s + plan.PEER_JOIN_SLACK_S - used
+            if extra > 0:
+                print(f"[CLIENT] waiting {extra}s so Pi B can finish its attack pass")
+                time.sleep(extra)
         else:
-            print(f"[CLIENT] benign only for {plan.BENIGN_ONLY_S}s")
-            time.sleep(plan.BENIGN_ONLY_S)
+            wait_s = plan.phase4_benign_window_s(run_id) if run_id in plan.PHASE4_RUNS \
+                else plan.BENIGN_ONLY_S
+            peer_s = plan.pi_b_attack_duration_s(run_id) if run_id in plan.PHASE4_RUNS else 0
+            if peer_s:
+                print(f"[CLIENT] benign window {wait_s}s "
+                      f"(covers Pi B attack budget {peer_s}s + slack)")
+            else:
+                print(f"[CLIENT] benign only for {wait_s}s")
+            time.sleep(wait_s)
     finally:
         for proc in benign_procs:
             _kill(proc)
@@ -240,7 +254,14 @@ def _estimate_minutes(runs: list[str], n_attacks: int, reps: int) -> float:
     for r in runs:
         cfg = plan.RUNS[r]
         t = plan.WARMUP_S if cfg["benign"] else 0
-        t += n_attacks * (plan.ATTACK_S + plan.GAP_S) if cfg["attacks"] else plan.BENIGN_ONLY_S
+        if cfg["attacks"]:
+            used = n_attacks * (plan.ATTACK_S + plan.GAP_S)
+            peer = plan.pi_b_attack_duration_s(r) if r in plan.PHASE4_RUNS else 0
+            t += max(used, peer + plan.PEER_JOIN_SLACK_S if peer else used)
+        elif r in plan.PHASE4_RUNS:
+            t += plan.phase4_benign_window_s(r)
+        else:
+            t += plan.BENIGN_ONLY_S
         per += t + plan.DRAIN_S + 25
     return per * reps / 60
 

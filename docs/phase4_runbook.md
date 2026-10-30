@@ -44,6 +44,11 @@ sudo .venv/bin/python experiments/extra_client.py --tag pi2 --auto
 Leave this running. For each Pi A session it reads `run` from the gateway agent and
 applies the plan role (E1 benign, E2/E3 attacks-all, E4/E5 attacks-b) without restarting.
 
+**Timing:** On E2/E3 Pi A keeps the benign window open long enough for Pi B’s full
+attack list (~13+ min), so the agent does not stop while Pi B is still attacking.
+Pi B `--auto` also treats gateway status errors as “end this session” and waits for
+the next one instead of exiting.
+
 Manual one-shot (if not using `--auto`):
 - E1: `... extra_client.py --tag pi2`
 - E2/E3: `... --tag pi2 --attacks-only --attack-slice all`
