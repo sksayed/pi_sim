@@ -1,0 +1,35 @@
+{
+  "session": "E5_rep40",
+  "run": "E5",
+  "rep": 40,
+  "run_config": {
+    "benign": true,
+    "attacks": true,
+    "block": true,
+    "allow_list": true,
+    "attack_slice": "a",
+    "pi_b": "attacks_b"
+  },
+  "gateway_ip": "10.137.166.39",
+  "client_ip": "10.137.166.15",
+  "client_host": "sayed-edge-device-pi",
+  "clock_offset_s": 0.009852409362792969,
+  "attacks": [
+    "flood",
+    "slowloris",
+    "connect_flood_ddos",
+    "vul_scan",
+    "udp_flood_ddos"
+  ],
+  "attack_slice": "a",
+  "pi_b": "attacks_b",
+  "timing": {
+    "benign_only_s": 600,
+    "attack_s": 60,
+    "gap_s": 20,
+    "warmup_s": 20,
+    "drain_s": 15
+  },
+  "start_wall_ns": 1793381592767237925,
+  "stop_wall_ns": 1793382029927678874
+}
