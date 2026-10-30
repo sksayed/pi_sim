@@ -13,6 +13,7 @@ Runs (two-Pi paper baseline)
 
 Phase 4 (three-Pi + cloud). Use --first-rep 20+ for a clean campaign. Never reuse reps 6–9.
   Pi B is never idle: benign load on E1, attacks on E2–E5.
+  PLAN_ID below must print on Pi A; if you still see pi_b=off, your tree is stale — git fetch && reset.
   E1  Pi A benign; Pi B benign;                         IPS + allow-list + cloud
   E2  Pi A benign; Pi B attacks-all;                    IDS + cloud
   E3  Pi A benign; Pi B attacks-all;                    IPS + allow-list + cloud
@@ -23,6 +24,9 @@ E4/E5 partition ATTACKS so the combined schedule matches one full pass (E2/E3 vo
 """
 
 from __future__ import annotations
+
+# Bump when Phase 4 pi_b roles change so Pis can confirm they pulled the right tip.
+PLAN_ID = "phase4-pi-b-never-idle-v2"
 
 CONTROL_PORT = 9100
 BEACON_PORT = 9101

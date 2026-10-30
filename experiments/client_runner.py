@@ -289,11 +289,18 @@ def main() -> int:
     n_att = max((len(plan.attacks_for_run(r, available)) for r in runs), default=0)
     print(f"[CLIENT] Plan: runs={runs} reps={args.reps} — about "
           f"{_estimate_minutes(runs, n_att, args.reps):.0f} min")
+    print(f"[CLIENT] plan.py PLAN_ID={getattr(plan, 'PLAN_ID', '?')}  "
+          f"file={Path(plan.__file__).resolve()}")
     for r in phase4:
         pb = plan.RUNS[r].get("pi_b", "benign")
         extra = plan.pi_b_extra_args(r)
         hint = " ".join(extra) if extra else "(benign only — no --attacks flags)"
         print(f"[CLIENT] {r}: pi_b={pb}  {hint}")
+        if r == "E1" and pb == "off":
+            print("[CLIENT] ERROR: E1 still has pi_b=off — this checkout is stale.")
+            print("         On Pi A run:  git fetch origin && git checkout origin/main -- "
+                  "experiments/plan.py experiments/client_runner.py")
+            return 1
 
     ensure_results_dir(RESULTS_DIR)
     try:
