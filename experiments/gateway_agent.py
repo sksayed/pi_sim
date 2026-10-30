@@ -41,6 +41,7 @@ sys.path.insert(0, str(REPO_ROOT))
 from dotenv import dotenv_values  # noqa: E402
 
 from experiments import plan  # noqa: E402
+from experiments.results_fs import chown_results_to_invoker, ensure_results_dir  # noqa: E402
 from scripts.start_stack import (  # noqa: E402
     _clean_nfqueue_rules,
     _clear_ips_blocks,
@@ -126,7 +127,7 @@ class Agent:
         out = RESULTS_DIR / session
         if out.exists():
             shutil.rmtree(out)
-        out.mkdir(parents=True)
+        ensure_results_dir(out)
 
         print(f"\n[AGENT] ===== start {session}  block={run['block']}  allow_list={run['allow_list']} =====")
         _sh(["systemctl", "stop", "mqtt_firewall"])
@@ -234,7 +235,7 @@ class Agent:
 
         self.meta["stop_wall_ns"] = time.time_ns()
         (out / "meta.json").write_text(json.dumps(self.meta, indent=2))
-        _chown_to_user(REPO_ROOT / "results")
+        chown_results_to_invoker(REPO_ROOT / "results")
         print(f"[AGENT] ===== stop {self.session} — saved to {out} =====")
         self.session, self.session_dir = None, None
         return {"ok": True}
@@ -256,12 +257,6 @@ def _beacon(stop: threading.Event, agent: "Agent") -> None:
             except OSError:
                 pass
             stop.wait(2.0)
-
-
-def _chown_to_user(path: Path) -> None:
-    user = os.getenv("SUDO_USER")
-    if user:
-        _sh(["chown", "-R", f"{user}:{user}", str(path)])
 
 
 class Handler(socketserver.StreamRequestHandler):
@@ -300,8 +295,7 @@ def main() -> int:
         print("Run as root:  sudo .venv/bin/python experiments/gateway_agent.py")
         return 1
 
-    RESULTS_DIR.mkdir(parents=True, exist_ok=True)
-    _chown_to_user(REPO_ROOT / "results")
+    ensure_results_dir(RESULTS_DIR)
     try:
         from cloud.setup_gateway import ensure_gateway_cloud
         ensure_gateway_cloud(require_bundle=False)

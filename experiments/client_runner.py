@@ -38,6 +38,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO_ROOT))
 
 from experiments import plan  # noqa: E402
+from experiments.results_fs import chown_results_to_invoker, ensure_results_dir  # noqa: E402
 
 VENV_PYTHON = REPO_ROOT / ".venv" / "bin" / "python"
 PYTHON = str(VENV_PYTHON if VENV_PYTHON.exists() else Path(sys.executable))
@@ -160,7 +161,7 @@ def run_session(gateway: str, run_id: str, rep: int, available_attacks: list) ->
             "Choose a free --first-rep (Phase 4 uses 12+; never 6–9)."
         )
     attacks = plan.attacks_for_run(run_id, available_attacks)
-    out.mkdir(parents=True, exist_ok=True)
+    ensure_results_dir(out)
     for name, header in (
         ("benign_conns.csv", "ts_unix_ns,client,device_id,local_ip,local_port"),
         ("benign_sends.csv", "ts_unix_ns,client,device_id,seq,qos,rc"),
@@ -294,10 +295,7 @@ def main() -> int:
         hint = " ".join(extra) if extra else "(benign only — no --attacks flags)"
         print(f"[CLIENT] {r}: pi_b={pb}  {hint}")
 
-    RESULTS_DIR.mkdir(parents=True, exist_ok=True)
-    if os.getenv("SUDO_USER"):
-        subprocess.run(["chown", "-R", f"{os.environ['SUDO_USER']}:{os.environ['SUDO_USER']}",
-                        str(RESULTS_DIR.parent)], check=False)
+    ensure_results_dir(RESULTS_DIR)
     try:
         for rep in range(args.first_rep, args.first_rep + args.reps):
             for run_id in runs:
@@ -305,9 +303,7 @@ def main() -> int:
     except KeyboardInterrupt:
         print("\n[CLIENT] Interrupted.")
     finally:
-        user = os.getenv("SUDO_USER")
-        if user:
-            subprocess.run(["chown", "-R", f"{user}:{user}", str(RESULTS_DIR.parent)], check=False)
+        chown_results_to_invoker(RESULTS_DIR.parent)
 
     _call(args.gateway, {"cmd": "finish"}, timeout=10)
     print("[CLIENT] All done. Results in results/client/ — now run: git add results && git commit && git push")

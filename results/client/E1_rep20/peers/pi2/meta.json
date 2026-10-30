@@ -1,0 +1,14 @@
+{
+  "session": "E1_rep20",
+  "role": "extra_client",
+  "tag": "pi2",
+  "gateway_ip": "10.190.32.39",
+  "client_ip": "10.190.32.20",
+  "client_host": "sayed-edge-device-2-pi",
+  "clock_offset_s": -0.00718998908996582,
+  "attacks": [],
+  "attack_slice": "all",
+  "attacks_only": false,
+  "start_wall_ns": 1793259111346886219,
+  "stop_wall_ns": 1793259748562392771
+}
