@@ -46,10 +46,18 @@ from pathlib import Path
 import paho.mqtt.client as mqtt
 from dotenv import load_dotenv
 
+_REPO = Path(__file__).resolve().parents[1]
+if str(_REPO) not in sys.path:
+    sys.path.insert(0, str(_REPO))
+
 try:
     from benign_clients.send_log import log_connect, log_send
+    from benign_clients.trace import trace_fields
 except ImportError:
     from send_log import log_connect, log_send
+    from trace import trace_fields
+
+from device_hop.publish import protect
 
 load_dotenv(dotenv_path=Path(__file__).resolve().parents[1] / ".env")
 
@@ -76,8 +84,8 @@ _EVENTS = [
 ]
 
 
-def _reading_payload(seq: int, burst_id: int, event: str) -> bytes:
-    return json.dumps({
+def _reading_payload(seq: int, burst_id: int, event: str) -> tuple[bytes, str]:
+    fields = {
         "device_id":   DEVICE_ID,
         "crypto_type": "benign",
         "seq":         seq,
@@ -86,8 +94,10 @@ def _reading_payload(seq: int, burst_id: int, event: str) -> bytes:
         "timestamp":   datetime.now(timezone.utc).isoformat(),
         "value":       round(random.uniform(0.0, 100.0), 3),
         "unit":        random.choice(["celsius", "lux", "rh", "m/s2"]),
-        "t_publish_ns": time.time_ns(),
-    }).encode()
+    }
+    fields.update(trace_fields())
+    sealed = protect(fields)
+    return json.dumps(sealed, separators=(",", ":")).encode(), fields["msg_id"]
 
 
 def run() -> None:
@@ -134,9 +144,9 @@ def run() -> None:
                   f"size={burst_size}  rate={BURST_RATE_HZ:.0f}msg/s")
 
             for _ in range(burst_size):
-                payload = _reading_payload(seq, burst_num, event)
+                payload, msg_id = _reading_payload(seq, burst_num, event)
                 res = c.publish(PUB_TOPIC, payload=payload, qos=0)
-                log_send("burst", DEVICE_ID, seq, 0, res.rc)
+                log_send("burst", DEVICE_ID, seq, 0, res.rc, msg_id)
                 if res.rc == mqtt.MQTT_ERR_SUCCESS:
                     total_sent += 1
                 seq += 1

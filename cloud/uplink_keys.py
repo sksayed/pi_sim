@@ -112,9 +112,21 @@ def read_alg(path: Path, default: str) -> str:
     return default
 
 
+def encapsulate(algorithm: str, public_key: bytes) -> tuple[bytes, bytes]:
+    """Return (ciphertext, shared secret) for one fresh encapsulation."""
+    kem = _oqs().KeyEncapsulation(algorithm)
+    ciphertext, shared = kem.encap_secret(public_key)
+    return ciphertext, shared
+
+
 def decapsulate(algorithm: str, secret_key: bytes, ciphertext: bytes) -> bytes:
     kem = _oqs().KeyEncapsulation(algorithm, secret_key=secret_key)
     return kem.decap_secret(ciphertext)
+
+
+def sign(algorithm: str, secret_key: bytes, message: bytes) -> bytes:
+    signer = _oqs().Signature(algorithm, secret_key=secret_key)
+    return signer.sign(message)
 
 
 def verify(algorithm: str, public_key: bytes, message: bytes, signature: bytes) -> bool:

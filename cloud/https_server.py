@@ -29,6 +29,7 @@ sys.path.insert(0, str(REPO_ROOT / "gateway"))
 
 from benign_pipeline import encode_signed_envelope
 from cloud.uplink_keys import decapsulate, load_pinned, read_alg, verify
+from shared.clock_sync import e2e_ns, measure_offset_ns
 
 PORT = int(os.getenv("CLOUD_PORT", "8443"))
 BIND = os.getenv("CLOUD_BIND", "0.0.0.0")
@@ -83,10 +84,20 @@ class CloudState:
         self.rejected = 0
         self.crypto_ns_sum = 0
         self.crypto_n = 0
+        self.offset_lock = threading.Lock()
+        self.clock_offset_ns: int | None = None
         self.started = time.perf_counter()
         self.proc = psutil.Process()
         self.proc.cpu_percent(interval=None)
         LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
+
+    def set_clock_offset(self, offset_ns: int) -> None:
+        with self.offset_lock:
+            self.clock_offset_ns = int(offset_ns)
+
+    def get_clock_offset(self) -> int | None:
+        with self.offset_lock:
+            return self.clock_offset_ns
 
     def log(self, record: dict) -> None:
         with self.counter_lock:
@@ -140,6 +151,48 @@ def open_envelope(payload: dict) -> tuple[bool, str, bytes, int]:
     return True, "ok", plain, time.perf_counter_ns() - t0
 
 
+def _as_int(value: object) -> int | None:
+    if value is None or value == "":
+        return None
+    try:
+        return int(value)  # type: ignore[arg-type]
+    except (TypeError, ValueError):
+        return None
+
+
+def hop_fields(payload: dict, plain: bytes) -> dict:
+    """Join fields for one envelope. Client stamps come from the plaintext."""
+    inner: dict = {}
+    if plain:
+        try:
+            parsed = json.loads(plain)
+            if isinstance(parsed, dict):
+                inner = parsed
+        except (json.JSONDecodeError, UnicodeError, TypeError):
+            inner = {}
+
+    def pick(key: str) -> object:
+        if key in inner and inner[key] not in (None, ""):
+            return inner[key]
+        return payload.get(key)
+
+    t_publish = _as_int(pick("t_publish_ns"))
+    client_off = _as_int(pick("client_clock_offset_ns"))
+    t_cloud = time.time_ns()
+    cloud_off = STATE.get_clock_offset() if STATE is not None else None
+    fields: dict = {
+        "msg_id": str(pick("msg_id") or ""),
+        "t_publish_ns": t_publish,
+        "t_gateway_recv_ns": _as_int(payload.get("t_gateway_recv_ns")),
+        "t_cloud_ns": t_cloud,
+        "client_clock_offset_ns": client_off,
+        "cloud_clock_offset_ns": cloud_off,
+    }
+    if t_publish is not None and client_off is not None and cloud_off is not None:
+        fields["t_e2e_ns"] = e2e_ns(t_publish, client_off, t_cloud, cloud_off)
+    return {k: v for k, v in fields.items() if v is not None}
+
+
 class Handler(BaseHTTPRequestHandler):
     protocol_version = "HTTP/1.1"
 
@@ -185,6 +238,7 @@ class Handler(BaseHTTPRequestHandler):
             return
 
         ok, reason, plain, crypto_ns = open_envelope(payload)
+        hops = hop_fields(payload, plain if ok else b"")
         if not ok:
             with STATE.counter_lock:
                 STATE.rejected += 1
@@ -192,10 +246,12 @@ class Handler(BaseHTTPRequestHandler):
                 STATE.crypto_n += 1
             STATE.log({
                 "event": "reject", "device_id": device_id, "seq": seq,
-                "reason": reason, "t_verify_decrypt_ns": crypto_ns,
+                "reason": reason, "t_verify_decrypt_ns": crypto_ns, **hops,
             })
             status = 401 if reason == "bad_signature" else 400
-            self._send(status, {"ok": False, "reason": reason, "device_id": device_id, "seq": seq})
+            self._send(status, {
+                "ok": False, "reason": reason, "device_id": device_id, "seq": seq, **hops,
+            })
             return
 
         decision = STATE.replay.decide(device_id, seq)
@@ -206,11 +262,11 @@ class Handler(BaseHTTPRequestHandler):
                 STATE.crypto_n += 1
             STATE.log({
                 "event": "replay", "device_id": device_id, "seq": seq,
-                "t_verify_decrypt_ns": crypto_ns,
+                "t_verify_decrypt_ns": crypto_ns, **hops,
             })
             self._send(409, {
                 "ok": False, "reason": "replay", "device_id": device_id, "seq": seq,
-                "t_verify_decrypt_ns": crypto_ns,
+                "t_verify_decrypt_ns": crypto_ns, **hops,
             })
             return
         if decision == "duplicate":
@@ -218,11 +274,11 @@ class Handler(BaseHTTPRequestHandler):
                 STATE.duplicates += 1
             STATE.log({
                 "event": "duplicate", "device_id": device_id, "seq": seq,
-                "t_verify_decrypt_ns": crypto_ns,
+                "t_verify_decrypt_ns": crypto_ns, **hops,
             })
             self._send(200, {
                 "ok": True, "duplicate": True, "device_id": device_id, "seq": seq,
-                "t_verify_decrypt_ns": crypto_ns,
+                "t_verify_decrypt_ns": crypto_ns, **hops,
             })
             return
 
@@ -232,11 +288,11 @@ class Handler(BaseHTTPRequestHandler):
             STATE.crypto_n += 1
         STATE.log({
             "event": "accept", "device_id": device_id, "seq": seq,
-            "payload_bytes": len(plain), "t_verify_decrypt_ns": crypto_ns,
+            "payload_bytes": len(plain), "t_verify_decrypt_ns": crypto_ns, **hops,
         })
         self._send(200, {
             "ok": True, "duplicate": False, "device_id": device_id, "seq": seq,
-            "t_verify_decrypt_ns": crypto_ns,
+            "t_verify_decrypt_ns": crypto_ns, **hops,
         })
 
 
@@ -244,6 +300,52 @@ def _resource_loop(stop: threading.Event) -> None:
     assert STATE is not None
     while not stop.wait(5.0):
         STATE.log({"event": "resource"})
+
+
+def _gateway_endpoint() -> tuple[str, int]:
+    """Gateway agent address. GATEWAY_IP wins; otherwise the UDP beacon."""
+    port = int(os.getenv("GATEWAY_CONTROL_PORT", "9100"))
+    host = os.getenv("GATEWAY_IP", "").strip()
+    if host:
+        return host, port
+    from experiments.client_runner import find_gateway
+    found = find_gateway()
+    if not found:
+        raise RuntimeError("gateway agent not found")
+    return found, port
+
+
+def _clock_loop(stop: threading.Event) -> None:
+    """Sample gateway-minus-cloud offset and keep it on the receiver."""
+    assert STATE is not None
+    while not stop.is_set():
+        try:
+            host, port = _gateway_endpoint()
+            break
+        except (OSError, RuntimeError) as exc:
+            print(f"[CLOUD] clock sync has no gateway yet: {exc}", file=sys.stderr)
+            if stop.wait(10.0):
+                return
+    else:
+        return
+    while not stop.is_set():
+        try:
+            offset_ns, rtt_ns = measure_offset_ns(host, port)
+        except (OSError, RuntimeError, TimeoutError) as exc:
+            STATE.log({"event": "clock_sync", "ok": False, "gateway": host, "error": str(exc)})
+            print(f"[CLOUD] clock sync failed: {exc}", file=sys.stderr)
+        else:
+            STATE.set_clock_offset(offset_ns)
+            STATE.log({
+                "event": "clock_sync",
+                "ok": True,
+                "gateway": host,
+                "clock_offset_ns": offset_ns,
+                "rtt_ns": rtt_ns,
+            })
+            print(f"[CLOUD] clock offset {offset_ns} ns (gateway minus this PC), ping {rtt_ns} ns")
+        if stop.wait(30.0):
+            return
 
 
 def make_server() -> ThreadingHTTPServer:
@@ -293,6 +395,7 @@ def main() -> int:
     server = make_server()
     stop = threading.Event()
     threading.Thread(target=_resource_loop, args=(stop,), daemon=True).start()
+    threading.Thread(target=_clock_loop, args=(stop,), daemon=True).start()
     print(f"[CLOUD] HTTPS on {BIND}:{PORT}  log={LOG_PATH}  replay={REPLAY_PATH}")
     try:
         server.serve_forever()

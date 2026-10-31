@@ -37,7 +37,7 @@ sys.path.insert(0, str(REPO_ROOT))
 from experiments import plan  # noqa: E402
 from experiments.client_runner import (  # noqa: E402
     _call,
-    _clock_offset,
+    _clock_offset_ns,
     _local_ip_towards,
     find_gateway,
 )
@@ -124,7 +124,7 @@ def _run_one_session(
     mode: dict,
 ) -> None:
     client_ip = _local_ip_towards(gateway)
-    offset = _clock_offset(gateway)
+    offset_ns = _clock_offset_ns(gateway)
     _call(gateway, {
         "cmd": "register_peer",
         "session": session,
@@ -135,7 +135,7 @@ def _run_one_session(
     out = ensure_results_dir(RESULTS_DIR / session / "peers" / tag)
     for name, header in (
         ("benign_conns.csv", "ts_unix_ns,client,device_id,local_ip,local_port"),
-        ("benign_sends.csv", "ts_unix_ns,client,device_id,seq,qos,rc"),
+        ("benign_sends.csv", "ts_unix_ns,client,device_id,seq,qos,rc,msg_id"),
         ("attack_windows.csv", "attack,start_wall_ns,end_wall_ns"),
     ):
         (out / name).write_text(header + "\n")
@@ -146,6 +146,7 @@ def _run_one_session(
         "GATEWAY_PORT": str(plan.MQTT_PORT),
         "PYTHONUNBUFFERED": "1",
         "BENIGN_LOG_DIR": str(out),
+        "BENIGN_CLOCK_OFFSET_NS": str(offset_ns),
         "BENIGN_STEADY_DEVICE_ID": f"{tag}-steady",
         "BENIGN_MIXED_DEVICE_ID": f"{tag}-mixed",
         "BENIGN_BURST_DEVICE_ID": f"{tag}-burst",
@@ -163,7 +164,8 @@ def _run_one_session(
         "gateway_ip": gateway,
         "client_ip": client_ip,
         "client_host": socket.gethostname(),
-        "clock_offset_s": offset,
+        "clock_offset_s": offset_ns / 1e9,
+        "clock_offset_ns": offset_ns,
         "pi_b_role": mode.get("role"),
         "attacks": [],
         "attack_slice": attack_slice,

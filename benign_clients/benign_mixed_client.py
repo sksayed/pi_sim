@@ -46,10 +46,18 @@ from pathlib import Path
 import paho.mqtt.client as mqtt
 from dotenv import load_dotenv
 
+_REPO = Path(__file__).resolve().parents[1]
+if str(_REPO) not in sys.path:
+    sys.path.insert(0, str(_REPO))
+
 try:
     from benign_clients.send_log import log_connect, log_send
+    from benign_clients.trace import trace_fields
 except ImportError:
     from send_log import log_connect, log_send
+    from trace import trace_fields
+
+from device_hop.publish import protect
 
 load_dotenv(dotenv_path=Path(__file__).resolve().parents[1] / ".env")
 
@@ -67,8 +75,8 @@ IDLE_DUR_S   = float(os.getenv("BENIGN_MIXED_IDLE_DURATION_S", "5.0"))
 MAX_COUNT    = int(os.getenv("BENIGN_MIXED_COUNT", "0"))
 
 
-def _sensor_payload(seq: int) -> bytes:
-    return json.dumps({
+def _sensor_payload(seq: int) -> tuple[bytes, str]:
+    fields = {
         "device_id":   DEVICE_ID,
         "crypto_type": "benign",
         "seq":         seq,
@@ -76,8 +84,10 @@ def _sensor_payload(seq: int) -> bytes:
         "temperature": round(20.0 + random.uniform(-2.0, 2.0), 2),
         "humidity":    round(55.0 + random.uniform(-5.0, 5.0), 2),
         "battery_mv":  random.randint(3200, 3700),
-        "t_publish_ns": time.time_ns(),
-    }).encode()
+    }
+    fields.update(trace_fields())
+    sealed = protect(fields)
+    return json.dumps(sealed, separators=(",", ":")).encode(), fields["msg_id"]
 
 
 def run() -> None:
@@ -113,9 +123,9 @@ def run() -> None:
 
     try:
         while True:
-            payload = _sensor_payload(seq)
+            payload, msg_id = _sensor_payload(seq)
             res = c.publish(PUB_TOPIC, payload=payload, qos=1)
-            log_send("mixed", DEVICE_ID, seq, 1, res.rc)
+            log_send("mixed", DEVICE_ID, seq, 1, res.rc, msg_id)
             if res.rc == mqtt.MQTT_ERR_SUCCESS:
                 sent += 1
                 print(f"[BENIGN-MIXED] Published #{sent}  seq={seq}  "

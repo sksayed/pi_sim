@@ -106,10 +106,14 @@ Pi B writes ground truth under `results/client/<session>/peers/pi2/` (`benign_co
 
 `results/cloud/uplink.jsonl` is written on the PC. `event=accept` is the only new delivery. `event=duplicate` is a retry of the latest accepted `(device_id, seq)` and is not processed again. `event=replay` or `event=reject` is a failure. Periodic `event=resource` lines include `accept_per_s`, `delivery_ratio`, `mean_verify_decrypt_ns`, `rss_kb`, and `cpu_percent`, computed from messages this process has seen.
 
-`results/cloud/replay_state.json` is the last accepted seq per device. It is replaced atomically and reloaded on startup.
+Each client publish carries `msg_id` (one id for that message), `t_publish_ns`, and `client_clock_offset_ns` (gateway clock minus the client clock, measured at session start). The same `msg_id` is in `benign_sends.csv`, the Stage 2 CSV, and every cloud decision. Set `GATEWAY_IP` on the PC, or leave it unset and the receiver uses the gateway UDP beacon. It pings the gateway agent every 30 s and logs `event=clock_sync` with `clock_offset_ns` (gateway clock minus the PC clock). On an accept, `t_e2e_ns` is cloud-accept time minus client-publish time after both stamps are moved onto the gateway clock. It is not a wide-area round trip, and it is absent until the first successful ping.
+
+`results/cloud/replay_state.json` is the last accepted seq per device. It is replaced atomically and reloaded on startup. Clear it before a campaign if device ids are reused, or later publishes with an older `seq` are rejected even when `msg_id` is new.
 
 `results/gateway/cloud_uplink.jsonl` is written on the gateway. Each `https_result` has:
 
+- `msg_id` — the client publish id
+- `t_e2e_ns` — the receiver's client-to-accept figure, when the clock offset was known
 - `https_rtt_ns` — gateway clock, from the start of the POST to the response
 - `t_verify_decrypt_ns` — PC clock, signature check plus KEM decapsulation plus AES-GCM
 - `mqtt_to_ack_ns` — gateway clock, from MQTT receipt to the cloud response

@@ -5,7 +5,7 @@ Enabled only when BENIGN_LOG_DIR is set (experiments/client_runner.py sets it).
 Rows are appended to CSV files whose headers the runner writes beforehand:
 
   benign_conns.csv  ts_unix_ns,client,device_id,local_ip,local_port
-  benign_sends.csv  ts_unix_ns,client,device_id,seq,qos,rc
+  benign_sends.csv  ts_unix_ns,client,device_id,seq,qos,rc,msg_id
 """
 
 from __future__ import annotations
@@ -33,5 +33,6 @@ def log_connect(client_name: str, device_id: str, mqtt_client) -> None:
     _append("benign_conns.csv", [time.time_ns(), client_name, device_id, local_ip, local_port])
 
 
-def log_send(client_name: str, device_id: str, seq: int, qos: int, rc: int) -> None:
-    _append("benign_sends.csv", [time.time_ns(), client_name, device_id, seq, qos, rc])
+def log_send(client_name: str, device_id: str, seq: int, qos: int, rc: int,
+             msg_id: str = "") -> None:
+    _append("benign_sends.csv", [time.time_ns(), client_name, device_id, seq, qos, rc, msg_id])

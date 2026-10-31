@@ -61,15 +61,17 @@ def _call(gateway: str, req: dict, timeout: float = 120.0) -> dict:
     return resp
 
 
+def _clock_offset_ns(gateway: str) -> int:
+    """Gateway clock minus client clock, in nanoseconds (median of 5 pings)."""
+    from shared.clock_sync import measure_offset_ns
+
+    offset_ns, _rtt_ns = measure_offset_ns(gateway, plan.CONTROL_PORT, timeout=10)
+    return offset_ns
+
+
 def _clock_offset(gateway: str) -> float:
-    """Gateway clock minus client clock, in seconds (median of 5 pings)."""
-    samples = []
-    for _ in range(5):
-        t0 = time.time()
-        resp = _call(gateway, {"cmd": "ping"}, timeout=10)
-        t1 = time.time()
-        samples.append(resp["gw_time"] - (t0 + t1) / 2)
-    return sorted(samples)[len(samples) // 2]
+    """Gateway clock minus client clock, in seconds."""
+    return _clock_offset_ns(gateway) / 1e9
 
 
 def _listen_for_beacon(timeout_s: float) -> str | None:
@@ -164,7 +166,7 @@ def run_session(gateway: str, run_id: str, rep: int, available_attacks: list) ->
     ensure_results_dir(out)
     for name, header in (
         ("benign_conns.csv", "ts_unix_ns,client,device_id,local_ip,local_port"),
-        ("benign_sends.csv", "ts_unix_ns,client,device_id,seq,qos,rc"),
+        ("benign_sends.csv", "ts_unix_ns,client,device_id,seq,qos,rc,msg_id"),
         ("attack_windows.csv", "attack,start_wall_ns,end_wall_ns"),
     ):
         (out / name).write_text(header + "\n")
@@ -185,13 +187,16 @@ def run_session(gateway: str, run_id: str, rep: int, available_attacks: list) ->
               "experiments/extra_client.py --tag pi2 --auto")
     else:
         print("[CLIENT] Pi B: leave idle for this session.")
-    offset = _clock_offset(gateway)
+    offset_ns = _clock_offset_ns(gateway)
+    env["BENIGN_CLOCK_OFFSET_NS"] = str(offset_ns)
     _call(gateway, {"cmd": "start", "session": session, "run": run_id, "rep": rep,
                     "gateway_ip": gateway})
     meta = {
         "session": session, "run": run_id, "rep": rep, "run_config": run,
         "gateway_ip": gateway, "client_ip": _local_ip_towards(gateway),
-        "client_host": socket.gethostname(), "clock_offset_s": offset,
+        "client_host": socket.gethostname(),
+        "clock_offset_s": offset_ns / 1e9,
+        "clock_offset_ns": offset_ns,
         "attacks": [a[0] for a in attacks],
         "attack_slice": run.get("attack_slice", "all"),
         "pi_b": pi_b,

@@ -88,6 +88,8 @@ _CSV_FIELDS = [
     "t_sign_ns",
     "t_reencrypt_ns",
     "pqc_available",
+    "msg_id",
+    "t_device_open_ns",
 ]
 
 
@@ -108,6 +110,8 @@ class _ReencryptRow:
     t_sign_ns: int
     t_reencrypt_ns: int
     pqc_available: bool
+    msg_id: str
+    t_device_open_ns: int
 
 
 class _CsvLogger:
@@ -192,23 +196,59 @@ def verify_cloud_envelope(km, envelope: dict, sig_pk: bytes,
 
 # ── Main handler ───────────────────────────────────────────────────────────────
 
+def _open_device_hop(msg: dict) -> tuple[dict, int]:
+    """Recover the sensor JSON. The open time is not Stage 2 re-encryption."""
+    from device_hop.envelope import open_message
+    from device_hop.keys import device_public_key, gateway_secret_key
+
+    secret = gateway_secret_key()
+    if secret is None:
+        raise RuntimeError("gateway device-hop private key is not on this machine")
+    gateway_sk, kem_alg = secret
+    device_id = str(msg.get("device_id", ""))
+    device_pk, sig_alg = device_public_key(device_id)
+    plaintext, open_ns = open_message(
+        msg, gateway_sk, device_pk,
+        str(msg.get("kem") or kem_alg),
+        str(msg.get("sig") or sig_alg),
+    )
+    sensor = json.loads(plaintext)
+    if not isinstance(sensor, dict):
+        raise ValueError("device plaintext is not an object")
+    return sensor, open_ns
+
+
 def handle_benign(km, msg: dict, t_recv_ns: int = 0, t_handler_start: int = 0) -> dict | None:
     """
-    Re-encrypt a benign plaintext sensor message with PQC and log pipeline timing.
+    Re-encrypt a benign sensor message with PQC and log pipeline timing.
 
-    Called by gateway.py for crypto_type="benign" messages that passed the firewall.
+    crypto_type=device_kem is opened first. That open time is logged apart
+    from t_reencrypt_ns. crypto_type=benign is the sensor JSON itself.
     """
+    t_device_open_ns = 0
+    if msg.get("crypto_type") == "device_kem":
+        try:
+            msg, t_device_open_ns = _open_device_hop(msg)
+        except (RuntimeError, ValueError, json.JSONDecodeError) as exc:
+            print(f"[BENIGN-PIPELINE] DEVICE HOP REJECTED: {exc}", file=sys.stderr)
+            return None
+        t_handler_start = time.perf_counter_ns()
+
     device_id     = msg.get("device_id", "unknown")
     seq           = int(msg.get("seq", 0))
+    msg_id        = str(msg.get("msg_id", "") or "")
     t_publish_ns  = int(msg.get("t_publish_ns", 0))
+    client_offset = msg.get("client_clock_offset_ns")
     t_broker_transit_ns = (
         (t_recv_ns - t_publish_ns) if (LOG_WAN_TRANSIT and t_publish_ns) else 0
     )
 
     # Serialise the full plaintext sensor payload for encryption
+    # Keep msg_id, t_publish_ns, and client_clock_offset_ns inside the
+    # ciphertext so the receiver reads the client's stamps after decryption.
     plaintext = json.dumps({
         k: v for k, v in msg.items()
-        if k not in ("t_publish_ns",)
+        if not str(k).startswith("_")
     }, separators=(",", ":")).encode()
 
     try:
@@ -254,7 +294,9 @@ def handle_benign(km, msg: dict, t_recv_ns: int = 0, t_handler_start: int = 0) -
             "device_id":     device_id,
             "relay_id":      relay_id,
             "seq":           seq,
+            "msg_id":        msg_id,
             "t_publish_ns":  t_publish_ns,
+            "t_gateway_recv_ns": int(t_recv_ns),
             "kem":           kem_alg,
             "sig":           sig_alg,
             "kem_ciphertext": base64.b64encode(kem_ct).decode(),
@@ -262,6 +304,8 @@ def handle_benign(km, msg: dict, t_recv_ns: int = 0, t_handler_start: int = 0) -
             "ciphertext":     base64.b64encode(ciphertext).decode(),
             "signature":      base64.b64encode(signature).decode(),
         }
+        if client_offset is not None:
+            cloud_payload["client_clock_offset_ns"] = int(client_offset)
 
         _wan = f"wan_ms={t_broker_transit_ns/1e6:.2f}  " if LOG_WAN_TRANSIT else ""
         print(
@@ -287,6 +331,8 @@ def handle_benign(km, msg: dict, t_recv_ns: int = 0, t_handler_start: int = 0) -
             t_sign_ns           = t_sign_ns,
             t_reencrypt_ns      = t_reencrypt_ns,
             pqc_available       = PQC_AVAILABLE,
+            msg_id              = msg_id,
+            t_device_open_ns    = t_device_open_ns,
         ))
         return cloud_payload
 

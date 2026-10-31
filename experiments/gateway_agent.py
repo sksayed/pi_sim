@@ -308,8 +308,9 @@ class Handler(socketserver.StreamRequestHandler):
             req = json.loads(self.rfile.readline().decode())
             cmd = req.get("cmd")
             if cmd == "ping":
-                resp = {"ok": True, "gw_time": time.time(), "host": socket.gethostname(),
-                        "session": agent.session}
+                gw_ns = time.time_ns()
+                resp = {"ok": True, "gw_time": gw_ns / 1e9, "gw_time_ns": gw_ns,
+                        "host": socket.gethostname(), "session": agent.session}
             elif cmd == "status":
                 resp = agent.status()
             elif cmd == "register_peer":

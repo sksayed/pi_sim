@@ -596,6 +596,7 @@ _HANDLERS = {
     "CLASSICAL-CHACHA20":           _decrypt_classical_chacha_research,
     "CLASSICAL-ECDH-ECDSA":         _decrypt_classical_ecdh_ecdsa_research,
     "benign":                       handle_benign,
+    "device_kem":                   handle_benign,
 }
 
 
