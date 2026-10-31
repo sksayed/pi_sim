@@ -1,0 +1,264 @@
+liboqs-python faulthandler is disabled
+/home/sayed-gateway/Desktop/pi_project/pi_sim/.venv/lib/python3.13/site-packages/oqs/__init__.py:1: UserWarning: liboqs version (major, minor) 0.15.0 differs from liboqs-python version 0.14.0
+  from oqs.oqs import (
+[GATEWAY] Crypto mode : real PQC (pyoqs)
+[GATEWAY] Replay protection : enabled (per-device seq tracking)
+[GATEWAY] Cloud HTTPS ON → https://10.96.208.55:8443/v1/envelope (TLS verify on)
+[GATEWAY] Connecting to broker at 127.0.0.1:1883 …
+[GATEWAY] Connected to broker at 127.0.0.1:1883
+[GATEWAY] Subscribed to: nodes/+/data
+[GATEWAY] Subscribed to: benchmark/rtt/request (MQTT RTT echo, no crypto)
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[GATEWAY] Non-JSON/malformed message on nodes/malformed-attacker/data — ignored
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[GATEWAY] Unknown crypto_type='None' — ignored
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[GATEWAY] Unknown crypto_type='' — ignored
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10353515  crypto_type=aes_gcm  transit=6.50ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10353516  crypto_type=aes_gcm  transit=34.46ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10353517  crypto_type=aes_gcm  transit=9.76ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10353518  crypto_type=aes_gcm  transit=3.30ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10353519  crypto_type=aes_gcm  transit=6.57ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10353520  crypto_type=aes_gcm  transit=2.76ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10353521  crypto_type=aes_gcm  transit=4.49ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10353522  crypto_type=aes_gcm  transit=11.99ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10353523  crypto_type=aes_gcm  transit=0.09ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10353524  crypto_type=aes_gcm  transit=3.38ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10353525  crypto_type=aes_gcm  transit=0.74ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10353526  crypto_type=aes_gcm  transit=1.76ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10353527  crypto_type=aes_gcm  transit=0.77ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10353528  crypto_type=aes_gcm  transit=1.56ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10353529  crypto_type=aes_gcm  transit=0.83ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10353530  crypto_type=aes_gcm  transit=2.04ms  — model failed to block this flow
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10353531  crypto_type=aes_gcm  transit=1.54ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=10353532  crypto_type=aes_gcm  transit=17.59ms  — model failed to block this flow
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+[BENIGN-PIPELINE] DEVICE HOP REJECTED: device decrypt failed
+
+[GATEWAY] Shutting down.
