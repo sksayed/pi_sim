@@ -1,0 +1,1358 @@
+[
+  {
+    "session": "E1_rep50",
+    "run": "E1",
+    "rep": 50,
+    "client_ip": "10.137.166.15",
+    "client_ips": [
+      "10.137.166.15",
+      "10.137.166.20"
+    ],
+    "sources": {
+      "benign": {
+        "connections": 8,
+        "verdicts": 713,
+        "flagged": 20,
+        "flag_rate": 0.028050490883590462,
+        "unclassified_flows": 8
+      },
+      "infrastructure": {
+        "connections": 1,
+        "verdicts": 235,
+        "flagged": 0,
+        "flag_rate": 0.0,
+        "unclassified_flows": 1
+      }
+    },
+    "detection": {
+      "precision": 0.0
+    },
+    "ips": {
+      "benign_sent": 1839,
+      "benign_received_by_stage2": 1835,
+      "benign_delivery_ratio": 0.9978249048395867,
+      "attack_pkts_before_block_mean": null,
+      "attack_pkts_dropped": 0,
+      "attack_connections_never_classified": 0,
+      "attack_connections": 0,
+      "benign_connections_blocked": 0,
+      "infrastructure_connections_blocked": 0
+    }
+  },
+  {
+    "session": "E1_rep51",
+    "run": "E1",
+    "rep": 51,
+    "client_ip": "10.137.166.15",
+    "client_ips": [
+      "10.137.166.15",
+      "10.137.166.20"
+    ],
+    "sources": {
+      "benign": {
+        "connections": 8,
+        "verdicts": 712,
+        "flagged": 27,
+        "flag_rate": 0.037921348314606744,
+        "unclassified_flows": 8
+      },
+      "infrastructure": {
+        "connections": 1,
+        "verdicts": 238,
+        "flagged": 1,
+        "flag_rate": 0.004201680672268907,
+        "unclassified_flows": 1
+      }
+    },
+    "detection": {
+      "precision": 0.0
+    },
+    "ips": {
+      "benign_sent": 1841,
+      "benign_received_by_stage2": 1832,
+      "benign_delivery_ratio": 0.9951113525258012,
+      "attack_pkts_before_block_mean": null,
+      "attack_pkts_dropped": 0,
+      "attack_connections_never_classified": 0,
+      "attack_connections": 0,
+      "benign_connections_blocked": 0,
+      "infrastructure_connections_blocked": 0
+    }
+  },
+  {
+    "session": "E1_rep52",
+    "run": "E1",
+    "rep": 52,
+    "client_ip": "10.96.208.15",
+    "client_ips": [
+      "10.96.208.15",
+      "10.96.208.20"
+    ],
+    "sources": {
+      "benign": {
+        "connections": 8,
+        "verdicts": 708,
+        "flagged": 18,
+        "flag_rate": 0.025423728813559324,
+        "unclassified_flows": 10
+      },
+      "infrastructure": {
+        "connections": 1,
+        "verdicts": 234,
+        "flagged": 0,
+        "flag_rate": 0.0,
+        "unclassified_flows": 1
+      }
+    },
+    "detection": {
+      "precision": 0.0
+    },
+    "ips": {
+      "benign_sent": 1824,
+      "benign_received_by_stage2": 1818,
+      "benign_delivery_ratio": 0.9967105263157895,
+      "attack_pkts_before_block_mean": null,
+      "attack_pkts_dropped": 0,
+      "attack_connections_never_classified": 0,
+      "attack_connections": 0,
+      "benign_connections_blocked": 0,
+      "infrastructure_connections_blocked": 0
+    }
+  },
+  {
+    "session": "E2_rep50",
+    "run": "E2",
+    "rep": 50,
+    "client_ip": "10.137.166.15",
+    "client_ips": [
+      "10.137.166.15",
+      "10.137.166.20"
+    ],
+    "sources": {
+      "benign": {
+        "connections": 4,
+        "verdicts": 715,
+        "flagged": 4,
+        "flag_rate": 0.005594405594405594,
+        "unclassified_flows": 5
+      },
+      "connect_flood": {
+        "connections": 59,
+        "verdicts": 117,
+        "flagged": 117,
+        "flag_rate": 1.0,
+        "unclassified_flows": 1
+      },
+      "connect_flood_ddos": {
+        "connections": 289,
+        "verdicts": 572,
+        "flagged": 562,
+        "flag_rate": 0.9825174825174825,
+        "unclassified_flows": 111
+      },
+      "flood": {
+        "connections": 1,
+        "verdicts": 207,
+        "flagged": 207,
+        "flag_rate": 1.0,
+        "unclassified_flows": 0
+      },
+      "infrastructure": {
+        "connections": 1,
+        "verdicts": 400,
+        "flagged": 0,
+        "flag_rate": 0.0,
+        "unclassified_flows": 1
+      },
+      "malformed": {
+        "connections": 1,
+        "verdicts": 238,
+        "flagged": 210,
+        "flag_rate": 0.8823529411764706,
+        "unclassified_flows": 1
+      },
+      "port_scan": {
+        "connections": 1,
+        "verdicts": 1,
+        "flagged": 1,
+        "flag_rate": 1.0,
+        "unclassified_flows": 1
+      },
+      "slowloris": {
+        "connections": 5,
+        "verdicts": 5,
+        "flagged": 5,
+        "flag_rate": 1.0,
+        "unclassified_flows": 10
+      },
+      "syn_flood": {
+        "connections": 60,
+        "verdicts": 60,
+        "flagged": 60,
+        "flag_rate": 1.0,
+        "unclassified_flows": 0
+      },
+      "udp_flood": {
+        "connections": 1,
+        "verdicts": 1412,
+        "flagged": 1412,
+        "flag_rate": 1.0,
+        "unclassified_flows": 0
+      },
+      "udp_flood_ddos": {
+        "connections": 5,
+        "verdicts": 1475,
+        "flagged": 1475,
+        "flag_rate": 1.0,
+        "unclassified_flows": 0
+      },
+      "vul_scan": {
+        "connections": 2,
+        "verdicts": 2,
+        "flagged": 2,
+        "flag_rate": 1.0,
+        "unclassified_flows": 0
+      }
+    },
+    "detection": {
+      "precision": 0.9990135635018496,
+      "recall": 0.9907067742724383,
+      "f1": 0.9948428290766208
+    }
+  },
+  {
+    "session": "E2_rep51",
+    "run": "E2",
+    "rep": 51,
+    "client_ip": "10.137.166.15",
+    "client_ips": [
+      "10.137.166.15",
+      "10.137.166.20"
+    ],
+    "sources": {
+      "benign": {
+        "connections": 4,
+        "verdicts": 701,
+        "flagged": 4,
+        "flag_rate": 0.005706134094151213,
+        "unclassified_flows": 6
+      },
+      "connect_flood": {
+        "connections": 59,
+        "verdicts": 115,
+        "flagged": 114,
+        "flag_rate": 0.991304347826087,
+        "unclassified_flows": 3
+      },
+      "connect_flood_ddos": {
+        "connections": 289,
+        "verdicts": 582,
+        "flagged": 575,
+        "flag_rate": 0.9879725085910653,
+        "unclassified_flows": 114
+      },
+      "flood": {
+        "connections": 1,
+        "verdicts": 204,
+        "flagged": 204,
+        "flag_rate": 1.0,
+        "unclassified_flows": 1
+      },
+      "infrastructure": {
+        "connections": 1,
+        "verdicts": 398,
+        "flagged": 0,
+        "flag_rate": 0.0,
+        "unclassified_flows": 1
+      },
+      "malformed": {
+        "connections": 1,
+        "verdicts": 238,
+        "flagged": 210,
+        "flag_rate": 0.8823529411764706,
+        "unclassified_flows": 1
+      },
+      "port_scan": {
+        "connections": 1,
+        "verdicts": 1,
+        "flagged": 1,
+        "flag_rate": 1.0,
+        "unclassified_flows": 1
+      },
+      "slowloris": {
+        "connections": 5,
+        "verdicts": 5,
+        "flagged": 5,
+        "flag_rate": 1.0,
+        "unclassified_flows": 10
+      },
+      "syn_flood": {
+        "connections": 60,
+        "verdicts": 60,
+        "flagged": 60,
+        "flag_rate": 1.0,
+        "unclassified_flows": 0
+      },
+      "udp_flood": {
+        "connections": 1,
+        "verdicts": 1416,
+        "flagged": 1416,
+        "flag_rate": 1.0,
+        "unclassified_flows": 0
+      },
+      "udp_flood_ddos": {
+        "connections": 5,
+        "verdicts": 1475,
+        "flagged": 1475,
+        "flag_rate": 1.0,
+        "unclassified_flows": 0
+      },
+      "vul_scan": {
+        "connections": 2,
+        "verdicts": 2,
+        "flagged": 2,
+        "flag_rate": 1.0,
+        "unclassified_flows": 0
+      }
+    },
+    "detection": {
+      "precision": 0.9990162321692081,
+      "recall": 0.9912152269399708,
+      "f1": 0.9951004409603137
+    }
+  },
+  {
+    "session": "E2_rep52",
+    "run": "E2",
+    "rep": 52,
+    "client_ip": "10.96.208.15",
+    "client_ips": [
+      "10.96.208.15",
+      "10.96.208.20"
+    ],
+    "sources": {
+      "benign": {
+        "connections": 4,
+        "verdicts": 721,
+        "flagged": 3,
+        "flag_rate": 0.004160887656033287,
+        "unclassified_flows": 8
+      },
+      "connect_flood": {
+        "connections": 59,
+        "verdicts": 118,
+        "flagged": 115,
+        "flag_rate": 0.9745762711864406,
+        "unclassified_flows": 3
+      },
+      "connect_flood_ddos": {
+        "connections": 287,
+        "verdicts": 573,
+        "flagged": 558,
+        "flag_rate": 0.9738219895287958,
+        "unclassified_flows": 114
+      },
+      "flood": {
+        "connections": 1,
+        "verdicts": 219,
+        "flagged": 219,
+        "flag_rate": 1.0,
+        "unclassified_flows": 1
+      },
+      "infrastructure": {
+        "connections": 1,
+        "verdicts": 401,
+        "flagged": 0,
+        "flag_rate": 0.0,
+        "unclassified_flows": 2
+      },
+      "malformed": {
+        "connections": 1,
+        "verdicts": 237,
+        "flagged": 216,
+        "flag_rate": 0.9113924050632911,
+        "unclassified_flows": 1
+      },
+      "port_scan": {
+        "connections": 1,
+        "verdicts": 1,
+        "flagged": 1,
+        "flag_rate": 1.0,
+        "unclassified_flows": 1
+      },
+      "slowloris": {
+        "connections": 5,
+        "verdicts": 5,
+        "flagged": 5,
+        "flag_rate": 1.0,
+        "unclassified_flows": 10
+      },
+      "syn_flood": {
+        "connections": 60,
+        "verdicts": 60,
+        "flagged": 60,
+        "flag_rate": 1.0,
+        "unclassified_flows": 0
+      },
+      "udp_flood": {
+        "connections": 1,
+        "verdicts": 1416,
+        "flagged": 1416,
+        "flag_rate": 1.0,
+        "unclassified_flows": 0
+      },
+      "udp_flood_ddos": {
+        "connections": 5,
+        "verdicts": 1475,
+        "flagged": 1475,
+        "flag_rate": 1.0,
+        "unclassified_flows": 0
+      },
+      "vul_scan": {
+        "connections": 2,
+        "verdicts": 2,
+        "flagged": 2,
+        "flag_rate": 1.0,
+        "unclassified_flows": 0
+      }
+    },
+    "detection": {
+      "precision": 0.9992628992628992,
+      "recall": 0.9905017048222114,
+      "f1": 0.9948630136986302
+    }
+  },
+  {
+    "session": "E3_rep50",
+    "run": "E3",
+    "rep": 50,
+    "client_ip": "10.137.166.15",
+    "client_ips": [
+      "10.137.166.15",
+      "10.137.166.20"
+    ],
+    "sources": {
+      "benign": {
+        "connections": 4,
+        "verdicts": 333,
+        "flagged": 1,
+        "flag_rate": 0.003003003003003003,
+        "unclassified_flows": 7
+      },
+      "connect_flood": {
+        "connections": 59,
+        "verdicts": 118,
+        "flagged": 116,
+        "flag_rate": 0.9830508474576272,
+        "unclassified_flows": 2
+      },
+      "connect_flood_ddos": {
+        "connections": 259,
+        "verdicts": 513,
+        "flagged": 499,
+        "flag_rate": 0.9727095516569201,
+        "unclassified_flows": 20
+      },
+      "flood": {
+        "connections": 1,
+        "verdicts": 2,
+        "flagged": 2,
+        "flag_rate": 1.0,
+        "unclassified_flows": 0
+      },
+      "infrastructure": {
+        "connections": 1,
+        "verdicts": 169,
+        "flagged": 0,
+        "flag_rate": 0.0,
+        "unclassified_flows": 1
+      },
+      "malformed": {
+        "connections": 1,
+        "verdicts": 3,
+        "flagged": 2,
+        "flag_rate": 0.6666666666666666,
+        "unclassified_flows": 0
+      },
+      "port_scan": {
+        "connections": 1,
+        "verdicts": 1,
+        "flagged": 1,
+        "flag_rate": 1.0,
+        "unclassified_flows": 1
+      },
+      "slowloris": {
+        "connections": 5,
+        "verdicts": 5,
+        "flagged": 5,
+        "flag_rate": 1.0,
+        "unclassified_flows": 10
+      },
+      "syn_flood": {
+        "connections": 60,
+        "verdicts": 60,
+        "flagged": 60,
+        "flag_rate": 1.0,
+        "unclassified_flows": 0
+      },
+      "udp_flood": {
+        "connections": 1,
+        "verdicts": 2,
+        "flagged": 2,
+        "flag_rate": 1.0,
+        "unclassified_flows": 0
+      },
+      "udp_flood_ddos": {
+        "connections": 5,
+        "verdicts": 10,
+        "flagged": 10,
+        "flag_rate": 1.0,
+        "unclassified_flows": 0
+      },
+      "vul_scan": {
+        "connections": 2,
+        "verdicts": 2,
+        "flagged": 2,
+        "flag_rate": 1.0,
+        "unclassified_flows": 0
+      }
+    },
+    "detection": {
+      "precision": 0.9985714285714286,
+      "recall": 0.9762569832402235,
+      "f1": 0.9872881355932205
+    },
+    "ips": {
+      "benign_sent": 1252,
+      "benign_received_by_stage2": 1252,
+      "benign_delivery_ratio": 1.0,
+      "attack_pkts_before_block_mean": 11.827242524916944,
+      "attack_pkts_dropped": 57729,
+      "attack_connections_never_classified": 0,
+      "attack_connections": 394,
+      "benign_connections_blocked": 0,
+      "infrastructure_connections_blocked": 0
+    }
+  },
+  {
+    "session": "E3_rep51",
+    "run": "E3",
+    "rep": 51,
+    "client_ip": "10.137.166.15",
+    "client_ips": [
+      "10.137.166.15",
+      "10.96.208.20"
+    ],
+    "sources": {
+      "benign": {
+        "connections": 4,
+        "verdicts": 5,
+        "flagged": 2,
+        "flag_rate": 0.4,
+        "unclassified_flows": 2
+      },
+      "flood": {
+        "connections": 1,
+        "verdicts": 2,
+        "flagged": 2,
+        "flag_rate": 1.0,
+        "unclassified_flows": 0
+      },
+      "infrastructure": {
+        "connections": 1,
+        "verdicts": 99,
+        "flagged": 91,
+        "flag_rate": 0.9191919191919192,
+        "unclassified_flows": 2
+      },
+      "malformed": {
+        "connections": 1,
+        "verdicts": 3,
+        "flagged": 2,
+        "flag_rate": 0.6666666666666666,
+        "unclassified_flows": 0
+      },
+      "other": {
+        "connections": 1,
+        "verdicts": 2,
+        "flagged": 2,
+        "flag_rate": 1.0,
+        "unclassified_flows": 0
+      }
+    },
+    "detection": {
+      "precision": 0.6666666666666666,
+      "recall": 0.8,
+      "f1": 0.7272727272727272
+    },
+    "ips": {
+      "benign_sent": 184,
+      "benign_received_by_stage2": 14,
+      "benign_delivery_ratio": 0.07608695652173914,
+      "attack_pkts_before_block_mean": 50,
+      "attack_pkts_dropped": 30,
+      "attack_connections_never_classified": 0,
+      "attack_connections": 2,
+      "benign_connections_blocked": 0,
+      "infrastructure_connections_blocked": 0
+    }
+  },
+  {
+    "session": "E3_rep52",
+    "run": "E3",
+    "rep": 52,
+    "client_ip": "10.96.208.15",
+    "client_ips": [
+      "10.96.208.15",
+      "10.96.208.20"
+    ],
+    "sources": {
+      "benign": {
+        "connections": 4,
+        "verdicts": 336,
+        "flagged": 4,
+        "flag_rate": 0.011904761904761904,
+        "unclassified_flows": 6
+      },
+      "connect_flood": {
+        "connections": 59,
+        "verdicts": 117,
+        "flagged": 117,
+        "flag_rate": 1.0,
+        "unclassified_flows": 1
+      },
+      "connect_flood_ddos": {
+        "connections": 282,
+        "verdicts": 557,
+        "flagged": 539,
+        "flag_rate": 0.9676840215439856,
+        "unclassified_flows": 27
+      },
+      "flood": {
+        "connections": 1,
+        "verdicts": 2,
+        "flagged": 2,
+        "flag_rate": 1.0,
+        "unclassified_flows": 0
+      },
+      "infrastructure": {
+        "connections": 1,
+        "verdicts": 168,
+        "flagged": 0,
+        "flag_rate": 0.0,
+        "unclassified_flows": 1
+      },
+      "malformed": {
+        "connections": 1,
+        "verdicts": 3,
+        "flagged": 2,
+        "flag_rate": 0.6666666666666666,
+        "unclassified_flows": 0
+      },
+      "port_scan": {
+        "connections": 1,
+        "verdicts": 2,
+        "flagged": 2,
+        "flag_rate": 1.0,
+        "unclassified_flows": 0
+      },
+      "slowloris": {
+        "connections": 5,
+        "verdicts": 5,
+        "flagged": 5,
+        "flag_rate": 1.0,
+        "unclassified_flows": 10
+      },
+      "syn_flood": {
+        "connections": 60,
+        "verdicts": 60,
+        "flagged": 60,
+        "flag_rate": 1.0,
+        "unclassified_flows": 0
+      },
+      "udp_flood": {
+        "connections": 1,
+        "verdicts": 2,
+        "flagged": 2,
+        "flag_rate": 1.0,
+        "unclassified_flows": 0
+      },
+      "udp_flood_ddos": {
+        "connections": 5,
+        "verdicts": 10,
+        "flagged": 10,
+        "flag_rate": 1.0,
+        "unclassified_flows": 0
+      },
+      "vul_scan": {
+        "connections": 2,
+        "verdicts": 2,
+        "flagged": 2,
+        "flag_rate": 1.0,
+        "unclassified_flows": 0
+      }
+    },
+    "detection": {
+      "precision": 0.9946308724832215,
+      "recall": 0.975,
+      "f1": 0.9847176079734219
+    },
+    "ips": {
+      "benign_sent": 1251,
+      "benign_received_by_stage2": 1251,
+      "benign_delivery_ratio": 1.0,
+      "attack_pkts_before_block_mean": 12.078616352201259,
+      "attack_pkts_dropped": 57609,
+      "attack_connections_never_classified": 0,
+      "attack_connections": 417,
+      "benign_connections_blocked": 0,
+      "infrastructure_connections_blocked": 0
+    }
+  },
+  {
+    "session": "E4_rep50",
+    "run": "E4",
+    "rep": 50,
+    "client_ip": "10.137.166.15",
+    "client_ips": [
+      "10.137.166.15",
+      "10.137.166.20"
+    ],
+    "sources": {
+      "benign": {
+        "connections": 4,
+        "verdicts": 569,
+        "flagged": 2,
+        "flag_rate": 0.0035149384885764497,
+        "unclassified_flows": 5
+      },
+      "connect_flood": {
+        "connections": 59,
+        "verdicts": 115,
+        "flagged": 113,
+        "flag_rate": 0.9826086956521739,
+        "unclassified_flows": 7
+      },
+      "connect_flood_ddos": {
+        "connections": 289,
+        "verdicts": 592,
+        "flagged": 580,
+        "flag_rate": 0.9797297297297297,
+        "unclassified_flows": 103
+      },
+      "flood": {
+        "connections": 1,
+        "verdicts": 216,
+        "flagged": 213,
+        "flag_rate": 0.9861111111111112,
+        "unclassified_flows": 0
+      },
+      "infrastructure": {
+        "connections": 1,
+        "verdicts": 327,
+        "flagged": 0,
+        "flag_rate": 0.0,
+        "unclassified_flows": 1
+      },
+      "malformed": {
+        "connections": 1,
+        "verdicts": 238,
+        "flagged": 208,
+        "flag_rate": 0.8739495798319328,
+        "unclassified_flows": 1
+      },
+      "port_scan": {
+        "connections": 1,
+        "verdicts": 1,
+        "flagged": 1,
+        "flag_rate": 1.0,
+        "unclassified_flows": 1
+      },
+      "slowloris": {
+        "connections": 5,
+        "verdicts": 5,
+        "flagged": 5,
+        "flag_rate": 1.0,
+        "unclassified_flows": 10
+      },
+      "syn_flood": {
+        "connections": 60,
+        "verdicts": 60,
+        "flagged": 60,
+        "flag_rate": 1.0,
+        "unclassified_flows": 0
+      },
+      "udp_flood": {
+        "connections": 1,
+        "verdicts": 1421,
+        "flagged": 1421,
+        "flag_rate": 1.0,
+        "unclassified_flows": 0
+      },
+      "udp_flood_ddos": {
+        "connections": 5,
+        "verdicts": 1475,
+        "flagged": 1475,
+        "flag_rate": 1.0,
+        "unclassified_flows": 0
+      },
+      "vul_scan": {
+        "connections": 2,
+        "verdicts": 2,
+        "flagged": 2,
+        "flag_rate": 1.0,
+        "unclassified_flows": 0
+      }
+    },
+    "detection": {
+      "precision": 0.9995098039215686,
+      "recall": 0.9886060606060606,
+      "f1": 0.9940280316879951
+    }
+  },
+  {
+    "session": "E4_rep51",
+    "run": "E4",
+    "rep": 51,
+    "client_ip": "10.96.208.15",
+    "client_ips": [
+      "10.96.208.15",
+      "10.96.208.20"
+    ],
+    "sources": {
+      "benign": {
+        "connections": 4,
+        "verdicts": 568,
+        "flagged": 2,
+        "flag_rate": 0.0035211267605633804,
+        "unclassified_flows": 7
+      },
+      "connect_flood": {
+        "connections": 59,
+        "verdicts": 117,
+        "flagged": 117,
+        "flag_rate": 1.0,
+        "unclassified_flows": 4
+      },
+      "connect_flood_ddos": {
+        "connections": 292,
+        "verdicts": 588,
+        "flagged": 578,
+        "flag_rate": 0.9829931972789115,
+        "unclassified_flows": 97
+      },
+      "flood": {
+        "connections": 1,
+        "verdicts": 220,
+        "flagged": 218,
+        "flag_rate": 0.990909090909091,
+        "unclassified_flows": 1
+      },
+      "infrastructure": {
+        "connections": 1,
+        "verdicts": 328,
+        "flagged": 0,
+        "flag_rate": 0.0,
+        "unclassified_flows": 1
+      },
+      "malformed": {
+        "connections": 1,
+        "verdicts": 237,
+        "flagged": 217,
+        "flag_rate": 0.9156118143459916,
+        "unclassified_flows": 1
+      },
+      "port_scan": {
+        "connections": 1,
+        "verdicts": 1,
+        "flagged": 1,
+        "flag_rate": 1.0,
+        "unclassified_flows": 1
+      },
+      "slowloris": {
+        "connections": 5,
+        "verdicts": 5,
+        "flagged": 5,
+        "flag_rate": 1.0,
+        "unclassified_flows": 10
+      },
+      "syn_flood": {
+        "connections": 60,
+        "verdicts": 60,
+        "flagged": 60,
+        "flag_rate": 1.0,
+        "unclassified_flows": 0
+      },
+      "udp_flood": {
+        "connections": 1,
+        "verdicts": 1420,
+        "flagged": 1420,
+        "flag_rate": 1.0,
+        "unclassified_flows": 0
+      },
+      "udp_flood_ddos": {
+        "connections": 5,
+        "verdicts": 1470,
+        "flagged": 1470,
+        "flag_rate": 1.0,
+        "unclassified_flows": 0
+      },
+      "unlabelled": {
+        "connections": 2,
+        "verdicts": 30,
+        "flagged": 24,
+        "flag_rate": 0.8,
+        "unclassified_flows": 2
+      },
+      "vul_scan": {
+        "connections": 2,
+        "verdicts": 2,
+        "flagged": 2,
+        "flag_rate": 1.0,
+        "unclassified_flows": 0
+      }
+    },
+    "detection": {
+      "precision": 0.9995110024449878,
+      "recall": 0.9922330097087378,
+      "f1": 0.9958587088915956
+    }
+  },
+  {
+    "session": "E4_rep52",
+    "run": "E4",
+    "rep": 52,
+    "client_ip": "10.96.208.15",
+    "client_ips": [
+      "10.96.208.15",
+      "10.96.208.20"
+    ],
+    "sources": {
+      "benign": {
+        "connections": 4,
+        "verdicts": 581,
+        "flagged": 2,
+        "flag_rate": 0.0034423407917383822,
+        "unclassified_flows": 4
+      },
+      "connect_flood": {
+        "connections": 59,
+        "verdicts": 115,
+        "flagged": 115,
+        "flag_rate": 1.0,
+        "unclassified_flows": 4
+      },
+      "connect_flood_ddos": {
+        "connections": 290,
+        "verdicts": 587,
+        "flagged": 585,
+        "flag_rate": 0.9965928449744463,
+        "unclassified_flows": 121
+      },
+      "flood": {
+        "connections": 1,
+        "verdicts": 221,
+        "flagged": 219,
+        "flag_rate": 0.9909502262443439,
+        "unclassified_flows": 1
+      },
+      "infrastructure": {
+        "connections": 1,
+        "verdicts": 329,
+        "flagged": 0,
+        "flag_rate": 0.0,
+        "unclassified_flows": 1
+      },
+      "malformed": {
+        "connections": 1,
+        "verdicts": 238,
+        "flagged": 211,
+        "flag_rate": 0.8865546218487395,
+        "unclassified_flows": 1
+      },
+      "port_scan": {
+        "connections": 1,
+        "verdicts": 1,
+        "flagged": 1,
+        "flag_rate": 1.0,
+        "unclassified_flows": 1
+      },
+      "slowloris": {
+        "connections": 5,
+        "verdicts": 5,
+        "flagged": 5,
+        "flag_rate": 1.0,
+        "unclassified_flows": 10
+      },
+      "syn_flood": {
+        "connections": 60,
+        "verdicts": 60,
+        "flagged": 60,
+        "flag_rate": 1.0,
+        "unclassified_flows": 0
+      },
+      "udp_flood": {
+        "connections": 1,
+        "verdicts": 1416,
+        "flagged": 1416,
+        "flag_rate": 1.0,
+        "unclassified_flows": 0
+      },
+      "udp_flood_ddos": {
+        "connections": 5,
+        "verdicts": 1474,
+        "flagged": 1474,
+        "flag_rate": 1.0,
+        "unclassified_flows": 1
+      },
+      "vul_scan": {
+        "connections": 2,
+        "verdicts": 2,
+        "flagged": 2,
+        "flag_rate": 1.0,
+        "unclassified_flows": 0
+      }
+    },
+    "detection": {
+      "precision": 0.9995110024449878,
+      "recall": 0.9924739014323865,
+      "f1": 0.9959800219271532
+    }
+  },
+  {
+    "session": "E5_rep50",
+    "run": "E5",
+    "rep": 50,
+    "client_ip": "10.137.166.15",
+    "client_ips": [
+      "10.137.166.15",
+      "10.137.166.20"
+    ],
+    "sources": {
+      "benign": {
+        "connections": 4,
+        "verdicts": 192,
+        "flagged": 4,
+        "flag_rate": 0.020833333333333332,
+        "unclassified_flows": 4
+      },
+      "connect_flood": {
+        "connections": 58,
+        "verdicts": 112,
+        "flagged": 111,
+        "flag_rate": 0.9910714285714286,
+        "unclassified_flows": 5
+      },
+      "connect_flood_ddos": {
+        "connections": 290,
+        "verdicts": 577,
+        "flagged": 567,
+        "flag_rate": 0.9826689774696707,
+        "unclassified_flows": 19
+      },
+      "flood": {
+        "connections": 1,
+        "verdicts": 2,
+        "flagged": 2,
+        "flag_rate": 1.0,
+        "unclassified_flows": 0
+      },
+      "infrastructure": {
+        "connections": 1,
+        "verdicts": 97,
+        "flagged": 0,
+        "flag_rate": 0.0,
+        "unclassified_flows": 1
+      },
+      "malformed": {
+        "connections": 1,
+        "verdicts": 7,
+        "flagged": 4,
+        "flag_rate": 0.5714285714285714,
+        "unclassified_flows": 0
+      },
+      "port_scan": {
+        "connections": 1,
+        "verdicts": 1,
+        "flagged": 1,
+        "flag_rate": 1.0,
+        "unclassified_flows": 1
+      },
+      "slowloris": {
+        "connections": 5,
+        "verdicts": 5,
+        "flagged": 5,
+        "flag_rate": 1.0,
+        "unclassified_flows": 10
+      },
+      "syn_flood": {
+        "connections": 60,
+        "verdicts": 60,
+        "flagged": 60,
+        "flag_rate": 1.0,
+        "unclassified_flows": 0
+      },
+      "udp_flood": {
+        "connections": 1,
+        "verdicts": 2,
+        "flagged": 2,
+        "flag_rate": 1.0,
+        "unclassified_flows": 0
+      },
+      "udp_flood_ddos": {
+        "connections": 5,
+        "verdicts": 10,
+        "flagged": 10,
+        "flag_rate": 1.0,
+        "unclassified_flows": 0
+      },
+      "vul_scan": {
+        "connections": 2,
+        "verdicts": 2,
+        "flagged": 2,
+        "flag_rate": 1.0,
+        "unclassified_flows": 0
+      }
+    },
+    "detection": {
+      "precision": 0.9947916666666666,
+      "recall": 0.9820051413881749,
+      "f1": 0.9883570504527813
+    },
+    "ips": {
+      "benign_sent": 705,
+      "benign_received_by_stage2": 705,
+      "benign_delivery_ratio": 1.0,
+      "attack_pkts_before_block_mean": 11.709969788519638,
+      "attack_pkts_dropped": 57679,
+      "attack_connections_never_classified": 0,
+      "attack_connections": 424,
+      "benign_connections_blocked": 0,
+      "infrastructure_connections_blocked": 0
+    }
+  },
+  {
+    "session": "E5_rep51",
+    "run": "E5",
+    "rep": 51,
+    "client_ip": "10.96.208.15",
+    "client_ips": [
+      "10.96.208.15",
+      "10.96.208.20"
+    ],
+    "sources": {
+      "benign": {
+        "connections": 4,
+        "verdicts": 189,
+        "flagged": 3,
+        "flag_rate": 0.015873015873015872,
+        "unclassified_flows": 4
+      },
+      "connect_flood": {
+        "connections": 59,
+        "verdicts": 115,
+        "flagged": 114,
+        "flag_rate": 0.991304347826087,
+        "unclassified_flows": 4
+      },
+      "connect_flood_ddos": {
+        "connections": 293,
+        "verdicts": 581,
+        "flagged": 561,
+        "flag_rate": 0.9655765920826161,
+        "unclassified_flows": 28
+      },
+      "flood": {
+        "connections": 1,
+        "verdicts": 2,
+        "flagged": 2,
+        "flag_rate": 1.0,
+        "unclassified_flows": 0
+      },
+      "infrastructure": {
+        "connections": 1,
+        "verdicts": 96,
+        "flagged": 0,
+        "flag_rate": 0.0,
+        "unclassified_flows": 1
+      },
+      "malformed": {
+        "connections": 1,
+        "verdicts": 3,
+        "flagged": 2,
+        "flag_rate": 0.6666666666666666,
+        "unclassified_flows": 0
+      },
+      "port_scan": {
+        "connections": 1,
+        "verdicts": 1,
+        "flagged": 1,
+        "flag_rate": 1.0,
+        "unclassified_flows": 1
+      },
+      "slowloris": {
+        "connections": 5,
+        "verdicts": 5,
+        "flagged": 5,
+        "flag_rate": 1.0,
+        "unclassified_flows": 10
+      },
+      "syn_flood": {
+        "connections": 60,
+        "verdicts": 60,
+        "flagged": 60,
+        "flag_rate": 1.0,
+        "unclassified_flows": 0
+      },
+      "udp_flood": {
+        "connections": 1,
+        "verdicts": 2,
+        "flagged": 2,
+        "flag_rate": 1.0,
+        "unclassified_flows": 0
+      },
+      "udp_flood_ddos": {
+        "connections": 5,
+        "verdicts": 10,
+        "flagged": 10,
+        "flag_rate": 1.0,
+        "unclassified_flows": 0
+      },
+      "vul_scan": {
+        "connections": 2,
+        "verdicts": 2,
+        "flagged": 2,
+        "flag_rate": 1.0,
+        "unclassified_flows": 0
+      }
+    },
+    "detection": {
+      "precision": 0.9960629921259843,
+      "recall": 0.971830985915493,
+      "f1": 0.9837977965003241
+    },
+    "ips": {
+      "benign_sent": 704,
+      "benign_received_by_stage2": 704,
+      "benign_delivery_ratio": 1.0,
+      "attack_pkts_before_block_mean": 12.28048780487805,
+      "attack_pkts_dropped": 57612,
+      "attack_connections_never_classified": 0,
+      "attack_connections": 428,
+      "benign_connections_blocked": 0,
+      "infrastructure_connections_blocked": 0
+    }
+  },
+  {
+    "session": "E5_rep52",
+    "run": "E5",
+    "rep": 52,
+    "client_ip": "10.96.208.15",
+    "client_ips": [
+      "10.96.208.15",
+      "10.96.208.20"
+    ],
+    "sources": {
+      "benign": {
+        "connections": 4,
+        "verdicts": 182,
+        "flagged": 3,
+        "flag_rate": 0.016483516483516484,
+        "unclassified_flows": 6
+      },
+      "connect_flood": {
+        "connections": 59,
+        "verdicts": 117,
+        "flagged": 116,
+        "flag_rate": 0.9914529914529915,
+        "unclassified_flows": 2
+      },
+      "connect_flood_ddos": {
+        "connections": 294,
+        "verdicts": 587,
+        "flagged": 583,
+        "flag_rate": 0.9931856899488927,
+        "unclassified_flows": 5
+      },
+      "flood": {
+        "connections": 1,
+        "verdicts": 2,
+        "flagged": 2,
+        "flag_rate": 1.0,
+        "unclassified_flows": 0
+      },
+      "infrastructure": {
+        "connections": 1,
+        "verdicts": 91,
+        "flagged": 0,
+        "flag_rate": 0.0,
+        "unclassified_flows": 1
+      },
+      "malformed": {
+        "connections": 1,
+        "verdicts": 5,
+        "flagged": 3,
+        "flag_rate": 0.6,
+        "unclassified_flows": 0
+      },
+      "port_scan": {
+        "connections": 1,
+        "verdicts": 1,
+        "flagged": 1,
+        "flag_rate": 1.0,
+        "unclassified_flows": 1
+      },
+      "slowloris": {
+        "connections": 5,
+        "verdicts": 5,
+        "flagged": 5,
+        "flag_rate": 1.0,
+        "unclassified_flows": 10
+      },
+      "syn_flood": {
+        "connections": 60,
+        "verdicts": 60,
+        "flagged": 60,
+        "flag_rate": 1.0,
+        "unclassified_flows": 0
+      },
+      "udp_flood": {
+        "connections": 1,
+        "verdicts": 2,
+        "flagged": 2,
+        "flag_rate": 1.0,
+        "unclassified_flows": 0
+      },
+      "udp_flood_ddos": {
+        "connections": 5,
+        "verdicts": 10,
+        "flagged": 10,
+        "flag_rate": 1.0,
+        "unclassified_flows": 0
+      },
+      "vul_scan": {
+        "connections": 2,
+        "verdicts": 2,
+        "flagged": 2,
+        "flag_rate": 1.0,
+        "unclassified_flows": 0
+      }
+    },
+    "detection": {
+      "precision": 0.9961880559085133,
+      "recall": 0.9911504424778761,
+      "f1": 0.9936628643852978
+    },
+    "ips": {
+      "benign_sent": 666,
+      "benign_received_by_stage2": 666,
+      "benign_delivery_ratio": 1.0,
+      "attack_pkts_before_block_mean": 11.982905982905983,
+      "attack_pkts_dropped": 57667,
+      "attack_connections_never_classified": 0,
+      "attack_connections": 429,
+      "benign_connections_blocked": 0,
+      "infrastructure_connections_blocked": 0
+    }
+  }
+]
