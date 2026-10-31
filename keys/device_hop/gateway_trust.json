@@ -1,0 +1,8 @@
+{
+  "device_sig:pi1-burst": "c9bfff1d0f6c730d93711dd9b6dcbd6345e28a384ffaf0a7b0b0d1358acd3caa",
+  "device_sig:pi1-mixed": "6aadfc2486e2a6c3d8ea73cfee426c08bffd3af3e0c1317fc33e41b7da4ed5d3",
+  "device_sig:pi1-steady": "399e09d3829e70b40153fd64e11adb56ebb1491e7dfc76bba0dfba54421c377d",
+  "device_sig:pi2-burst": "c1fd6aeed094f21101d1301c5390bf9301e067d77b590cac405e5e8083adb5a4",
+  "device_sig:pi2-mixed": "ad74efe701fc05d0fd3731bca8d7a6438b1d3111c22a1beea97419c9b45cc0f0",
+  "device_sig:pi2-steady": "8db69fe3047cbd1ed280b2599ecf86bb781ea6b5bcd938f82a55d707237281de"
+}
