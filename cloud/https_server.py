@@ -313,11 +313,17 @@ def _resource_loop(stop: threading.Event) -> None:
 
 
 def _gateway_endpoint() -> tuple[str, int]:
-    """Gateway agent address. GATEWAY_IP wins; otherwise the UDP beacon."""
+    """Gateway agent address on the LAN. Loopback GATEWAY_IP is ignored.
+
+    .env on this PC sets GATEWAY_IP=127.0.0.1 for a local broker. That is not
+    the gateway Pi. GATEWAY_CONTROL_HOST wins; otherwise a non-loopback
+    GATEWAY_IP; otherwise the UDP beacon.
+    """
     port = int(os.getenv("GATEWAY_CONTROL_PORT", "9100"))
-    host = os.getenv("GATEWAY_IP", "").strip()
-    if host:
-        return host, port
+    for key in ("GATEWAY_CONTROL_HOST", "GATEWAY_IP"):
+        host = os.getenv(key, "").strip()
+        if host and host not in ("127.0.0.1", "localhost", "::1"):
+            return host, port
     from experiments.client_runner import find_gateway
     found = find_gateway()
     if not found:
