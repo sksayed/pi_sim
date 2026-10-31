@@ -1,0 +1,7 @@
+Chain INPUT (policy ACCEPT 183641 packets, 53108024 bytes)
+    pkts      bytes target     prot opt in     out     source               destination         
+       8    12000 DROP       tcp  --  *      *       10.96.208.20         0.0.0.0/0            tcp spt:55179 dpt:1883 /* pi_sim_ips_block */
+      11     8968 DROP       tcp  --  *      *       10.96.208.20         0.0.0.0/0            tcp spt:38111 dpt:1883 /* pi_sim_ips_block */
+       7     6460 DROP       tcp  --  *      *       10.137.166.20        0.0.0.0/0            tcp spt:42663 dpt:1883 /* pi_sim_ips_block */
+       0        0 NFQUEUE    udp  --  *      *       0.0.0.0/0            0.0.0.0/0            udp dpt:1883 NFQUEUE num 0 bypass
+     390   106602 NFQUEUE    tcp  --  *      *       0.0.0.0/0            0.0.0.0/0            tcp dpt:1883 NFQUEUE num 0 bypass

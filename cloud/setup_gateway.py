@@ -13,11 +13,14 @@ It extracts keys, merges CLOUD_* lines into .env, and checks that the PC is reac
 from __future__ import annotations
 
 import os
+import pwd
 import re
 import shutil
 import socket
+import subprocess
 import sys
 import tarfile
+import tempfile
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -47,22 +50,96 @@ def _find_bundle() -> Path | None:
     return None
 
 
-def _extract(bundle: Path) -> Path:
-    dest = REPO / "keys" / "_bundle_extract"
-    if dest.exists():
-        shutil.rmtree(dest)
-    dest.mkdir(parents=True)
+def _invoker_user() -> str:
+    """Login user who invoked sudo, else the current non-root user."""
+    sudo_user = os.environ.get("SUDO_USER")
+    if sudo_user and sudo_user != "root":
+        return sudo_user
+    return pwd.getpwuid(os.geteuid()).pw_name
+
+
+def _reclaim_ownership(path: Path) -> bool:
+    """Best-effort chown path to the invoking user. Never prompts for a password."""
+    if not path.exists():
+        return True
+    user = _invoker_user()
+    if os.geteuid() == 0:
+        subprocess.run(["chown", "-R", f"{user}:{user}", str(path)], check=False)
+        return True
+    proc = subprocess.run(
+        ["sudo", "-n", "chown", "-R", f"{user}:{user}", str(path)],
+        capture_output=True,
+        text=True,
+    )
+    return proc.returncode == 0
+
+
+def _rmtree(path: Path) -> None:
+    """Remove a tree; reclaim ownership once if a prior sudo/sandbox left it unwritable."""
+    if not path.exists():
+        return
+    try:
+        shutil.rmtree(path)
+        return
+    except OSError:
+        pass
+    if _reclaim_ownership(path):
+        try:
+            shutil.rmtree(path)
+            return
+        except OSError:
+            pass
+    raise PermissionError(
+        f"Cannot remove {path} (wrong ownership). Run: "
+        f"sudo chown -R \"$USER:$USER\" {path.parent}"
+    )
+
+
+def _chown_keys_to_invoker() -> None:
+    """When run via sudo, hand keys/ back to the login user so next setup works."""
+    if os.geteuid() != 0:
+        return
+    keys = REPO / "keys"
+    if keys.exists():
+        user = _invoker_user()
+        subprocess.run(["chown", "-R", f"{user}:{user}", str(keys)], check=False)
+
+
+def _cleanup_stale_extracts(keys: Path, keep: Path | None = None) -> None:
+    for path in keys.glob("_bundle_extract*"):
+        if keep is not None and path.resolve() == keep.resolve():
+            continue
+        try:
+            _rmtree(path)
+        except OSError:
+            # Leave stale dirs; each run uses a fresh mkdtemp name so setup still proceeds.
+            pass
+
+
+def _extract(bundle: Path) -> tuple[Path, Path | None]:
+    """Extract bundle. Returns (source_dir, extract_root_to_delete_or_None)."""
+    keys = REPO / "keys"
+    keys.mkdir(parents=True, exist_ok=True)
+    _cleanup_stale_extracts(keys)
+
     if bundle.is_dir():
-        src = bundle
-    else:
+        return bundle, None
+
+    # Fresh dir every run so a stuck nobody/root-owned _bundle_extract cannot block setup.
+    dest = Path(tempfile.mkdtemp(prefix="_bundle_extract_", dir=str(keys)))
+    try:
         with tarfile.open(bundle, "r:gz") as tf:
-            tf.extractall(dest)
+            # filter="data": no archive ownership/xattrs → avoids nobody/root-owned trees.
+            tf.extractall(dest, filter="data")
         src = dest / "for_gateway_pi"
         if not src.is_dir():
             # tarball may contain files at top level
             nested = [p for p in dest.iterdir() if p.is_dir()]
             src = nested[0] if len(nested) == 1 else dest
-    return src
+        return src, dest
+    except Exception:
+        shutil.rmtree(dest, ignore_errors=True)
+        raise
 
 
 def _install_files(src: Path) -> None:
@@ -84,7 +161,7 @@ def _install_files(src: Path) -> None:
     if gw_src.is_dir():
         gw_dst = keys / "gateway"
         if gw_dst.exists():
-            shutil.rmtree(gw_dst)
+            _rmtree(gw_dst)
         shutil.copytree(gw_src, gw_dst)
 
     tls_src = src / "tls"
@@ -116,6 +193,43 @@ def _read_append_env(src: Path) -> dict[str, str]:
         k, _, v = line.partition("=")
         values[k.strip()] = v.strip()
     return values
+
+
+def _read_dotenv_key(key: str) -> str | None:
+    """Return key from process env or repo .env (first match)."""
+    env_val = os.environ.get(key)
+    if env_val and env_val.strip():
+        return env_val.strip()
+    env_path = REPO / ".env"
+    if not env_path.exists():
+        return None
+    try:
+        lines = env_path.read_text().splitlines()
+    except OSError:
+        return None
+    for line in lines:
+        raw = line.strip()
+        if not raw or raw.startswith("#") or "=" not in raw:
+            continue
+        k, _, v = raw.partition("=")
+        if k.strip() == key:
+            v = v.strip()
+            return v or None
+    return None
+
+
+def _prefer_existing_cloud_url(values: dict[str, str]) -> None:
+    """Keep a Pi-local CLOUD_URL so a stale bundle IP cannot overwrite a fixed DHCP/static address."""
+    existing = _read_dotenv_key("CLOUD_URL")
+    if not existing:
+        return
+    bundled = values.get("CLOUD_URL")
+    if bundled and bundled != existing:
+        print(
+            f"[gw-setup] Keeping existing CLOUD_URL ({urlparse(existing).hostname}) "
+            f"— ignoring bundle IP ({urlparse(bundled).hostname})"
+        )
+    values["CLOUD_URL"] = existing
 
 
 def _merge_env(values: dict[str, str]) -> None:
@@ -165,6 +279,79 @@ def _ping_cloud(url: str) -> None:
         print("[gw-setup] Check Wi-Fi, PC cloud server, and CLOUD_URL IP.")
 
 
+def _cert_covers_host(cert_path: Path, host: str) -> bool:
+    if not cert_path.exists() or not host:
+        return False
+    try:
+        text = subprocess.check_output(
+            ["openssl", "x509", "-in", str(cert_path), "-noout", "-text"],
+            text=True,
+            stderr=subprocess.DEVNULL,
+        )
+    except (OSError, subprocess.CalledProcessError):
+        return False
+    return host in text
+
+
+def _fetch_server_cert_pem(host: str, port: int) -> str | None:
+    """Pull the leaf PEM the cloud PC is presenting (for IP-matched pinning)."""
+    try:
+        raw = subprocess.check_output(
+            ["openssl", "s_client", "-connect", f"{host}:{port}", "-servername", host],
+            input="",
+            text=True,
+            stderr=subprocess.DEVNULL,
+            timeout=5,
+        )
+    except (OSError, subprocess.CalledProcessError, subprocess.TimeoutExpired):
+        return None
+    try:
+        return subprocess.check_output(
+            ["openssl", "x509"],
+            input=raw,
+            text=True,
+            stderr=subprocess.DEVNULL,
+        )
+    except (OSError, subprocess.CalledProcessError):
+        return None
+
+
+def _ensure_tls_matches_url(url: str) -> None:
+    """If cloud.crt is for an old IP, replace it with the cert the PC currently serves.
+
+    TCP can succeed while HTTPS fails with CERTIFICATE_VERIFY_FAILED when the
+    pinned cert SAN still has a previous DHCP/static address.
+    """
+    host = urlparse(url).hostname
+    port = urlparse(url).port or 8443
+    if not host:
+        return
+    cert_path = REPO / "keys" / "tls" / "cloud.crt"
+    if _cert_covers_host(cert_path, host):
+        print(f"[gw-setup] TLS cert covers {host}")
+        return
+    print(
+        f"[gw-setup] TLS cert does not cover {host} "
+        f"(stale pin) — fetching from cloud PC {host}:{port} …"
+    )
+    pem = _fetch_server_cert_pem(host, port)
+    if not pem or "BEGIN CERTIFICATE" not in pem:
+        print(
+            "[gw-setup] WARNING: could not fetch cloud TLS cert. "
+            "Re-run python -m cloud.setup_pc on the PC and copy a fresh for_gateway_pi.tar.gz."
+        )
+        return
+    cert_path.parent.mkdir(parents=True, exist_ok=True)
+    cert_path.write_text(pem if pem.endswith("\n") else pem + "\n")
+    if _cert_covers_host(cert_path, host):
+        print(f"[gw-setup] Updated {cert_path} for {host}")
+    else:
+        print(
+            f"[gw-setup] WARNING: fetched cert still does not name {host}. "
+            "Regenerate TLS on the PC for this IP."
+        )
+
+
 def ensure_gateway_cloud(*, require_bundle: bool = False) -> bool:
     """Install/update cloud keys from the PC bundle if present. Returns True if cloud ready."""
     bundle = _find_bundle()
@@ -177,30 +364,44 @@ def ensure_gateway_cloud(*, require_bundle: bool = False) -> bool:
         ready = (REPO / "keys" / "gateway" / "sig.sk").exists() and (REPO / "keys" / "tls" / "cloud.crt").exists()
         if ready:
             print("[gw-setup] Cloud keys already present (no new bundle).")
+            url = _read_dotenv_key("CLOUD_URL")
+            if url:
+                _ensure_tls_matches_url(url)
+                _ping_cloud(url)
         return ready
 
     print(f"[gw-setup] Using bundle {bundle}")
-    src = _extract(bundle)
-    _install_files(src)
-    values = _read_append_env(src)
-    if not values:
-        values = {
-            "GW_CLOUD_FORWARD": "1",
-            "GATEWAY_SIG_SK": "keys/gateway/sig.sk",
-            "GATEWAY_CLOUD_PK": "keys/cloud/kem.pk",
-            "GATEWAY_TRUST": "keys/trust.json",
-            "CLOUD_TLS_CERT": "keys/tls/cloud.crt",
-            "GW_CLOUD_LOG": "results/gateway/cloud_uplink.jsonl",
-            "GW_CLOUD_RETRIES": "3",
-        }
-    values.setdefault("GW_CLOUD_FORWARD", "1")
-    _merge_env(values)
-    if values.get("CLOUD_URL"):
-        _ping_cloud(values["CLOUD_URL"])
-    # Keep a copy under keys/ for the next boot
-    tar_dst = REPO / "keys" / "for_gateway_pi.tar.gz"
-    if bundle.is_file() and bundle.resolve() != tar_dst.resolve():
-        shutil.copy2(bundle, tar_dst)
+    src, extract_root = _extract(bundle)
+    try:
+        _install_files(src)
+        values = _read_append_env(src)
+        if not values:
+            values = {
+                "GW_CLOUD_FORWARD": "1",
+                "GATEWAY_SIG_SK": "keys/gateway/sig.sk",
+                "GATEWAY_CLOUD_PK": "keys/cloud/kem.pk",
+                "GATEWAY_TRUST": "keys/trust.json",
+                "CLOUD_TLS_CERT": "keys/tls/cloud.crt",
+                "GW_CLOUD_LOG": "results/gateway/cloud_uplink.jsonl",
+                "GW_CLOUD_RETRIES": "3",
+            }
+        values.setdefault("GW_CLOUD_FORWARD", "1")
+        _prefer_existing_cloud_url(values)
+        _merge_env(values)
+        if values.get("CLOUD_URL"):
+            _ensure_tls_matches_url(values["CLOUD_URL"])
+            _ping_cloud(values["CLOUD_URL"])
+        # Keep a copy under keys/ for the next boot
+        tar_dst = REPO / "keys" / "for_gateway_pi.tar.gz"
+        if bundle.is_file() and bundle.resolve() != tar_dst.resolve():
+            shutil.copy2(bundle, tar_dst)
+    finally:
+        if extract_root is not None:
+            try:
+                _rmtree(extract_root)
+            except OSError:
+                shutil.rmtree(extract_root, ignore_errors=True)
+        _chown_keys_to_invoker()
     print("[gw-setup] Done. Start: sudo .venv/bin/python experiments/gateway_agent.py")
     return True
 

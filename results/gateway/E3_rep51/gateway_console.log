@@ -1,0 +1,65 @@
+liboqs-python faulthandler is disabled
+/home/sayed-gateway/Desktop/pi_project/pi_sim/.venv/lib/python3.13/site-packages/oqs/__init__.py:1: UserWarning: liboqs version (major, minor) 0.15.0 differs from liboqs-python version 0.14.0
+  from oqs.oqs import (
+[GATEWAY] Crypto mode : real PQC (pyoqs)
+[GATEWAY] Replay protection : enabled (per-device seq tracking)
+[GATEWAY] Cloud HTTPS ON → https://10.137.166.55:8443/v1/envelope (TLS verify on)
+[GATEWAY] Connecting to broker at 127.0.0.1:1883 …
+[GATEWAY] Connected to broker at 127.0.0.1:1883
+[GATEWAY] Subscribed to: nodes/+/data
+[GATEWAY] Subscribed to: benchmark/rtt/request (MQTT RTT echo, no crypto)
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=12141011  crypto_type=aes_gcm  transit=-21.56ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=12141012  crypto_type=aes_gcm  transit=7.14ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=12141013  crypto_type=aes_gcm  transit=-17.91ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=12141014  crypto_type=aes_gcm  transit=-23.94ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=12141015  crypto_type=aes_gcm  transit=-22.81ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=12141016  crypto_type=aes_gcm  transit=-25.16ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=12141017  crypto_type=aes_gcm  transit=-15.05ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=12141018  crypto_type=aes_gcm  transit=-22.84ms  — model failed to block this flow
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-3f0601  seq=1  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=5.14ms  on_device_gw=5.38ms
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=12141019  crypto_type=aes_gcm  transit=-23.60ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=12141020  crypto_type=aes_gcm  transit=-23.81ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=12141021  crypto_type=aes_gcm  transit=-27.48ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=12141022  crypto_type=aes_gcm  transit=-27.11ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=12141023  crypto_type=aes_gcm  transit=-27.73ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=12141024  crypto_type=aes_gcm  transit=-27.31ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=12141025  crypto_type=aes_gcm  transit=-26.07ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=12141026  crypto_type=aes_gcm  transit=-27.43ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=12141027  crypto_type=aes_gcm  transit=-25.61ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=12141028  crypto_type=aes_gcm  transit=-20.12ms  — model failed to block this flow
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-391c69  seq=1  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.44ms  on_device_gw=1.62ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-a36afe  seq=1  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.19ms  on_device_gw=1.36ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-a36afe  seq=2  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.19ms  on_device_gw=1.35ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-a36afe  seq=3  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.18ms  on_device_gw=1.35ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-a36afe  seq=4  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.43ms  on_device_gw=1.59ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-3f0601  seq=2  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.14ms  on_device_gw=1.30ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-a36afe  seq=5  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.27ms  on_device_gw=1.44ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-a36afe  seq=6  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.52ms  on_device_gw=1.70ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-burst-a36afe  seq=7  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=2.15ms  on_device_gw=2.31ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-391c69  seq=2  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.12ms  on_device_gw=1.29ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-3f0601  seq=3  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.82ms  on_device_gw=1.98ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-mixed-391c69  seq=3  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.40ms  on_device_gw=1.56ms
+[BENIGN-PIPELINE] CLOUD-READY  device=benign-steady-3f0601  seq=4  kem=ML-KEM-768  sig=ML-DSA-65  reencrypt=1.08ms  on_device_gw=1.24ms
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=805142  crypto_type=aes_gcm  transit=1.42ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=805143  crypto_type=aes_gcm  transit=28.79ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=805144  crypto_type=aes_gcm  transit=4.52ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=805145  crypto_type=aes_gcm  transit=-7.86ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=805146  crypto_type=aes_gcm  transit=-4.40ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=805147  crypto_type=aes_gcm  transit=-7.88ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=805148  crypto_type=aes_gcm  transit=-4.76ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=805149  crypto_type=aes_gcm  transit=-0.68ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=805150  crypto_type=aes_gcm  transit=-7.85ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=805151  crypto_type=aes_gcm  transit=-7.21ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=805152  crypto_type=aes_gcm  transit=-7.29ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=805153  crypto_type=aes_gcm  transit=-5.06ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=805154  crypto_type=aes_gcm  transit=-7.05ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=805155  crypto_type=aes_gcm  transit=-7.58ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=805156  crypto_type=aes_gcm  transit=-7.57ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=805157  crypto_type=aes_gcm  transit=7.75ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=805158  crypto_type=aes_gcm  transit=-7.91ms  — model failed to block this flow
+[FIREWALL MISS] ⚠  attack_label=mqtt-flood  device=flood-attacker  seq=805159  crypto_type=aes_gcm  transit=9.75ms  — model failed to block this flow
+[GATEWAY] Non-JSON/malformed message on nodes/malformed-attacker/data — ignored
+[GATEWAY] Unknown crypto_type='None' — ignored
+[GATEWAY] Unknown crypto_type='' — ignored
+
+[GATEWAY] Shutting down.
