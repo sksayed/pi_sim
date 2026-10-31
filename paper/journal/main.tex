@@ -81,7 +81,7 @@ This article does that. A Raspberry Pi gateway classifies MQTT-bound TCP flows i
   \item \textit{Scheme choice:} A ten-configuration comparison on the gateway. At 5~KB, ML-KEM with ML-DSA or Falcon is faster than ECDH+ECDSA, and ML-KEM-768 + ML-DSA-65 is the Level~3 point that stays within a few milliseconds, which is why it is the scheme used live (Section~\ref{sec:res-matrix}).
 \end{enumerate}
 
-Section~\ref{sec:related} reviews related work. Section~\ref{sec:threat} states the threat model and Section~\ref{sec:design} the design. Section~\ref{sec:method} describes the evaluation, Section~\ref{sec:results} the results, and Sections~\ref{sec:discussion} and~\ref{sec:conclusion} the implications and the conclusion.
+Section~\ref{sec:related} reviews related work. Section~\ref{sec:threat} states the threat model and Section~\ref{sec:design} the design. Section~\ref{sec:method} describes the evaluation. Section~\ref{sec:results} reports, in order, the offline classifier, the scheme comparison that selects ML-KEM-768 + ML-DSA-65, the three-Pi IDS/IPS results, and the cloud receiver. Section~\ref{sec:limits} states the limits, and Section~\ref{sec:conclusion} concludes.
 
 % ═════════════════════════════════════════════════════════════════════════════
 \section{Related Work}
@@ -298,71 +298,7 @@ On the held-out set the 32-feature model reaches 71.5\% accuracy and 0.709 macro
 \label{fig:offline}
 \end{figure}
 
-\subsection{Three-Pi Detection and Cloud Delivery}
-\label{sec:res-three-pi}
-
-Table~\ref{tab:three-pi} is the live result. Benign publishers run on two addresses, attacks come from one address or from both, and admitted messages are posted to the LAN receiver.
-
-With both clients benign (E1), the flag rate on benign verdicts was 3.0$\pm$0.7\% across eight long-lived connections, no benign connection was blocked, and 0.997$\pm$0.001 of successful publishes reached Stage~2. There were no attacks, so precision and recall are undefined. When one client ran all ten attacks, IDS mode (E2) gave precision 0.999, recall 0.991, and F1 0.995. That recall is dominated by the UDP floods, which produce about 2,890 of 4,098 attack verdicts (70.5\%) and are flagged on every verdict. With those verdicts removed, recall is 0.969. Macro-averaged recall over the ten families is 0.986. The same traffic in IPS mode (E3, two repetitions) gave precision 0.997$\pm$0.003, recall 0.976$\pm$0.001, and F1 0.986$\pm$0.002, with benign delivery 1.000 and no benign connection blocked. Blocking cuts the UDP floods after two verdicts, so they leave only 12 of 738 attack verdicts (1.6\%), and recall without them is 0.975. Splitting the attack list across the two clients gave F1 0.995$\pm$0.001 in IDS mode (E4: recall 0.991, 0.970 without UDP, macro 0.986) and 0.989$\pm$0.005 in IPS mode (E5: recall 0.982, 0.981 without UDP). In E5 every successful benign publish reached Stage~2, and about 57,700 attack packets were dropped per session after a block.
-
-The receiver is off the MQTT callback. In the dual-benign session used for cloud delivery it accepted 1,315 envelopes, 902 from one client Pi and 413 from the other. Median signature check, decapsulation, and decryption took 0.209~ms. Sessions in which the receiver was not accepting are not reported as cloud-delivery results. Replays of an older sequence number were rejected. This is LAN delivery of the envelope. It is not a wide-area latency, and it is not an active attack on the uplink.
-
-\begin{table}[!t]
-\centering
-\caption{Three-Pi Evaluation (Mean $\pm$ SD). E1, E2, E4, and E5 use three repetitions. E3 uses two. Delivery is the share of benign publishes with return code 0 that reached Stage~2. Precision and recall are per verdict. In IDS mode the UDP floods supply about 70\% of attack verdicts; recall without those verdicts is 0.969 (E2) and 0.970 (E4). In IPS mode they supply about 1.5\%, and recall barely changes.}
-\label{tab:three-pi}
-\footnotesize
-\setlength{\tabcolsep}{3pt}
-\resizebox{\columnwidth}{!}{%
-\begin{tabular}{llrrr}
-\toprule
-\textbf{Run} & \textbf{Traffic} & \textbf{Prec.} & \textbf{Recall} & \textbf{Delivery} \\
-\midrule
-E1 (IPS) & Both clients benign & -- & -- & 0.997$\pm$0.001 \\
-E2 (IDS) & One client, all attacks & 0.999 & 0.991 & -- \\
-E3 (IPS) & One client, all attacks & 0.997$\pm$0.003 & 0.976$\pm$0.001 & 1.000$\pm$0.000 \\
-E4 (IDS) & Attacks split across clients & 1.000 & 0.991$\pm$0.002 & -- \\
-E5 (IPS) & Attacks split across clients & 0.996$\pm$0.001 & 0.982$\pm$0.010 & 1.000$\pm$0.000 \\
-\bottomrule
-\end{tabular}}
-\end{table}
-
-\subsection{What Gets Blocked, and What It Costs}
-\label{sec:res-e2e}
-
-The three-Pi sessions are analyzed on their own. Across 14 sessions, with the interrupted E3 repetition excluded, Stage~1 recorded 39,244 verdicts at a median 2.61~ms (P95 4.69~ms). Stage~2 recorded 15,891 messages at a median re-encryption time of 1.47~ms and a median full-handler time of 1.65~ms. These are separate processing costs. They are not an end-to-end latency. Against publish intervals of seconds they meet G5. The uplink grows by a fixed 4,425~B per message (ML-KEM ciphertext, ML-DSA signature, nonce, and GCM tag), paid on the gateway-to-cloud hop, not by the device.
-
-Table~\ref{tab:ips-block} is the IPS result. E3 blocked 76.3\% of labelled attack connections over two completed repetitions, and E5 blocked 78.8\% over three. Together that is 1,629 of 2,092 connections (77.9\%). No benign connection was blocked. Publish floods, malformed MQTT, and the UDP floods were blocked in every completed IPS run. Connect floods were blocked at 91--98\% (serial) and 89--97\% (five threads); the leftovers had already closed. SYN floods and the vulnerability scans received one attack verdict and had already finished, so a block would have named a dead socket. The port scan was blocked in one of the five runs and had finished in the others. All five slow-connection sockets stayed open until the attack window ended, because they never received two consecutive attack verdicts. About 12 packets were admitted before a block, and about 57,700 (E3) and 57,650 (E5) attack packets were then dropped per repetition. E2 and E4 log verdicts and do not block.
-
-That gap is the two-verdict rule. A long-lived benign MQTT session is classified every 20 packets, so the first false attack verdict is not grounds to cut it off. The same rule leaves a low-activity socket in place when it never earns a second verdict. The UDP-flood share of recall is a property of the mode, not of a second campaign: IDS sessions (E2, E4) keep those floods alive and they supply about 70\% of attack verdicts, whereas IPS sessions (E3, E5) cut them off and they supply about 1.5\%. An earlier two-Pi study of the same policy, four repetitions and one client address, blocked 80.6\% and 80.2\% of attack connections, at a median 2.41~ms per verdict and 2.07~ms of re-encryption. Those figures are not E1--E5 measurements. Without the client-share rule, that earlier mixed-traffic set would have scored precision 0.930, because subscribers that receive forwarded attack payloads were flagged on 54\% and 61\% of their raw predictions.
-
-\begin{table}[!t]
-\centering
-\caption{Blocking and Processing Cost on the Three-Pi IPS Runs (E3, Two Repetitions; E5, Three). Block Rates Are Connection-Level. ``Closed'' Means the Unblocked Attempts Had Already Finished. ``Open'' Means the Broker Socket Stayed Up. Latencies Are Medians over All 14 Analyzed Three-Pi Sessions.}
-\label{tab:ips-block}
-\footnotesize
-\setlength{\tabcolsep}{3pt}
-\resizebox{\columnwidth}{!}{%
-\begin{tabular}{lcc}
-\toprule
-\textbf{Attack family} & \textbf{Block rate} & \textbf{If not blocked} \\
-\midrule
-Publish flood, malformed MQTT, UDP floods & 100\% & -- \\
-Connect flood (serial / 5 threads) & 91--98\% / 89--97\% & closed \\
-SYN flood, vulnerability scan & 0\% & closed \\
-Port scan & one of five runs & closed \\
-Slow connection (5 sockets) & 0\% & open \\
-\midrule
-All attack connections (E3 / E5) & 76.3\% / 78.8\% & about 12 packets admitted \\
-\midrule
-Stage~1 classify (median) & \multicolumn{2}{c}{2.61~ms} \\
-Stage~2 re-encryption (median) & \multicolumn{2}{c}{1.47~ms} \\
-Stage~2 full handler (median) & \multicolumn{2}{c}{1.65~ms} \\
-\bottomrule
-\end{tabular}}
-\end{table}
-
-\subsection{Why ML-KEM-768 and ML-DSA-65}
+\subsection{Scheme Comparison and Selection}
 \label{sec:res-matrix}
 \label{sec:res-pqc}
 
@@ -404,35 +340,88 @@ BIKE-L1 + ML-DSA-44         & 1  & 36.126 & 0.248 & 36.550 & 81.711 & 12,677 \\
 \label{fig:matrix}
 \end{figure*}
 
+\subsection{Three-Pi IDS and IPS Evaluation}
+\label{sec:res-three-pi}
+
+Table~\ref{tab:three-pi} is the security result. Benign publishers run on two addresses, and attacks come from one address or from both.
+
+With both clients benign (E1), the flag rate on benign verdicts was 3.0$\pm$0.7\% across eight long-lived connections, no benign connection was blocked, and 0.997$\pm$0.001 of successful publishes reached Stage~2. There were no attacks, so precision and recall are undefined. When one client ran all ten attacks, IDS mode (E2) gave precision 0.999, recall 0.991, and F1 0.995. That recall is dominated by the UDP floods, which produce about 2,890 of 4,098 attack verdicts (70.5\%) and are flagged on every verdict. With those verdicts removed, recall is 0.969. Macro-averaged recall over the ten families is 0.986. The same traffic in IPS mode (E3, two repetitions) gave precision 0.997$\pm$0.003, recall 0.976$\pm$0.001, and F1 0.986$\pm$0.002, with benign delivery 1.000 and no benign connection blocked. Blocking cuts the UDP floods after two verdicts, so they leave only 12 of 738 attack verdicts (1.6\%), and recall without them is 0.975. Splitting the attack list across the two clients gave F1 0.995$\pm$0.001 in IDS mode (E4: recall 0.991, 0.970 without UDP, macro 0.986) and 0.989$\pm$0.005 in IPS mode (E5: recall 0.982, 0.981 without UDP).
+
+Table~\ref{tab:ips-block} is the IPS result. E3 blocked 76.3\% of labelled attack connections over two completed repetitions, and E5 blocked 78.8\% over three. Together that is 1,629 of 2,092 connections (77.9\%). No benign connection was blocked. Publish floods, malformed MQTT, and the UDP floods were blocked in every completed IPS run. Connect floods were blocked at 91--98\% (serial) and 89--97\% (five threads); the leftovers had already closed. SYN floods and the vulnerability scans received one attack verdict and had already finished, so a block would have named a dead socket. The port scan was blocked in one of the five runs and had finished in the others. All five slow-connection sockets stayed open until the attack window ended, because they never received two consecutive attack verdicts. About 12 packets were admitted before a block, and about 57,700 (E3) and 57,650 (E5) attack packets were then dropped per repetition. E2 and E4 log verdicts and do not block.
+
+The UDP-flood share of recall is a property of the mode: IDS sessions keep those floods alive, and IPS sessions cut them off. An earlier two-Pi study of the same policy, four repetitions and one client address, blocked 80.6\% and 80.2\% of attack connections. Those figures are not E1--E5 measurements. Without the client-share rule, that earlier mixed-traffic set would have scored precision 0.930, because subscribers that receive forwarded attack payloads were flagged on 54\% and 61\% of their raw predictions.
+
+\begin{table}[!t]
+\centering
+\caption{Three-Pi Evaluation (Mean $\pm$ SD). E1, E2, E4, and E5 use three repetitions. E3 uses two. Delivery is the share of benign publishes with return code 0 that reached Stage~2. Precision and recall are per verdict. In IDS mode the UDP floods supply about 70\% of attack verdicts; recall without those verdicts is 0.969 (E2) and 0.970 (E4). In IPS mode they supply about 1.5\%, and recall barely changes.}
+\label{tab:three-pi}
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{llrrr}
+\toprule
+\textbf{Run} & \textbf{Traffic} & \textbf{Prec.} & \textbf{Recall} & \textbf{Delivery} \\
+\midrule
+E1 (IPS) & Both clients benign & -- & -- & 0.997$\pm$0.001 \\
+E2 (IDS) & One client, all attacks & 0.999 & 0.991 & -- \\
+E3 (IPS) & One client, all attacks & 0.997$\pm$0.003 & 0.976$\pm$0.001 & 1.000$\pm$0.000 \\
+E4 (IDS) & Attacks split across clients & 1.000 & 0.991$\pm$0.002 & -- \\
+E5 (IPS) & Attacks split across clients & 0.996$\pm$0.001 & 0.982$\pm$0.010 & 1.000$\pm$0.000 \\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+\begin{table}[!t]
+\centering
+\caption{Connection-Level Blocking on the Three-Pi IPS Runs (E3, Two Repetitions; E5, Three). ``Closed'' Means the Unblocked Attempts Had Already Finished. ``Open'' Means the Broker Socket Stayed Up.}
+\label{tab:ips-block}
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{lcc}
+\toprule
+\textbf{Attack family} & \textbf{Block rate} & \textbf{If not blocked} \\
+\midrule
+Publish flood, malformed MQTT, UDP floods & 100\% & -- \\
+Connect flood (serial / 5 threads) & 91--98\% / 89--97\% & closed \\
+SYN flood, vulnerability scan & 0\% & closed \\
+Port scan & one of five runs & closed \\
+Slow connection (5 sockets) & 0\% & open \\
+\midrule
+All attack connections (E3 / E5) & 76.3\% / 78.8\% & about 12 packets admitted \\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+\subsection{Cloud Verification, Delivery, and Latency}
+\label{sec:res-cloud}
+
+The receiver is off the MQTT callback. In the dual-benign session used for cloud delivery it accepted 1,315 envelopes, 902 from one client Pi and 413 from the other. The receiver checked the ML-DSA-65 signature, decapsulated with ML-KEM-768, and decrypted with AES-256-GCM. The median of those three operations was 0.209~ms. An older sequence number was rejected as a replay. Sessions in which the receiver was not accepting are not reported as cloud-delivery results. This is LAN delivery of the envelope. It is not a wide-area latency, and it is not an active attack on the uplink.
+
+Across the 14 analyzed three-Pi sessions, Stage~1 recorded 39,244 verdicts at a median 2.61~ms (P95 4.69~ms). Stage~2 recorded 15,891 messages at a median re-encryption time of 1.47~ms and a median full-handler time of 1.65~ms. These are separate processing costs. They are not added to the 0.209~ms receiver time, and they do not include Wi-Fi transit or the HTTPS round trip. Against publish intervals of seconds they meet G5. The uplink grows by a fixed 4,425~B per message (ML-KEM ciphertext, ML-DSA signature, nonce, and GCM tag), paid on the gateway-to-cloud hop, not by the device. An earlier two-Pi study timed Stage~1 at 2.41~ms and Stage~2 re-encryption at 2.07~ms. Those figures are not E1--E5 measurements.
 
 % ═════════════════════════════════════════════════════════════════════════════
 \section{Discussion}
 \label{sec:discussion}
 
-Stage~1 and Stage~2 answer different adversaries, and the measurements show how they meet. Stage~1 spends 2.61~ms to decide a flow and then drops the rest of a long-lived attack, after about 12 packets have already reached the broker. Stage~2 spends 1.47~ms of cryptography only on a message the subscriber actually received, and the receiver accepts that envelope in 0.209~ms on the LAN. The two timers are not added into an end-to-end latency: they run in different processes, and the HTTPS post does not block the MQTT callback. Confidentiality of the envelope does not depend on the classifier being right. A missed attack is still re-encrypted if the subscriber receives it. A blocked flood never reaches Stage~2.
+Stage~1 and Stage~2 answer different adversaries. Stage~1 spends 2.61~ms to decide a flow and then drops the rest of a long-lived attack, after about 12 packets have already reached the broker. Stage~2 spends 1.47~ms of cryptography only on a message the subscriber actually received, and the receiver accepts that envelope in 0.209~ms on the LAN (Section~\ref{sec:res-cloud}). The two timers are not an end-to-end latency: they run in different processes, and the HTTPS post does not block the MQTT callback. Confidentiality of the envelope does not depend on the classifier being right. A missed attack is still re-encrypted if the subscriber receives it. A blocked flood never reaches Stage~2.
 
 The client-share rule is what keeps that subscriber alive. The broker copies published payloads to every subscriber, so a flow classifier sees the attack on the subscriber's connection. Without the rule, those raw predictions score precision 0.930. With it, mixed-traffic precision is 0.999, and the gateway subscriber is not blocked. Blocking that subscriber would remove Stage~2's input.
 
-\subsection{Why Single-Verdict Attacks Stay Open}
-
-A block requires two consecutive attack verdicts because a benign MQTT session is itself long-lived. It is classified every 20 packets for the whole run, so the first false attack verdict is not evidence that the device should be cut off. On the earlier two-Pi mixed-traffic verdicts, blocking after one attack verdict would have blocked 2.5 benign connections and the gateway subscriber per session, against 0.25 benign connections with $K = 2$. In the three-Pi IPS runs, $K = 2$ blocked no benign connection.
-
-That choice has a measured cost. A connection is blocked only if it is still sending when the second verdict arrives. Publish floods, malformed MQTT, and the UDP floods produce a verdict every 20 packets, so they are cut off in every run. A SYN flood or a leftover connect-flood attempt is classified once, on FIN or RST, and the socket is already gone; a block would name a finished tuple. A slow-connection socket is different. It holds a broker connection and sends too little to reach a second 20-packet verdict, so it is classified once, by the idle reaper, and then left open for the rest of the attack window. All five of those sockets behaved this way. Detecting them is not the same as releasing the broker state they hold. A policy that blocked on one idle verdict, or on how long a socket has been held, would cover them. It would also give up the protection $K = 2$ gives benign sessions.
-
-\subsection{Why Device Keys Share a Master Secret}
-
-The device-to-gateway hop is not a new enrolment protocol. G4 says the device firmware stays as it is, and the reported times must not include a handshake. One 256-bit secret, installed out of band, and HKDF with a context string per device and algorithm, give every Pi the same device keys with nothing sent on MQTT (Section~\ref{sec:keys}). The cloud private key is not derived from that secret. It is generated on the receiver, and the gateway signing key is generated on the gateway. Each private key stays where it was created.
-
-The shared secret is therefore a property of the measured hop, not of the cloud uplink. It is also a single point of failure for every device key that comes from it. The NIST level of ML-KEM-768 and ML-DSA-65 names those parameter sets. It does not name a production hierarchy with per-device enrolment, a secure element, or revocation. Cryptographic times in this article are operations on keys already in memory. They would not change if the same key bits had been installed by another means. The cost of that other means is not in the measurement.
-
-\subsection{What This Evaluation Does Not Claim}
+\subsection{Limitations}
 \label{sec:limits}
 
-Energy is not reported because the claim is processing time against a publish interval of seconds, which is G5. A joules-per-message figure would depend on the CPU governor, on the Wi-Fi radio between publishes, and on interpreter overhead in the Python path. None of those was held fixed, so an energy number from these runs would not transfer to another gateway. Wide-area transit is not reported for the same reason: the receiver is on the LAN in order to test signature check, decapsulation, decryption, and replay rejection. The 0.209~ms figure is that work. It is not a round-trip to a remote cloud.
+\textit{Two-verdict policy.} A block requires two consecutive attack verdicts because a benign MQTT session is itself long-lived and is classified every 20 packets. The first false attack verdict is not grounds to cut that session off. On earlier two-Pi mixed-traffic verdicts, blocking after one attack verdict would have blocked 2.5 benign connections and the gateway subscriber per session, against 0.25 with $K = 2$. In the three-Pi IPS runs, $K = 2$ blocked no benign connection. The same rule is why the leftover 22\% of attack connections in E3 and E5 were not cut off: they never received two attack verdicts in a row.
 
-The UDP floods run at 500 datagrams/s rather than the dataset median of about 21,000--27,000 packets/s because the Python NFQUEUE path cannot absorb the dataset rate and still classify. The block rates are for attacks the gateway can actually see. ICMP floods and MQTT replay are outside the runs: ICMP does not match the broker-port rule, and replay needs a recorded benign capture. An attacker who coaxes the broker into sending most of the payload bytes can also fall below the client-share threshold and avoid a block.
+\textit{Unblocked slow connections.} Publish floods, malformed MQTT, and the UDP floods produce a verdict every 20 packets, so they are cut off in every IPS run. A SYN flood or a leftover connect-flood attempt is classified once, on FIN or RST, and the socket is already gone. A slow-connection socket holds a broker connection and sends too little to reach a second 20-packet verdict. It is classified once, by the idle reaper, and left open for the rest of the attack window. All five of those sockets behaved this way in every completed E3 and E5 run. Detecting them is not the same as releasing the broker state they hold. A policy that blocked on one idle verdict, or on hold time, would cover them and would give up the protection $K = 2$ gives benign sessions.
 
-The testbed is three Pis and one PC on one Wi-Fi LAN. Offline accuracy uses a row split of one dataset partition, so it can be optimistic for a new capture, and the 71.5\% figure is the price of features a live flow can compute. The scheme timings are one pass per configuration, with PQC keys regenerated and classical static keys cached. Adversarial inputs shaped to look benign were not evaluated. One E3 repetition did not complete and is excluded. Cloud delivery is reported for the session in which the receiver was accepting.
+\textit{Incomplete E3 repetition.} One E3 repetition stopped early (14 of 184 benign publishes reached Stage~2) and is excluded. E3 means are over the other two repetitions.
+
+\textit{Cloud logging.} Cloud delivery is reported for the dual-benign session in which the receiver was accepting. Later sessions that re-encrypted on the gateway but recorded no new accepts are not used as cloud-delivery results. The 0.209~ms figure is signature check, decapsulation, and decryption on the LAN, not a wide-area round trip.
+
+\textit{Keys.} Device keys on the MQTT hop come from one shared master secret so that G4 holds and no handshake enters the timed path (Section~\ref{sec:keys}). That secret is a single point of failure for those device keys. The cloud KEM private key and the gateway signing key are generated separately. The NIST level names the parameter sets, not a production enrolment scheme.
+
+\textit{What was not measured.} Energy is not reported because the claim is processing time against a publish interval of seconds. A joules-per-message figure would depend on the CPU governor, the Wi-Fi radio between publishes, and interpreter overhead, none of which was held fixed. The UDP floods run at 500 datagrams/s rather than the dataset median of about 21,000--27,000 packets/s because the Python NFQUEUE path cannot absorb that rate and still classify. ICMP floods and MQTT replay are outside the runs. An attacker who coaxes the broker into sending most of the payload bytes can fall below the client-share threshold. The testbed is three Pis and one PC on one Wi-Fi LAN. Offline accuracy uses a row split of one dataset partition. The scheme timings are one pass per configuration, with PQC keys regenerated and classical static keys cached. Adversarial inputs shaped to look benign were not evaluated.
 
 % ═════════════════════════════════════════════════════════════════════════════
 \section{Conclusion}
