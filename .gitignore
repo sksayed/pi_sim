@@ -4,9 +4,20 @@ __pycache__/
 *.egg-info/
 .env
 .env.cloud
-keys/
+# Private material stays off git. Public pins the other machines must pull are listed below.
+keys/*
+!keys/device_hop/
+!keys/cloud/
+keys/cloud/*
+!keys/cloud/kem.pk
+!keys/cloud/kem.alg
+!keys/tls/
+keys/tls/*
+!keys/tls/cloud.crt
+!keys/trust.json
 *.sk
 *.key
+keys/device_hop/**/*.sk
 .venv/
 venv/
 data/
