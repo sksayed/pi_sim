@@ -38,6 +38,16 @@ REPLAY_PATH = Path(os.getenv("CLOUD_REPLAY", str(REPO_ROOT / "results" / "cloud"
 MAX_BODY = 256 * 1024
 
 
+def reset_replay_file(path: Path) -> None:
+    """Drop leftover last-seq state so this process starts empty."""
+    for candidate in (path, path.with_suffix(path.suffix + ".tmp")):
+        try:
+            candidate.unlink()
+        except FileNotFoundError:
+            continue
+        print(f"[CLOUD] removed leftover {candidate}")
+
+
 class ReplayStore:
     """Last accepted seq per device. The file is replaced atomically."""
 
@@ -392,6 +402,7 @@ def main() -> int:
         print("Missing environment variables: " + ", ".join(missing), file=sys.stderr)
         print("Run: python -m cloud.setup_pc", file=sys.stderr)
         return 1
+    reset_replay_file(REPLAY_PATH)
     server = make_server()
     stop = threading.Event()
     threading.Thread(target=_resource_loop, args=(stop,), daemon=True).start()

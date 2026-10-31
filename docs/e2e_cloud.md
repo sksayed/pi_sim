@@ -108,7 +108,7 @@ Pi B writes ground truth under `results/client/<session>/peers/pi2/` (`benign_co
 
 Each client publish carries `msg_id` (one id for that message), `t_publish_ns`, and `client_clock_offset_ns` (gateway clock minus the client clock, measured at session start). The same `msg_id` is in `benign_sends.csv`, the Stage 2 CSV, and every cloud decision. Set `GATEWAY_IP` on the PC, or leave it unset and the receiver uses the gateway UDP beacon. It pings the gateway agent every 30 s and logs `event=clock_sync` with `clock_offset_ns` (gateway clock minus the PC clock). On an accept, `t_e2e_ns` is cloud-accept time minus client-publish time after both stamps are moved onto the gateway clock. It is not a wide-area round trip, and it is absent until the first successful ping.
 
-`results/cloud/replay_state.json` is the last accepted seq per device. It is replaced atomically and reloaded on startup. Clear it before a campaign if device ids are reused, or later publishes with an older `seq` are rejected even when `msg_id` is new.
+`results/cloud/replay_state.json` is the last accepted seq per device. It is replaced atomically while the process runs. Starting `python -m cloud.https_server` deletes that file first, so a new receiver does not keep the last campaign's sequences. Do not restart the receiver in the middle of a session.
 
 `results/gateway/cloud_uplink.jsonl` is written on the gateway. Each `https_result` has:
 
