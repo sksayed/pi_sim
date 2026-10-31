@@ -1,0 +1,9 @@
+[VUL-SCAN] Mode: vul_scan (Recon-VulScan)  target: 10.137.166.39
+[VUL-SCAN] Probing 28 well-known ports
+[VUL-SCAN] port    22  OPEN  banner=b'SSH-2.0-OpenSSH_10.0p2 Debian-7+deb13u4\r'
+[VUL-SCAN] port  1883  OPEN  (no banner)
+[VUL-SCAN] Cycle 1 complete. Total probes: 28
+[VUL-SCAN] port    22  OPEN  banner=b'SSH-2.0-OpenSSH_10.0p2 Debian-7+deb13u4\r'
+[VUL-SCAN] port   111  OPEN  (no banner)
+[VUL-SCAN] port  1883  OPEN  (no banner)
+[VUL-SCAN] Cycle 2 complete. Total probes: 56

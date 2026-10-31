@@ -1,0 +1,5 @@
+ts_unix_ns,client,device_id,local_ip,local_port
+1793394317435926470,steady,benign-steady-ac9a4a,10.137.166.15,59643
+1793394317966086118,subscriber,benign-sub-cfffbc,10.137.166.15,60907
+1793394318415835291,mixed,benign-mixed-4524d8,10.137.166.15,35403
+1793394318799363898,burst,benign-burst-c9112e,10.137.166.15,34177
