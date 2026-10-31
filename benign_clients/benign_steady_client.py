@@ -50,6 +50,7 @@ except ImportError:
     from trace import trace_fields
 
 from device_hop.publish import protect
+from benign_clients.seq_store import allocate
 
 load_dotenv(dotenv_path=Path(__file__).resolve().parents[1] / ".env")
 
@@ -113,11 +114,11 @@ def run() -> None:
             break
         time.sleep(0.1)
 
-    seq  = 1
     sent = 0
 
     try:
         while True:
+            seq = allocate(DEVICE_ID)
             payload, msg_id = _sensor_payload(seq)
             res = c.publish(PUB_TOPIC, payload=payload, qos=0)
             log_send("steady", DEVICE_ID, seq, 0, res.rc, msg_id)
@@ -125,7 +126,6 @@ def run() -> None:
                 sent += 1
                 print(f"[BENIGN-STEADY] Published #{sent}  seq={seq}  size={len(payload)}B")
 
-            seq += 1
             if MAX_COUNT > 0 and sent >= MAX_COUNT:
                 break
 

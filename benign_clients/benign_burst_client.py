@@ -58,6 +58,7 @@ except ImportError:
     from trace import trace_fields
 
 from device_hop.publish import protect
+from benign_clients.seq_store import allocate
 
 load_dotenv(dotenv_path=Path(__file__).resolve().parents[1] / ".env")
 
@@ -131,7 +132,6 @@ def run() -> None:
         time.sleep(0.1)
 
     sleep_between = 1.0 / BURST_RATE_HZ
-    seq       = 1
     burst_num = 0
     total_sent = 0
 
@@ -144,12 +144,12 @@ def run() -> None:
                   f"size={burst_size}  rate={BURST_RATE_HZ:.0f}msg/s")
 
             for _ in range(burst_size):
+                seq = allocate(DEVICE_ID)
                 payload, msg_id = _reading_payload(seq, burst_num, event)
                 res = c.publish(PUB_TOPIC, payload=payload, qos=0)
                 log_send("burst", DEVICE_ID, seq, 0, res.rc, msg_id)
                 if res.rc == mqtt.MQTT_ERR_SUCCESS:
                     total_sent += 1
-                seq += 1
                 time.sleep(sleep_between)
 
             print(f"[BENIGN-BURST] Burst #{burst_num} done  total_sent={total_sent}")
