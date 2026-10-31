@@ -1,0 +1,123 @@
+2026-10-31 03:30:59,077 [INFO] Loading model: /home/sayed-gateway/Desktop/pi_project/pi_sim/firewall/lightgbm_model.txt
+2026-10-31 03:30:59,144 [INFO] Model expects 32 features: ['Column_0', 'Column_1', 'Column_2', 'Column_3', 'Column_4', 'Column_5', 'Column_6', 'Column_7', 'Column_8', 'Column_9', 'Column_10', 'Column_11', 'Column_12', 'Column_13', 'Column_14', 'Column_15', 'Column_16', 'Column_17', 'Column_18', 'Column_19', 'Column_20', 'Column_21', 'Column_22', 'Column_23', 'Column_24', 'Column_25', 'Column_26', 'Column_27', 'Column_28', 'Column_29', 'Column_30', 'Column_31']
+2026-10-31 03:31:00,506 [INFO] Class names loaded from FW_CLASS_NAMES: ['ARP_Spoofing', 'Benign', 'MQTT-DDoS-Connect_Flood', 'MQTT-DDoS-Publish_Flood', 'MQTT-DoS-Connect_Flood', 'MQTT-DoS-Publish_Flood', 'MQTT-Malformed_Data', 'Recon-OS_Scan', 'Recon-Ping_Sweep', 'Recon-Port_Scan', 'Recon-VulScan', 'TCP_IP-DDoS-ICMP1', 'TCP_IP-DDoS-ICMP2', 'TCP_IP-DDoS-SYN', 'TCP_IP-DDoS-TCP', 'TCP_IP-DDoS-UDP1', 'TCP_IP-DDoS-UDP2', 'TCP_IP-DoS-ICMP', 'TCP_IP-DoS-SYN', 'TCP_IP-DoS-TCP', 'TCP_IP-DoS-UDP']
+2026-10-31 03:31:00,506 [INFO] Classifier: 21 class(es) | benign='Benign' (idx=1) | classes=['ARP_Spoofing', 'Benign', 'MQTT-DDoS-Connect_Flood', 'MQTT-DDoS-Publish_Flood', 'MQTT-DoS-Connect_Flood', 'MQTT-DoS-Publish_Flood', 'MQTT-Malformed_Data', 'Recon-OS_Scan', 'Recon-Ping_Sweep', 'Recon-Port_Scan', 'Recon-VulScan', 'TCP_IP-DDoS-ICMP1', 'TCP_IP-DDoS-ICMP2', 'TCP_IP-DDoS-SYN', 'TCP_IP-DDoS-TCP', 'TCP_IP-DDoS-UDP1', 'TCP_IP-DDoS-UDP2', 'TCP_IP-DoS-ICMP', 'TCP_IP-DoS-SYN', 'TCP_IP-DoS-TCP', 'TCP_IP-DoS-UDP']
+2026-10-31 03:31:00,507 [INFO] Scaler loaded: /home/sayed-gateway/Desktop/pi_project/pi_sim/firewall/standard_scaler.pkl
+2026-10-31 03:31:00,508 [INFO] MQTTFirewall ready.
+2026-10-31 03:31:00,538 [INFO] Bound to NFQUEUE 0. Intercepting MQTT on port 1883...
+2026-10-31 03:31:08,194 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=benign  type=benign  confidence=0.0799  pkts=20  bytes=2415  dur=5.099s  infer=1.309ms  classify=3.331ms  inspect=3.693ms
+2026-10-31 03:31:08,299 [INFO] [VERDICT] 10.137.166.20:42663 -> 10.137.166.39:1883 | verdict=ATTACK  type=MQTT-DDoS-Publish_Flood  confidence=0.9999  pkts=20  bytes=4678  dur=0.202s  infer=1.089ms  classify=2.832ms  inspect=3.362ms
+2026-10-31 03:31:08,435 [INFO] [VERDICT] 127.0.0.1:1883 -> 127.0.0.1:42727 | verdict=benign  type=benign  confidence=1.0000  pkts=20  bytes=5507  dur=0.216s  infer=1.088ms  classify=2.620ms  inspect=3.007ms
+2026-10-31 03:31:08,567 [INFO] [VERDICT] 10.137.166.39:1883 -> 10.137.166.20:42663 | verdict=ATTACK  type=MQTT-DDoS-Publish_Flood  confidence=0.9891  pkts=20  bytes=5810  dur=0.264s  infer=1.106ms  classify=2.646ms  inspect=3.195ms
+2026-10-31 03:31:08,571 [WARNING] 🚫 BLOCKED flow 10.137.166.20:42663->1883/tcp
+2026-10-31 03:31:10,057 [INFO] [VERDICT] 127.0.0.1:1883 -> 127.0.0.1:42727 | verdict=benign  type=benign  confidence=0.0737  pkts=20  bytes=3980  dur=1.594s  infer=2.177ms  classify=4.353ms  inspect=4.913ms
+2026-10-31 03:31:10,066 [INFO] [VERDICT] 10.137.166.15:38409 -> 10.137.166.39:1883 | verdict=benign  type=benign  confidence=0.1291  pkts=20  bytes=1134  dur=1.341s  infer=1.886ms  classify=3.752ms  inspect=4.410ms
+2026-10-31 03:31:10,865 [INFO] [VERDICT] 10.137.166.15:41241 -> 10.137.166.39:1883 | verdict=benign  type=benign  confidence=0.0938  pkts=20  bytes=1940  dur=1.337s  infer=1.749ms  classify=3.462ms  inspect=4.133ms
+2026-10-31 03:31:12,426 [INFO] [VERDICT] 127.0.0.1:1883 -> 127.0.0.1:42727 | verdict=benign  type=benign  confidence=0.0339  pkts=20  bytes=2163  dur=2.170s  infer=0.977ms  classify=2.594ms  inspect=2.979ms
+2026-10-31 03:31:12,436 [INFO] [VERDICT] 10.137.166.39:1883 -> 10.137.166.15:38409 | verdict=benign  type=benign  confidence=0.0339  pkts=20  bytes=2163  dur=2.180s  infer=1.002ms  classify=2.537ms  inspect=2.920ms
+2026-10-31 03:31:22,521 [INFO] [VERDICT] 10.137.166.15:48927 -> 10.137.166.39:1883 | verdict=ATTACK  type=Recon-VulScan  confidence=1.0000  pkts=18  bytes=855  dur=3.345s  infer=2.669ms  classify=8.159ms
+2026-10-31 03:31:24,545 [INFO] [VERDICT] 10.137.166.15:33431 -> 10.137.166.39:1883 | verdict=ATTACK  type=TCP_IP-DDoS-SYN  confidence=0.9446  pkts=15  bytes=1153  dur=6.148s  infer=7.671ms  classify=18.348ms
+2026-10-31 03:32:13,570 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=Recon-VulScan  confidence=1.0000  pkts=4  bytes=4  dur=0.003s  infer=1.003ms  classify=2.865ms
+2026-10-31 03:33:13,582 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.003s  infer=0.980ms  classify=2.724ms
+2026-10-31 03:34:13,594 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.003s  infer=1.067ms  classify=2.843ms
+2026-10-31 03:35:13,607 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.002s  infer=0.985ms  classify=2.695ms
+2026-10-31 03:36:14,620 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.002s  infer=0.992ms  classify=2.749ms
+2026-10-31 03:37:14,634 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.002s  infer=1.441ms  classify=4.285ms
+2026-10-31 03:38:14,647 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.002s  infer=0.997ms  classify=2.660ms
+2026-10-31 03:39:14,661 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.003s  infer=1.570ms  classify=4.838ms
+2026-10-31 03:40:14,677 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.002s  infer=1.560ms  classify=4.848ms
+2026-10-31 03:41:14,694 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.7964  pkts=3  bytes=4  dur=0.001s  infer=1.414ms  classify=4.393ms
+2026-10-31 03:42:14,710 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.002s  infer=1.585ms  classify=4.803ms
+2026-10-31 03:43:14,723 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.7964  pkts=3  bytes=4  dur=0.001s  infer=1.035ms  classify=2.732ms
+2026-10-31 03:44:14,738 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.002s  infer=1.482ms  classify=4.357ms
+2026-10-31 03:45:14,754 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.002s  infer=1.554ms  classify=4.823ms
+2026-10-31 03:46:14,772 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.002s  infer=1.629ms  classify=4.816ms
+2026-10-31 03:47:14,788 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.002s  infer=1.705ms  classify=5.021ms
+2026-10-31 03:48:14,805 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.002s  infer=0.956ms  classify=2.689ms
+2026-10-31 03:49:14,820 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.002s  infer=1.771ms  classify=4.968ms
+2026-10-31 03:50:14,835 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.002s  infer=1.693ms  classify=4.821ms
+2026-10-31 03:51:14,851 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.002s  infer=1.631ms  classify=4.798ms
+2026-10-31 03:52:14,865 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.003s  infer=0.953ms  classify=2.658ms
+2026-10-31 03:53:14,881 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.002s  infer=1.644ms  classify=4.818ms
+2026-10-31 03:54:14,899 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.002s  infer=1.657ms  classify=4.791ms
+2026-10-31 03:55:15,916 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.002s  infer=1.818ms  classify=5.074ms
+2026-10-31 03:56:15,931 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.002s  infer=1.710ms  classify=4.937ms
+2026-10-31 03:57:15,948 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.002s  infer=1.657ms  classify=4.853ms
+2026-10-31 03:58:15,964 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.002s  infer=1.665ms  classify=4.832ms
+2026-10-31 03:59:15,979 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.003s  infer=1.638ms  classify=5.071ms
+2026-10-31 04:00:15,995 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.002s  infer=1.548ms  classify=4.879ms
+2026-10-31 04:01:16,011 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.002s  infer=1.622ms  classify=4.805ms
+2026-10-31 04:02:16,027 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.7964  pkts=3  bytes=4  dur=0.001s  infer=1.552ms  classify=4.955ms
+2026-10-31 04:03:16,041 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.002s  infer=0.955ms  classify=2.631ms
+2026-10-31 04:04:16,055 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.002s  infer=1.550ms  classify=4.782ms
+2026-10-31 04:05:16,071 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.002s  infer=1.542ms  classify=4.863ms
+2026-10-31 04:06:16,086 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=Recon-OS_Scan  confidence=0.8215  pkts=3  bytes=4  dur=0.004s  infer=1.399ms  classify=4.303ms
+2026-10-31 04:07:16,102 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.002s  infer=1.543ms  classify=4.813ms
+2026-10-31 04:08:16,120 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.002s  infer=1.455ms  classify=4.320ms
+2026-10-31 04:09:16,136 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.002s  infer=1.626ms  classify=4.794ms
+2026-10-31 04:10:16,152 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.002s  infer=1.717ms  classify=4.939ms
+2026-10-31 04:11:16,168 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.002s  infer=1.760ms  classify=5.007ms
+2026-10-31 04:12:16,185 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.002s  infer=1.723ms  classify=5.488ms
+2026-10-31 04:13:16,199 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.002s  infer=0.944ms  classify=2.672ms
+2026-10-31 04:14:16,214 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.002s  infer=1.607ms  classify=4.872ms
+2026-10-31 04:15:17,230 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.002s  infer=1.552ms  classify=4.835ms
+2026-10-31 04:16:17,245 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.002s  infer=1.415ms  classify=4.343ms
+2026-10-31 04:17:17,261 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.002s  infer=1.589ms  classify=4.830ms
+2026-10-31 04:18:17,277 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.002s  infer=1.632ms  classify=4.781ms
+2026-10-31 04:19:17,290 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.002s  infer=0.995ms  classify=2.720ms
+2026-10-31 04:20:17,303 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.002s  infer=1.223ms  classify=3.147ms
+2026-10-31 04:21:17,319 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.002s  infer=1.859ms  classify=5.070ms
+2026-10-31 04:22:17,335 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.002s  infer=1.397ms  classify=4.300ms
+2026-10-31 04:23:17,350 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.002s  infer=1.548ms  classify=4.816ms
+2026-10-31 04:24:17,366 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.7964  pkts=3  bytes=4  dur=0.001s  infer=1.259ms  classify=3.615ms
+2026-10-31 04:25:17,381 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.002s  infer=1.610ms  classify=4.832ms
+2026-10-31 04:26:17,396 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.002s  infer=1.671ms  classify=4.824ms
+2026-10-31 04:27:17,412 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.002s  infer=1.693ms  classify=4.847ms
+2026-10-31 04:28:17,427 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.002s  infer=1.667ms  classify=4.889ms
+2026-10-31 04:29:17,441 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.002s  infer=0.995ms  classify=2.663ms
+2026-10-31 04:30:17,455 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.002s  infer=1.461ms  classify=4.300ms
+2026-10-31 04:31:17,471 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.002s  infer=1.845ms  classify=5.245ms
+2026-10-31 04:32:17,488 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.002s  infer=1.684ms  classify=5.097ms
+2026-10-31 04:33:17,501 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.002s  infer=0.946ms  classify=2.670ms
+2026-10-31 04:34:17,516 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.002s  infer=1.675ms  classify=4.921ms
+2026-10-31 04:35:18,532 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.002s  infer=1.599ms  classify=4.765ms
+2026-10-31 04:36:18,548 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.002s  infer=1.734ms  classify=4.892ms
+2026-10-31 04:37:18,564 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.002s  infer=1.710ms  classify=4.871ms
+2026-10-31 04:38:18,580 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.002s  infer=1.842ms  classify=5.016ms
+2026-10-31 04:39:18,594 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.002s  infer=0.986ms  classify=2.690ms
+2026-10-31 04:40:18,609 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.002s  infer=1.640ms  classify=4.817ms
+2026-10-31 04:41:18,625 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.002s  infer=1.672ms  classify=4.869ms
+2026-10-31 04:42:18,641 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.002s  infer=1.546ms  classify=4.839ms
+2026-10-31 04:43:18,656 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.7964  pkts=3  bytes=4  dur=0.001s  infer=1.755ms  classify=5.043ms
+2026-10-31 04:44:18,671 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.002s  infer=1.305ms  classify=3.301ms
+2026-10-31 04:45:18,688 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.002s  infer=2.797ms  classify=6.353ms
+2026-10-31 04:46:18,703 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.002s  infer=1.521ms  classify=4.598ms
+2026-10-31 04:47:18,716 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.002s  infer=0.946ms  classify=2.633ms
+2026-10-31 04:48:18,731 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.002s  infer=1.551ms  classify=4.838ms
+2026-10-31 04:49:18,748 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.002s  infer=1.633ms  classify=4.854ms
+2026-10-31 04:50:18,764 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.002s  infer=1.729ms  classify=4.991ms
+2026-10-31 04:51:18,778 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.002s  infer=0.995ms  classify=2.787ms
+2026-10-31 04:52:18,791 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.002s  infer=0.997ms  classify=2.685ms
+2026-10-31 04:53:18,806 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.002s  infer=0.956ms  classify=2.683ms
+2026-10-31 04:54:18,820 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.002s  infer=1.472ms  classify=4.358ms
+2026-10-31 04:55:19,836 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.7964  pkts=3  bytes=4  dur=0.001s  infer=1.513ms  classify=4.349ms
+2026-10-31 04:56:19,852 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.002s  infer=1.517ms  classify=4.363ms
+2026-10-31 04:57:19,868 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.002s  infer=1.648ms  classify=4.892ms
+2026-10-31 04:58:19,885 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.002s  infer=1.558ms  classify=4.873ms
+2026-10-31 04:59:19,901 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.002s  infer=1.848ms  classify=5.141ms
+2026-10-31 05:00:19,915 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.002s  infer=0.984ms  classify=2.695ms
+2026-10-31 05:01:19,931 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9232  pkts=3  bytes=4  dur=0.002s  infer=1.657ms  classify=4.800ms
+2026-10-31 05:01:49,671 [INFO] [VERDICT] 10.96.208.20:38111 -> 10.96.208.39:1883 | verdict=ATTACK  type=MQTT-DDoS-Publish_Flood  confidence=0.9999  pkts=20  bytes=4662  dur=0.205s  infer=1.312ms  classify=3.833ms  inspect=4.659ms
+2026-10-31 05:01:49,727 [INFO] [VERDICT] 127.0.0.1:1883 -> 127.0.0.1:42727 | verdict=benign  type=benign  confidence=0.9918  pkts=20  bytes=5790  dur=0.240s  infer=1.418ms  classify=3.899ms  inspect=4.618ms
+2026-10-31 05:01:49,952 [INFO] [VERDICT] 10.96.208.39:1883 -> 10.96.208.20:38111 | verdict=ATTACK  type=MQTT-DoS-Publish_Flood  confidence=0.9856  pkts=20  bytes=5790  dur=0.275s  infer=1.468ms  classify=4.173ms  inspect=5.091ms
+2026-10-31 05:01:49,960 [WARNING] 🚫 BLOCKED flow 10.96.208.20:38111->1883/tcp
+2026-10-31 05:02:00,945 [INFO] [VERDICT] 127.0.0.1:1883 -> 127.0.0.1:42727 | verdict=benign  type=benign  confidence=0.9891  pkts=16  bytes=4632  dur=0.216s  infer=1.721ms  classify=5.034ms
+2026-10-31 05:02:20,954 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=1.0000  pkts=3  bytes=4  dur=0.003s  infer=1.617ms  classify=4.968ms
+2026-10-31 05:03:12,516 [INFO] [VERDICT] 10.96.208.20:55179 -> 10.96.208.39:1883 | verdict=benign  type=benign  confidence=0.0714  pkts=20  bytes=10396  dur=3.035s  infer=1.573ms  classify=4.465ms  inspect=5.167ms
+2026-10-31 05:03:12,540 [INFO] [VERDICT] 10.96.208.20:55179 -> 10.96.208.39:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9961  pkts=20  bytes=13032  dur=0.017s  infer=1.582ms  classify=4.250ms  inspect=5.069ms
+2026-10-31 05:03:12,558 [INFO] [VERDICT] 10.96.208.20:55179 -> 10.96.208.39:1883 | verdict=ATTACK  type=MQTT-Malformed_Data  confidence=0.9999  pkts=20  bytes=21720  dur=0.012s  infer=1.502ms  classify=4.290ms  inspect=4.930ms
+2026-10-31 05:03:12,566 [WARNING] 🚫 BLOCKED flow 10.96.208.20:55179->1883/tcp
+2026-10-31 05:03:21,970 [INFO] [VERDICT] 127.0.0.1:1883 -> 127.0.0.1:42727 | verdict=benign  type=benign  confidence=0.0590  pkts=9  bytes=234  dur=2.000s  infer=1.405ms  classify=4.318ms
+2026-10-31 05:03:57,279 [INFO] [VERDICT] 127.0.0.1:42727 -> 127.0.0.1:1883 | verdict=benign  type=benign  confidence=0.5184  pkts=3  bytes=2  dur=0.003s  infer=1.937ms  classify=5.740ms  inspect=7.079ms
+2026-10-31 05:03:57,433 [INFO] Interrupted. Shutting down.
+2026-10-31 05:03:57,434 [INFO] Blocked IPs at shutdown: ['10.96.208.20:38111->1883/tcp', '10.137.166.20:42663->1883/tcp', '10.96.208.20:55179->1883/tcp']

@@ -1,0 +1,10 @@
+-P INPUT ACCEPT
+-P FORWARD ACCEPT
+-P OUTPUT ACCEPT
+-A INPUT -s 10.96.208.20/32 -p tcp -m tcp --sport 55179 --dport 1883 -m comment --comment pi_sim_ips_block -j DROP
+-A INPUT -s 10.96.208.20/32 -p tcp -m tcp --sport 38111 --dport 1883 -m comment --comment pi_sim_ips_block -j DROP
+-A INPUT -s 10.137.166.20/32 -p tcp -m tcp --sport 42663 --dport 1883 -m comment --comment pi_sim_ips_block -j DROP
+-A INPUT -p udp -m udp --dport 1883 -j NFQUEUE --queue-num 0 --queue-bypass
+-A INPUT -p tcp -m tcp --dport 1883 -j NFQUEUE --queue-num 0 --queue-bypass
+-A OUTPUT -p udp -m udp --sport 1883 -j NFQUEUE --queue-num 0 --queue-bypass
+-A OUTPUT -p tcp -m tcp --sport 1883 -j NFQUEUE --queue-num 0 --queue-bypass
