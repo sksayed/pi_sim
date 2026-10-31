@@ -1,0 +1,20 @@
+[BENIGN-BURST] Connecting to 10.96.208.39:1883 ...
+[BENIGN-BURST] Connected to 10.96.208.39:1883  topic=nodes/benign-burst-38557d/data
+[BENIGN-BURST] Burst #1  event=door_opened  size=5  rate=5msg/s
+Traceback (most recent call last):
+  File "/home/sayed-edge-device-pi/Desktop/pi_project/pi_sim/benign_clients/run_benign.py", line 203, in <module>
+    main()
+    ~~~~^^
+  File "/home/sayed-edge-device-pi/Desktop/pi_project/pi_sim/benign_clients/run_benign.py", line 198, in main
+    run()
+    ~~~^^
+  File "/home/sayed-edge-device-pi/Desktop/pi_project/pi_sim/benign_clients/benign_burst_client.py", line 148, in run
+    payload, msg_id = _reading_payload(seq, burst_num, event)
+                      ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sayed-edge-device-pi/Desktop/pi_project/pi_sim/benign_clients/benign_burst_client.py", line 100, in _reading_payload
+    sealed = protect(fields)
+  File "/home/sayed-edge-device-pi/Desktop/pi_project/pi_sim/device_hop/publish.py", line 25, in protect
+    raise RuntimeError(
+        "DEVICE_HOP=1 but the gateway public key or this device's signing key is not pinned"
+    )
+RuntimeError: DEVICE_HOP=1 but the gateway public key or this device's signing key is not pinned

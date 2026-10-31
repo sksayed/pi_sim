@@ -1,0 +1,19 @@
+[BENIGN-STEADY] Connecting to 10.96.208.39:1883 ...
+[BENIGN-STEADY] Connected to 10.96.208.39:1883  topic=nodes/benign-steady-7a9d3a/data  interval=2.0s
+Traceback (most recent call last):
+  File "/home/sayed-edge-device-pi/Desktop/pi_project/pi_sim/benign_clients/run_benign.py", line 203, in <module>
+    main()
+    ~~~~^^
+  File "/home/sayed-edge-device-pi/Desktop/pi_project/pi_sim/benign_clients/run_benign.py", line 189, in main
+    run()
+    ~~~^^
+  File "/home/sayed-edge-device-pi/Desktop/pi_project/pi_sim/benign_clients/benign_steady_client.py", line 122, in run
+    payload, msg_id = _sensor_payload(seq)
+                      ~~~~~~~~~~~~~~~^^^^^
+  File "/home/sayed-edge-device-pi/Desktop/pi_project/pi_sim/benign_clients/benign_steady_client.py", line 79, in _sensor_payload
+    sealed = protect(fields)
+  File "/home/sayed-edge-device-pi/Desktop/pi_project/pi_sim/device_hop/publish.py", line 25, in protect
+    raise RuntimeError(
+        "DEVICE_HOP=1 but the gateway public key or this device's signing key is not pinned"
+    )
+RuntimeError: DEVICE_HOP=1 but the gateway public key or this device's signing key is not pinned
