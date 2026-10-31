@@ -1,0 +1,23 @@
+{
+  "session": "E4_rep50",
+  "run": "E4",
+  "role": "extra_client",
+  "tag": "pi2",
+  "gateway_ip": "10.137.166.39",
+  "client_ip": "10.137.166.20",
+  "client_host": "sayed-edge-device-2-pi",
+  "clock_offset_s": -0.03925061225891113,
+  "pi_b_role": "attacks_b",
+  "attacks": [
+    "malformed",
+    "connect_flood",
+    "port_scan",
+    "udp_flood",
+    "syn_flood"
+  ],
+  "attack_slice": "b",
+  "attacks_only": true,
+  "auto": true,
+  "start_wall_ns": 1793393310287552332,
+  "stop_wall_ns": 1793393794469738194
+}
