@@ -1,8 +1,8 @@
 {
-  "accuracy": 0.7151562709729378,
-  "macro_f1": 0.7090116201829416,
-  "train_time_sec": 13.954335959002492,
-  "n_train_samples": 1137427,
+  "accuracy": 0.7138408483133886,
+  "macro_f1": 0.7018459198390362,
+  "train_time_sec": 18.137131862022216,
+  "n_train_samples": 1135006,
   "n_test_samples": 484255,
   "n_features": 32,
   "classes": [
@@ -86,8 +86,9 @@
     "Protocol Type"
   ],
   "calibration_sessions": [
-    "results/calibration/gateway/C1"
+    "../results/gateway/E1_rep70",
+    "../results/gateway/E1_rep71"
   ],
-  "calibration_segments": 375,
-  "calibration_copies": 20
+  "calibration_segments": 5079,
+  "calibration_copies": 1
 }
