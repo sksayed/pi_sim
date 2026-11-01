@@ -1,0 +1,8 @@
+[BENIGN-SUB] Connecting to 10.82.71.39:1883 ...
+[BENIGN-SUB] Connected. Subscribed to: ['nodes/+/data']  QoS=1
+[BENIGN-SUB] Received 50 messages  (last topic: nodes/pi1-steady/data  size: 6605B)
+[BENIGN-SUB] Received 100 messages  (last topic: nodes/pi1-mixed/data  size: 6572B)
+[BENIGN-SUB] Received 150 messages  (last topic: nodes/pi1-steady/data  size: 6605B)
+[BENIGN-SUB] Received 200 messages  (last topic: nodes/pi1-steady/data  size: 6605B)
+[BENIGN-SUB] Received 250 messages  (last topic: nodes/pi1-steady/data  size: 6605B)
+[BENIGN-SUB] Received 300 messages  (last topic: nodes/pi1-steady/data  size: 6605B)
