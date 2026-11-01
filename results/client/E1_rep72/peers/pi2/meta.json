@@ -1,0 +1,18 @@
+{
+  "session": "E1_rep72",
+  "run": "E1",
+  "role": "extra_client",
+  "tag": "pi2",
+  "gateway_ip": "10.82.71.39",
+  "client_ip": "10.82.71.20",
+  "client_host": "sayed-edge-device-2-pi",
+  "clock_offset_s": 0.007121091,
+  "clock_offset_ns": 7121091,
+  "pi_b_role": "benign",
+  "attacks": [],
+  "attack_slice": "all",
+  "attacks_only": false,
+  "auto": true,
+  "start_wall_ns": 1793490958546167280,
+  "stop_wall_ns": 1793491596136433764
+}
