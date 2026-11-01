@@ -1,0 +1,7 @@
+-P INPUT ACCEPT
+-P FORWARD ACCEPT
+-P OUTPUT ACCEPT
+-A INPUT -p udp -m udp --dport 1883 -j NFQUEUE --queue-num 0 --queue-bypass
+-A INPUT -p tcp -m tcp --dport 1883 -j NFQUEUE --queue-num 0 --queue-bypass
+-A OUTPUT -p udp -m udp --sport 1883 -j NFQUEUE --queue-num 0 --queue-bypass
+-A OUTPUT -p tcp -m tcp --sport 1883 -j NFQUEUE --queue-num 0 --queue-bypass

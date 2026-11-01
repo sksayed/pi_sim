@@ -1,0 +1,4 @@
+Chain INPUT (policy ACCEPT 619604 packets, 258540802 bytes)
+    pkts      bytes target     prot opt in     out     source               destination         
+   57904  2084544 NFQUEUE    udp  --  *      *       0.0.0.0/0            0.0.0.0/0            udp dpt:1883 NFQUEUE num 0 bypass
+   24188 15361198 NFQUEUE    tcp  --  *      *       0.0.0.0/0            0.0.0.0/0            tcp dpt:1883 NFQUEUE num 0 bypass
